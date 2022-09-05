@@ -21,6 +21,7 @@ import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 
 @RestController()
+@CrossOrigin
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);

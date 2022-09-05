@@ -14,11 +14,8 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                /*.csrf()
-                .and()*/
                 .sessionManagement(session -> session.maximumSessions(1))
-                .csrf().disable()
-                .cors().disable()
+                //.csrf().disable()
                 .httpBasic().disable()
                 .build();
     }
