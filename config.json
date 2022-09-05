@@ -5,6 +5,7 @@
     "queryPort": 27165,
     "rconPort": 21114,
     "rconPassword": "core@12345",
+    "adminPanelPort": 80,
     "steamApiKey": "D24E3D9EB90500EB1979B72B06B4D903",
     "logFilePath":"",
     "adminLists": [

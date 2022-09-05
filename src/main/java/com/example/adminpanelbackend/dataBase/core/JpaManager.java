@@ -1,4 +1,4 @@
-package com.example.adminpanelbackend.dataBase;
+package com.example.adminpanelbackend.dataBase.core;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;

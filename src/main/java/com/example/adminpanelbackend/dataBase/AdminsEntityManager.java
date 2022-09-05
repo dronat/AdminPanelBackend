@@ -1,15 +1,15 @@
 package com.example.adminpanelbackend.dataBase;
 
+import com.example.adminpanelbackend.dataBase.core.JpaConnection;
+import com.example.adminpanelbackend.dataBase.core.JpaManager;
 import com.example.adminpanelbackend.repository.AdminEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.Persistence;
-
-public class AdminsEntityManager extends JpaManager{
+public class AdminsEntityManager extends JpaManager implements JpaConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminsEntityManager.class);
     public AdminsEntityManager() {
-        super(Persistence.createEntityManagerFactory("AdminPanelPersistence").createEntityManager());
+        super(EMF_THREAD_LOCAL.getEntityManager());
     }
 
     public AdminEntity getAdminBySteamID(String strSteamId) {

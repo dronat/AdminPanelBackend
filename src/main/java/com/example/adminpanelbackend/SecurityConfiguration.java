@@ -5,10 +5,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 
 @Configuration
 @EnableWebSecurity
+@EnableJdbcHttpSession
 public class SecurityConfiguration {
 
     @Bean
@@ -18,10 +19,5 @@ public class SecurityConfiguration {
                 //.csrf().disable()
                 .httpBasic().disable()
                 .build();
-    }
-
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
     }
 }
