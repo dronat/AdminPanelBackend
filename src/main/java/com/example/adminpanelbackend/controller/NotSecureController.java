@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
 import java.util.HashMap;
 
 @RestController()
@@ -29,11 +30,11 @@ public class NotSecureController {
     private final RestTemplate restTemplate = new RestTemplate();
     AdminsEntityManager adminsEntityManager = new AdminsEntityManager();
 
-    @GetMapping(path = "/get-steam-link")
+    @PostMapping(path = "/get-steam-link")
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
                                                                 HttpServletRequest request,
                                                                 HttpServletResponse response,
-                                                                @RequestParam String callbackURL) {
+                                                                @RequestBody String callbackURL) {
         LOGGER.debug("Received unsecured GET request on '{}' with callbackURL '{}'", request.getRequestURL(), callbackURL);
         String steamLink = steamOpenID.login(callbackURL);
         if (steamLink == null || steamLink.isEmpty()) {
@@ -47,7 +48,7 @@ public class NotSecureController {
     }
 
     @PostMapping(path = "/verify-steam")
-    public ResponseEntity<HashMap<String, String>> verifySteam(HttpSession httpSession,
+    public ResponseEntity<String> verifySteam(HttpSession httpSession,
                                                                HttpServletRequest request,
                                                                HttpServletResponse response,
                                                                @RequestBody VerifySteamModel verifySteamModel) {
@@ -76,7 +77,7 @@ public class NotSecureController {
 
         adminsEntityManager.update(adminEntity);
         httpSession.setAttribute("userInfo", adminEntity);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
     }
 
     /*@GetMapping(path = "/verify-steam-return")
