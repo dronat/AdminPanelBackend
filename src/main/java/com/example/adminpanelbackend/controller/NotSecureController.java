@@ -34,7 +34,7 @@ public class NotSecureController {
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
                                                                 HttpServletRequest request,
                                                                 HttpServletResponse response,
-                                                                @RequestBody String callbackURL) {
+                                                                @RequestParam String callbackURL) {
         LOGGER.debug("Received unsecured GET request on '{}' with callbackURL '{}'", request.getRequestURL(), callbackURL);
         String steamLink = steamOpenID.login(callbackURL);
         if (steamLink == null || steamLink.isEmpty()) {
