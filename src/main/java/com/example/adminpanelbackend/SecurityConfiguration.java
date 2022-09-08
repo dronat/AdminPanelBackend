@@ -5,26 +5,47 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableWebSecurity
-public class SecurityConfiguration {
+@EnableWebSecurity()
+@EnableJdbcHttpSession
+public class SecurityConfiguration implements WebMvcConfigurer {
+
+    @Bean
+    CorsFilter corsFilter() {
+        CorsFilter filter = new CorsFilter();
+        return filter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                /*.csrf()
-                .and()*/
+                .authorizeRequests().antMatchers("/**").permitAll()
+                .and()
                 .sessionManagement(session -> session.maximumSessions(1))
                 .csrf().disable()
-                .cors().disable()
-                .httpBasic().disable()
+                //.httpBasic().disable()
                 .build();
     }
 
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedMethods("*");
     }
+
+    /*@Bean
+    public HttpSecurity configure(HttpSecurity http) throws Exception {
+        return http.authorizeRequests().antMatchers("/**").permitAll().and();
+    }*/
+
+    /*@Bean
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:4200")
+                .allowedMethods("*");
+    }*/
 }

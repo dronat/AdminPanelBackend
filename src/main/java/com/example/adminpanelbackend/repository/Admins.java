@@ -11,9 +11,7 @@ import java.sql.Timestamp;
 @Setter @Getter
 @Accessors(chain = true)
 @Entity
-
-
-public class AdminEntity implements Serializable {
+public class Admins implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id", nullable = false)
@@ -51,7 +49,7 @@ public class AdminEntity implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AdminEntity that = (AdminEntity) o;
+        Admins that = (Admins) o;
 
         if (id != null ? !id.equals(that.id) : that.id != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;

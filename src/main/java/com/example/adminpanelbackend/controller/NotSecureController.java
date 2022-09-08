@@ -4,8 +4,7 @@ import com.example.adminpanelbackend.SteamOpenID;
 import com.example.adminpanelbackend.dataBase.AdminsEntityManager;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
-import com.example.adminpanelbackend.repository.AdminEntity;
-import com.woop.Squad4J.connector.MySQLConnector;
+import com.example.adminpanelbackend.repository.Admins;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +17,11 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
 import java.util.HashMap;
 
 @RestController()
+@CrossOrigin
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);
@@ -28,7 +29,7 @@ public class NotSecureController {
     private final RestTemplate restTemplate = new RestTemplate();
     AdminsEntityManager adminsEntityManager = new AdminsEntityManager();
 
-    @GetMapping(path = "/get-steam-link")
+    @PostMapping(path = "/get-steam-link")
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
                                                                 HttpServletRequest request,
                                                                 HttpServletResponse response,
@@ -46,7 +47,7 @@ public class NotSecureController {
     }
 
     @PostMapping(path = "/verify-steam")
-    public ResponseEntity<HashMap<String, String>> verifySteam(HttpSession httpSession,
+    public ResponseEntity<String> verifySteam(HttpSession httpSession,
                                                                HttpServletRequest request,
                                                                HttpServletResponse response,
                                                                @RequestBody VerifySteamModel verifySteamModel) {
@@ -62,20 +63,20 @@ public class NotSecureController {
                 .getResponse()
                 .getPlayers()
                 .get(0);
-        AdminEntity adminEntity = adminsEntityManager.getAdminBySteamID(steamId);
-        if (adminEntity == null) {
+        Admins admins = adminsEntityManager.getAdminBySteamID(steamId);
+        if (admins == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        adminEntity
+        admins
                 .setName(steamUser.getPersonaname())
                 .setAvatar(steamUser.getAvatar())
                 .setAvatarMedium(steamUser.getAvatarmedium())
                 .setAvatarFull(steamUser.getAvatarfull());
 
-        adminsEntityManager.update(adminEntity);
-        httpSession.setAttribute("userInfo", adminEntity);
-        return ResponseEntity.ok().build();
+        adminsEntityManager.update(admins);
+        httpSession.setAttribute("userInfo", admins);
+        return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
     }
 
     /*@GetMapping(path = "/verify-steam-return")
