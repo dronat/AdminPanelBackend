@@ -4,6 +4,6 @@
              http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
     <persistence-unit name="AdminPanelPersistence" transaction-type="RESOURCE_LOCAL">
-        <class>com.example.adminpanelbackend.repository.AdminEntity</class>
+        <class>com.example.adminpanelbackend.repository.Admins</class>
     </persistence-unit>
 </persistence>

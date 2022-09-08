@@ -4,8 +4,7 @@ import com.example.adminpanelbackend.SteamOpenID;
 import com.example.adminpanelbackend.dataBase.AdminsEntityManager;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
-import com.example.adminpanelbackend.repository.AdminEntity;
-import com.woop.Squad4J.connector.MySQLConnector;
+import com.example.adminpanelbackend.repository.Admins;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,19 +63,19 @@ public class NotSecureController {
                 .getResponse()
                 .getPlayers()
                 .get(0);
-        AdminEntity adminEntity = adminsEntityManager.getAdminBySteamID(steamId);
-        if (adminEntity == null) {
+        Admins admins = adminsEntityManager.getAdminBySteamID(steamId);
+        if (admins == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        adminEntity
+        admins
                 .setName(steamUser.getPersonaname())
                 .setAvatar(steamUser.getAvatar())
                 .setAvatarMedium(steamUser.getAvatarmedium())
                 .setAvatarFull(steamUser.getAvatarfull());
 
-        adminsEntityManager.update(adminEntity);
-        httpSession.setAttribute("userInfo", adminEntity);
+        adminsEntityManager.update(admins);
+        httpSession.setAttribute("userInfo", admins);
         return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
     }
 
