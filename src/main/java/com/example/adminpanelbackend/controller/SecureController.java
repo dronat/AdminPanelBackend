@@ -31,6 +31,71 @@ public class SecureController {
         return ResponseEntity.ok(SquadServer.getTeamsWithSquadsAndPlayers());
     }
 
+    @PostMapping(path = "/ban-player")
+    public ResponseEntity<OnlineInfo> banPlayer(@SessionAttribute Admins userInfo,
+                                                  HttpSession httpSession,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response,
+                                                  @RequestParam String id,
+                                                  @RequestParam String banLength,
+                                                  @RequestParam String banReason) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/kick-player")
+    public ResponseEntity<OnlineInfo> kickPlayer(@SessionAttribute Admins userInfo,
+                                                  HttpSession httpSession,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response,
+                                                  @RequestParam String id,
+                                                  @RequestParam String kickReason) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/warn-player")
+    public ResponseEntity<OnlineInfo> warnPlayer(@SessionAttribute Admins userInfo,
+                                                  HttpSession httpSession,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response,
+                                                  @RequestParam String id,
+                                                  @RequestParam String warnReason) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/player-team-change")
+    public ResponseEntity<OnlineInfo> playerTeamChange(@SessionAttribute Admins userInfo,
+                                                  HttpSession httpSession,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response,
+                                                  @RequestParam String id) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/remove-player-from-squad")
+    public ResponseEntity<OnlineInfo> removePlayerFromSquad(@SessionAttribute Admins userInfo,
+                                                  HttpSession httpSession,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response,
+                                                  @RequestParam String id) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/disband-squad")
+    public ResponseEntity<OnlineInfo> disbandSquad(@SessionAttribute Admins userInfo,
+                                                  HttpSession httpSession,
+                                                  HttpServletRequest request,
+                                                  HttpServletResponse response,
+                                                  @RequestParam String teamId,
+                                                  @RequestParam String squadId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping(path = "/auth")
     public ResponseEntity<Void> auth(@SessionAttribute Admins userInfo,
                                      HttpSession httpSession,
