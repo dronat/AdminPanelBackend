@@ -9,12 +9,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
 public class FtpTailer implements Runnable {
     private final Logger LOGGER = LoggerFactory.getLogger(FtpTailer.class);
+
+    private final TailerListener TAILER_LISTENER;
     private final String HOST;
     private final int PORT;
     private final String USERNAME;
@@ -23,10 +26,10 @@ public class FtpTailer implements Runnable {
     private final String FILE_NAME;
     private final String ENCODING;
     private final long DELAY_IN_MILLIS;
-
-    private volatile boolean run;
     private long lastByteRead = 0;
-    private final TailerListener TAILER_LISTENER;
+    private String lastRowRead;
+    private volatile boolean run;
+
 
     public FtpTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
@@ -60,7 +63,7 @@ public class FtpTailer implements Runnable {
             while(run) {
                 long fileSize = getFileSize(ftpClient);
                 if (lastByteRead > fileSize) {
-                    lastByteRead = fileSize;
+                    lastByteRead = findLastByteReadByLastRowRead(ftpClient);
                 }
                 if (isFileChange(ftpClient)) {
                     getFileRows(ftpClient).forEach(TAILER_LISTENER::handle);
@@ -153,8 +156,23 @@ public class FtpTailer implements Runnable {
             byte[] receivedBytes = inputStream.readAllBytes();
             inputStream.close();
             ftpClient.completePendingCommand();
+            LinkedList<String> rows = new LinkedList<>(Arrays.stream(new String(receivedBytes).split("\r\n")).toList());
             lastByteRead += receivedBytes.length;
-            return Arrays.stream(new String(receivedBytes).split("\r\n")).toList();
+            lastRowRead = rows.getLast();
+            return rows;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get FTP file rows");
+            throw new RuntimeException(e);
+        }
+    }
+
+    private long findLastByteReadByLastRowRead(FTPClient ftpClient) {
+        try {
+            InputStream inputStream = ftpClient.retrieveFileStream(FILE_NAME);
+            String fileText = new String(inputStream.readAllBytes());
+            inputStream.close();
+            ftpClient.completePendingCommand();
+            return fileText.indexOf(lastRowRead + "\r\n") + (lastRowRead + "\r\n").getBytes().length;
         } catch (Exception e) {
             LOGGER.error("Failed to get FTP file rows");
             throw new RuntimeException(e);
