@@ -58,6 +58,10 @@ public class FtpTailer implements Runnable {
 
         try {
             while(run) {
+                long fileSize = getFileSize(ftpClient);
+                if (lastByteRead > fileSize) {
+                    lastByteRead = fileSize;
+                }
                 if (isFileChange(ftpClient)) {
                     getFileRows(ftpClient).forEach(TAILER_LISTENER::handle);
                 }
