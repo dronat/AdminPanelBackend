@@ -18,7 +18,7 @@ import java.util.Date;
 @Getter
 @ToString
 public class PlayerDisconnectedEvent extends Event {
-    private final String steamid;
+    private final long steamId;
 
     /**
      * Constructs a {@link PlayerDisconnectedEvent}.
@@ -26,10 +26,10 @@ public class PlayerDisconnectedEvent extends Event {
      * @param date a {@link Date} representing when the event occurred
      * @param type the corresponding {@link EventType} for this event
      * @param chainID the chain ID of this event
-     * @param steamid the Steam64ID of the player who disconnected
+     * @param steamId the Steam64ID of the player who disconnected
      */
-    public PlayerDisconnectedEvent(Date date, EventType type, Integer chainID, String steamid){
+    public PlayerDisconnectedEvent(Date date, EventType type, Integer chainID, long steamId){
         super(date, type, chainID);
-        this.steamid = steamid;
+        this.steamId = steamId;
     }
 }

@@ -36,6 +36,7 @@ public class Rcon {
 
         rconImpl.onRconPacket(rconPacket -> {
             if(rconPacket.getType() == RconImpl.SERVERDATA_BROADCAST){
+                LOGGER.info("\u001B[46m \u001B[30m" + rconPacket.getPayloadAsString() + "\u001B[0m");
                 LogParser.parseLine(rconPacket.getPayloadAsString());
             }
         });

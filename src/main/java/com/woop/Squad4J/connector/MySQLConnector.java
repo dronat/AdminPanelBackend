@@ -44,16 +44,16 @@ public class MySQLConnector extends Connector {
             LOGGER.info("Connected to MySQL server.");
             statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             checkAndCreateTables();
-            if (!serverExists()) {
+            /*if (!serverExists()) {
                 LOGGER.info("Server {} does not exist in DBLog_Servers, adding", serverID);
                 createServer();
-            }
+            }*/
         } catch (SQLException e) {
             LOGGER.error("SQL Exception.", e);
         }
     }
 
-    private static boolean serverExists() {
+    /*private static boolean serverExists() {
         try {
             String serverName = Query.queryInfo().getName();
             ResultSet rs = statement.executeQuery("SELECT `id`, `server` FROM DBLog_Servers WHERE id = " + serverID + ";");
@@ -81,11 +81,11 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             LOGGER.error("Error updating server name.", e);
         }
-    }
+    }*/
 
     private static void checkAndCreateTables() throws SQLException {
         //Dont query information schema, just try to select from tables and if error, then they dont exist
-        try {
+        /*try {
             statement.executeQuery("SELECT COUNT(*) FROM DBLog_Servers");
         } catch (SQLException e) {
             createDbLogServers();
@@ -106,11 +106,6 @@ public class MySQLConnector extends Connector {
             createDbLogPlayerCounts();
         }
         try {
-            statement.executeQuery("SELECT COUNT(*) FROM DBLog_SteamUsers");
-        } catch (SQLException e) {
-            createDbLogSteamUsers();
-        }
-        try {
             statement.executeQuery("SELECT COUNT(*) FROM DBLog_Wounds");
         } catch (SQLException e) {
             createDbLogWounds();
@@ -124,11 +119,41 @@ public class MySQLConnector extends Connector {
             statement.executeQuery("SELECT COUNT(*) FROM DBLog_Revives");
         } catch (SQLException e) {
             createDbLogRevives();
+        }*/
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM admins");
+        } catch (SQLException e) {
+            createAdmin();
         }
         try {
-            statement.executeQuery("SELECT COUNT(*) FROM Admins");
+            statement.executeQuery("SELECT COUNT(*) FROM admins_action_log");
         } catch (SQLException e) {
-            createAdmins();
+            createAdminActionLog();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM players");
+        } catch (SQLException e) {
+            createPlayers();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM players_bans");
+        } catch (SQLException e) {
+            createPlayersBans();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM players_kicks");
+        } catch (SQLException e) {
+            createPlayersKicks();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM players_messages");
+        } catch (SQLException e) {
+            createPlayersMessages();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM players_notes");
+        } catch (SQLException e) {
+            createPlayersNotes();
         }
         try {
             statement.executeQuery("SELECT COUNT(*) FROM Spring_Session");
@@ -138,7 +163,7 @@ public class MySQLConnector extends Connector {
         }
     }
 
-    private static void createDbLogServers() throws SQLException {
+    /*private static void createDbLogServers() throws SQLException {
         LOGGER.info("Creating table DBLog_Servers");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS DBLog_Servers (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
@@ -192,16 +217,8 @@ public class MySQLConnector extends Connector {
                 "KEY `server` (`server`)," +
                 "KEY `match` (`match`)," +
                 "CONSTRAINT `squad4j_dblog_playercounts_fk_server` FOREIGN KEY (`server`) REFERENCES `DBLog_Servers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_playercoutns_fk_match` FOREIGN KEY (`match`) REFERENCES `DBLog_Matches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE" +
-                ") CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    }
-
-    private static void createDbLogSteamUsers() throws SQLException {
-        LOGGER.info("Creating table DBLog_SteamUsers");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS DBLog_SteamUsers(" +
-                "steamID VARCHAR(255) PRIMARY KEY," +
-                "lastName VARCHAR(255)" +
-                ") CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                "CONSTRAINT `squad4j_dblog_playercoutns_fk_match` FOREIGN KEY (`match`) REFERENCES `DBLog_Matches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE) " +
+                "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
 
     private static void createDbLogWounds() throws SQLException {
@@ -226,8 +243,8 @@ public class MySQLConnector extends Connector {
                 "KEY `victim` (`victim`)," +
                 "KEY `match` (`match`)," +
                 "CONSTRAINT `squad4j_dblog_wounds_fk_server` FOREIGN KEY (`server`) REFERENCES `DBLog_Servers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_wounds_fk_attacker` FOREIGN KEY (`attacker`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_wounds_fk_victim` FOREIGN KEY (`victim`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_wounds_fk_attacker` FOREIGN KEY (`attacker`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_wounds_fk_victim` FOREIGN KEY (`victim`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
                 "CONSTRAINT `squad4j_dblog_wounds_fk_match` FOREIGN KEY (`match`) REFERENCES `DBLog_Matches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE" +
                 ") CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
@@ -256,8 +273,8 @@ public class MySQLConnector extends Connector {
                 "KEY `victim` (`victim`)," +
                 "KEY `match` (`match`)," +
                 "CONSTRAINT `squad4j_dblog_deaths_fk_server` FOREIGN KEY (`server`) REFERENCES `DBLog_Servers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_deaths_fk_attacker` FOREIGN KEY (`attacker`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_deaths_fk_victim` FOREIGN KEY (`victim`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_deaths_fk_attacker` FOREIGN KEY (`attacker`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_deaths_fk_victim` FOREIGN KEY (`victim`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
                 "CONSTRAINT `squad4j_dblog_deaths_fk_match` FOREIGN KEY (`match`) REFERENCES `DBLog_Matches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE" +
                 ") CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
@@ -291,30 +308,98 @@ public class MySQLConnector extends Connector {
                 "KEY `reviver` (`reviver`)," +
                 "KEY `match` (`match`)," +
                 "CONSTRAINT `squad4j_dblog_revives_fk_server` FOREIGN KEY (`server`) REFERENCES `DBLog_Servers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_revives_fk_attacker` FOREIGN KEY (`attacker`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_revives_fk_victim` FOREIGN KEY (`victim`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
-                "CONSTRAINT `squad4j_dblog_revives_fk_reviver` FOREIGN KEY (`reviver`) REFERENCES `DBLog_SteamUsers` (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_revives_fk_attacker` FOREIGN KEY (`attacker`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_revives_fk_victim` FOREIGN KEY (`victim`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
+                "CONSTRAINT `squad4j_dblog_revives_fk_reviver` FOREIGN KEY (`reviver`) REFERENCES old_players (`steamID`) ON DELETE CASCADE ON UPDATE CASCADE," +
                 "CONSTRAINT `squad4j_dblog_revives_fk_match` FOREIGN KEY (`match`) REFERENCES `DBLog_Matches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE" +
                 ") CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    }
+    }*/
 
-    private static void createAdmins() throws SQLException {
+    private static void createAdmin() throws SQLException {
         LOGGER.info("Creating table Admins");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS Admins(" +
-                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "steamId BIGINT NOT NULL PRIMARY KEY," +
                 "name VARCHAR(16) NOT NULL," +
-                "steamId BIGINT NOT NULL ," +
                 "steamSign VARCHAR(32) null," +
-                "role INT NOT NULL ," +
+                "role INT NOT NULL," +
                 "avatar VARCHAR(255) null," +
                 "avatarMedium VARCHAR(255) null," +
                 "avatarFull VARCHAR(255) null," +
+                "session CHAR(36) null," +
                 "createTime DATETIME DEFAULT NOW() NOT NULL," +
                 "modifiedTime DATETIME DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP NOT NULL," +
-                "CONSTRAINT id_UNIQUE UNIQUE (id)," +
                 "CONSTRAINT steam_id_UNIQUE UNIQUE (steamId)," +
-                "CONSTRAINT steam_sign_UNIQUE UNIQUE (steamSign)" +
-                ") CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                "CONSTRAINT adminSessionId FOREIGN KEY (session) REFERENCES spring_session (PRIMARY_ID));");
+    }
+
+    public static void createAdminActionLog() throws SQLException {
+        LOGGER.info("Creating table Admin_Action_Log");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS Admins_Action_Log (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "adminSteamId BIGINT NOT NULL, " +
+                "action VARCHAR(255) NOT NULL, " +
+                "createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
+                "CONSTRAINT logAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
+    }
+
+    private static void createPlayers() throws SQLException {
+        LOGGER.info("Creating table Players");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS Players (" +
+                "steamId BIGINT PRIMARY KEY," +
+                "name VARCHAR(255)," +
+                "createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)");
+    }
+
+    private static void createPlayersBans() throws SQLException {
+        LOGGER.info("Creating table Players_Bans");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_bans (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "playerSteamId BIGINT NOT NULL," +
+                "adminSteamId BIGINT NOT NULL," +
+                "reason VARCHAR(255) NULL," +
+                "isUnbannedManually BOOL DEFAULT false NOT NULL, " +
+                "unbannedAdminId BIGINT NULL," +
+                "unbannedTime DATETIME NULL," +
+                "expirationTime DATETIME NOT NULL," +
+                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
+                "CONSTRAINT bansSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
+                "CONSTRAINT bansAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId)," +
+                "CONSTRAINT unbanAdminId FOREIGN KEY (unbannedAdminId) REFERENCES admins(steamId));");
+    }
+
+    private static void createPlayersNotes() throws SQLException {
+        LOGGER.info("Creating table Players_Notes");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_notes (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "playerSteamId BIGINT NOT NULL," +
+                "adminSteamId BIGINT NOT NULL," +
+                "note VARCHAR(255) NOT NULL," +
+                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
+                "CONSTRAINT notesSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
+                "CONSTRAINT notesAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
+    }
+
+    private static void createPlayersMessages() throws SQLException {
+        LOGGER.info("Creating table Players_Messages");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_messages (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "playerSteamId BIGINT NOT NULL," +
+                "chatType VARCHAR(16) NOT NULL," +
+                "message VARCHAR(255) NOT NULL," +
+                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
+                "CONSTRAINT messagesSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId));");
+    }
+
+    private static void createPlayersKicks() throws SQLException {
+        LOGGER.info("Creating table Players_Kicks");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_kicks (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "playerSteamId BIGINT NOT NULL," +
+                "adminSteamId BIGINT NOT NULL," +
+                "reason VARCHAR(255) NULL," +
+                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
+                "CONSTRAINT kicksSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
+                "CONSTRAINT kicksAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
     }
 
     public static void createSpringSessions() throws SQLException {
@@ -341,7 +426,7 @@ public class MySQLConnector extends Connector {
                 ") ENGINE=InnoDB ROW_FORMAT=DYNAMIC;");
     }
 
-    private static void createServer() {
+    /*private static void createServer() {
         //TODO: If query times out, info is null. Fix
         A2SInfoResponse info = Query.queryInfo();
         String serverName = info.getName();
@@ -355,7 +440,7 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             LOGGER.error("SQL exception while creating server.", e);
         }
-    }
+    }*/
 
     public static Integer getCurrentMatchId() {
         try {

@@ -1,15 +1,16 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.SteamOpenID;
-import com.example.adminpanelbackend.dataBase.AdminsEntityManager;
+import com.example.adminpanelbackend.dataBase.EntityManager;
+import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
-import com.example.adminpanelbackend.repository.Admins;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -27,7 +28,8 @@ public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);
     private final SteamOpenID steamOpenID = new SteamOpenID();
     private final RestTemplate restTemplate = new RestTemplate();
-    AdminsEntityManager adminsEntityManager = new AdminsEntityManager();
+    EntityManager entityManager = new EntityManager();
+    private final String steamApiKey = ConfigLoader.get("server.steamApiKey", String.class);
 
     @PostMapping(path = "/get-steam-link")
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
@@ -48,34 +50,33 @@ public class NotSecureController {
 
     @PostMapping(path = "/verify-steam")
     public ResponseEntity<String> verifySteam(HttpSession httpSession,
-                                                               HttpServletRequest request,
-                                                               HttpServletResponse response,
-                                                               @RequestBody VerifySteamModel verifySteamModel) {
+                                              HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              @RequestBody VerifySteamModel verifySteamModel) {
         LOGGER.debug("Received unsecured POST request on '{}' with body '{}'", request.getRequestURL(), verifySteamModel);
-        String steamId = steamOpenID.verify(verifySteamModel); //v9d40/R7AjkxzN3yBbko5HP8Zhg=
+        String steamId = steamOpenID.verify(verifySteamModel);
         if (steamId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        String steamApiKey = ConfigLoader.get("server.steamApiKey", String.class);
         SteamUserModel.Response.Player steamUser = restTemplate
                 .getForObject("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + steamApiKey + "&steamids=" + steamId, SteamUserModel.class)
                 .getResponse()
                 .getPlayers()
                 .get(0);
-        Admins admins = adminsEntityManager.getAdminBySteamID(steamId);
-        if (admins == null) {
+        AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
+        if (adminEntity == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        admins
-                .setName(steamUser.getPersonaname())
+        adminEntity.setName(steamUser.getPersonaname())
                 .setAvatar(steamUser.getAvatar())
                 .setAvatarMedium(steamUser.getAvatarmedium())
                 .setAvatarFull(steamUser.getAvatarfull());
 
-        adminsEntityManager.update(admins);
-        httpSession.setAttribute("userInfo", admins);
+        entityManager.update(adminEntity);
+        httpSession.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, String.valueOf(adminEntity.getSteamId()));
+        httpSession.setAttribute("userInfo", adminEntity);
         return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
     }
 
@@ -110,7 +111,7 @@ public class NotSecureController {
                     put("openid.ns", ns);
                 }});
 
-        String steamId = steamOpenID.verify(verifySteamModel); //v9d40/R7AjkxzN3yBbko5HP8Zhg=
+        String steamId = steamOpenID.verify(verifySteamModel);
         if (steamId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -121,7 +122,7 @@ public class NotSecureController {
                 .getResponse()
                 .getPlayers()
                 .get(0);
-        AdminEntity adminEntity = adminsEntityManager.getAdminBySteamID(steamId);
+        AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
         if (adminEntity == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -132,7 +133,7 @@ public class NotSecureController {
                 .setAvatarMedium(steamUser.getAvatarmedium())
                 .setAvatarFull(steamUser.getAvatarfull());
 
-        adminsEntityManager.update(adminEntity);
+        entityManager.update(adminEntity);
         httpSession.setAttribute("userInfo", adminEntity);
         return ResponseEntity.ok().build();
     }*/
@@ -161,5 +162,5 @@ public class NotSecureController {
         return "redirect:/";
     }*/
 
-   // public boolean checkAuth(SteamUserModel)
+    // public boolean checkAuth(SteamUserModel)
 }

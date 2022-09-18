@@ -19,22 +19,22 @@ import java.util.Date;
  */
 @Getter
 @ToString
-public class SteamidConnectedEvent extends Event {
-    private final String steamid;
+public class SteamIdConnectedEvent extends Event {
+    private final long steamId;
     private final String name;
 
     /**
-     * Constructs a {@link SteamidConnectedEvent}.
+     * Constructs a {@link SteamIdConnectedEvent}.
      *
      * @param date a {@link Date} corresponding to when this event occurred
      * @param type the corresponding {@link EventType} for this event
      * @param chainID the chain ID of this event
-     * @param steamid the steam64id of the player that connected
+     * @param steamId the steam64id of the player that connected
      * @param name the name of the player that connected
      */
-    public SteamidConnectedEvent(Date date, EventType type, Integer chainID, String steamid, String name){
+    public SteamIdConnectedEvent(Date date, EventType type, Integer chainID, long steamId, String name){
         super(date, type, chainID);
-        this.steamid = steamid;
+        this.steamId = steamId;
         this.name = name;
         //TODO: Cache steamid with playername for connected, remove from cache when disconnected
     }

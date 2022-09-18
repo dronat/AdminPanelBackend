@@ -57,7 +57,7 @@ public class QueryImpl {
 
         String payload = "Source Engine Query\0";
 
-        ByteBuffer buffer = ByteBuffer.allocate(5 + payload.getBytes(StandardCharsets.UTF_8).length);
+        ByteBuffer buffer = ByteBuffer.allocate(5 + payload.getBytes("WINDOWS-1251").length);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
 
         buffer.put((byte)0xFF);
@@ -65,7 +65,7 @@ public class QueryImpl {
         buffer.put((byte)0xFF);
         buffer.put((byte)0xFF);
         buffer.put((byte)'T');
-        buffer.put(payload.getBytes(StandardCharsets.UTF_8));
+        buffer.put(payload.getBytes("WINDOWS-1251"));
 
         send(this.socket, inetAddress, this.port, buffer.array());
 
@@ -83,7 +83,7 @@ public class QueryImpl {
             buffer.put((byte) 0xFF);
             buffer.put((byte) 0xFF);
             buffer.put((byte) 'T');
-            buffer.put(payload.getBytes(StandardCharsets.UTF_8));
+            buffer.put(payload.getBytes("WINDOWS-1251"));
             for (int i = 5; i <= 8; i++) {
                 buffer.put(receivedData[i]);
             }

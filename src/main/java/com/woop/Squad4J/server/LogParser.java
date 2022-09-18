@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 /**
  * Class whose responsibility is parsing lines passed to it from {@link LogTailer}.
- *
+ * <p>
  * Parsing lines involves determining what type of {@link Event} a specific line should emit, creating said event,
  * and passing it to the {@link EventEmitter}, which is responsible for passing the event to the {@link SquadServer}
  * and to any plugins which are event-bound.
@@ -33,7 +33,7 @@ public class LogParser {
     private static final Map<Pattern, EventType> logPatterns = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(LogParser.class);
 
-    static{
+    static {
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)\\]\\[([ 0-9]*)\\]LogSquad: ADMIN COMMAND: Message broadcasted <(.+)> from (.+)"), EventType.ADMIN_BROADCAST);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogSquadTrace: \\[DedicatedServer](?:ASQDeployable::)?TakeDamage\\(\\): ([A-z0-9_]+)_C_[0-9]+: ([0-9.]+) damage attempt by causer ([A-z0-9_]+)_C_[0-9]+ instigator (.+) with damage type ([A-z0-9_]+)_C health remaining ([0-9.]+)"), EventType.DEPLOYABLE_DAMAGED);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogWorld: Bringing World \\/([A-z]+)\\/(?:Maps\\/)?([A-z0-9-]+)\\/(?:.+\\/)?([A-z0-9-]+)(?:\\.[A-z0-9-]+) up for play \\(max tick rate ([0-9]+)\\) at ([.0-9]+)-([.0-9]+)"), EventType.NEW_GAME);
@@ -57,11 +57,11 @@ public class LogParser {
         logPatterns.put(Pattern.compile("Banned player ([0-9]+)\\. \\[steamid=(.*?)\\] (.*) for interval (.*)"), EventType.PLAYER_BANNED);
     }
 
-    private LogParser(){
+    private LogParser() {
         throw new UnsupportedOperationException("You cannot instantiate this class.");
     }
 
-    public static void parseLine(String line){
+    public static void parseLine(String line) {
         LOGGER.trace("Received {}", line);
 
         AtomicReference<Event> event = new AtomicReference<>(null);
@@ -71,9 +71,9 @@ public class LogParser {
         logPatterns.forEach((pattern, type) -> {
 
             Matcher matcher = pattern.matcher(line);
-            if(matcher.find()){
-                try{
-                    switch (type){
+            if (matcher.find()) {
+                try {
+                    switch (type) {
                         case ADMIN_BROADCAST:
                             event.set(new AdminBroadcastEvent(
                                     formatter.parse(matcher.group(1)),
@@ -109,10 +109,10 @@ public class LogParser {
                             break;
                         case PLAYER_CONNECTED:
                             event.set(new PlayerConnectedEvent(
-                               formatter.parse(matcher.group(1)),
-                               type,
-                               Integer.parseInt(matcher.group(2).strip()),
-                               matcher.group(3)
+                                    formatter.parse(matcher.group(1)),
+                                    type,
+                                    Integer.parseInt(matcher.group(2).strip()),
+                                    matcher.group(3)
                             ));
                             break;
                         case PLAYER_DAMAGED:
@@ -143,7 +143,7 @@ public class LogParser {
                                     formatter.parse(matcher.group(1)),
                                     type,
                                     Integer.parseInt(matcher.group(2).strip()),
-                                    matcher.group(3)
+                                    Long.parseLong(matcher.group(4))
                             ));
                             break;
                         case PLAYER_POSSESS:
@@ -206,18 +206,18 @@ public class LogParser {
                                     type,
                                     Integer.parseInt(matcher.group(2).strip()),
                                     matcher.group(3),
-                                    matcher.group(4),
+                                    Long.parseLong(matcher.group(4)),
                                     Integer.parseInt(matcher.group(5)),
                                     matcher.group(6),
                                     matcher.group(7)
                             ));
                             break;
                         case STEAMID_CONNECTED:
-                            event.set(new SteamidConnectedEvent(
+                            event.set(new SteamIdConnectedEvent(
                                     formatter.parse(matcher.group(1)),
                                     type,
                                     Integer.parseInt(matcher.group(2).strip()),
-                                    matcher.group(3),
+                                    Long.parseLong(matcher.group(3)),
                                     matcher.group(4)
                             ));
                             break;
@@ -226,7 +226,7 @@ public class LogParser {
                                     new Date(),
                                     type,
                                     matcher.group(1),
-                                    matcher.group(2),
+                                    Long.parseLong(matcher.group(2)),
                                     matcher.group(3),
                                     matcher.group(4)
                             ));
@@ -235,8 +235,8 @@ public class LogParser {
                             event.set(new PlayerBannedEvent(
                                     new Date(),
                                     type,
-                                    matcher.group(1),
-                                    matcher.group(2),
+                                    Long.parseLong(matcher.group(1)),
+                                    Long.parseLong(matcher.group(2)),
                                     matcher.group(3),
                                     matcher.group(4)
                             ));
@@ -245,8 +245,8 @@ public class LogParser {
                             event.set(new PlayerKickedEvent(
                                     new Date(),
                                     type,
-                                    matcher.group(1),
-                                    matcher.group(2),
+                                    Long.parseLong(matcher.group(1)),
+                                    Long.parseLong(matcher.group(2)),
                                     matcher.group(3)
                             ));
                             break;
@@ -261,14 +261,14 @@ public class LogParser {
                         default:
                             LOGGER.trace("Unrecognized event passed to LogParser, ignoring.");
                     }
-                }catch (ParseException e){
+                } catch (ParseException e) {
                     LOGGER.error("Error parsing date.");
                     LOGGER.error(e.getMessage());
                 }
             }
         }); //end logPatterns forEach
 
-        if(event.get() != null){
+        if (event.get() != null) {
             EventEmitter.emit(event.get());
         }
 

@@ -7,6 +7,7 @@ import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.logparser.ServerTickRateEvent;
 import com.woop.Squad4J.server.EventEmitter;
 import com.woop.Squad4J.server.SquadServer;
+import com.woop.Squad4J.server.tailer.FtpBanService;
 import com.woop.Squad4J.server.tailer.TailerService;
 import com.woop.Squad4J.util.logger.LoggerUtil;
 import org.slf4j.Logger;
@@ -32,46 +33,11 @@ import java.util.Date;
 
 public class SquadModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(SquadModule.class);
-    
-    /*public static void main(String[] args){
-        //Initialize logger before pushing any output to console
-        LoggerUtil.init();
-
-        printLogo();
-
-        //Initialize services
-        //Initialize RCON service
-        Rcon.init();
-        //Initailize query service
-        Query.init();
-        //Initialize log tailer service
-        TailerService.init();
-
-        //Initialize servers
-        //Initialize squad server
-        SquadServer.init();
-
-        //Initialize connectors
-        MySQLConnector.init();
-
-        //Initialize event emitter last
-        //Intialize event emitter service
-        EventEmitter.init();
-
-        //TODO: Remove me after debugging
-        Event testEvent = new ServerTickRateEvent(new Date(), EventType.SERVER_TICK_RATE, 0, 35.5);
-
-        LOGGER.debug("Emitting {}", testEvent);
-        EventEmitter.emit(testEvent);
-        System.out.println();
-    }*/
 
     public static void init() {
         //Initialize logger before pushing any output to console
         LoggerUtil.init();
 
-        printLogo();
-
         //Initailize query service
         Query.init();
 
@@ -84,6 +50,8 @@ public class SquadModule {
 
         //Initialize log tailer service
         TailerService.init();
+
+        new Thread(new FtpBanService()).start();
 
         //Initialize servers
         //Initialize squad server
@@ -99,16 +67,34 @@ public class SquadModule {
         LOGGER.debug("Emitting {}", testEvent);
 
         EventEmitter.emit(testEvent);
+
+        printLogo();
     }
 
     private static void printLogo() {
-        LOGGER.info("   _____                       _   _  _       _ ");
-        LOGGER.info("  / ____|                     | | | || |     | |");
-        LOGGER.info(" | (___   __ _ _   _  __ _  __| | | || |_    | |");
-        LOGGER.info("  \\___ \\ / _` | | | |/ _` |/ _` | |__   _|   | |");
-        LOGGER.info("  ____) | (_| | |_| | (_| | (_| |    | || |__| |");
-        LOGGER.info(" |_____/ \\__, |\\__,_|\\__,_|\\__,_|    |_| \\____/ ");
-        LOGGER.info("            | |                                 ");
-        LOGGER.info("            |_|                                 ");
+        String color = "\u001B[46m \u001B[30m";
+        LOGGER.info(color);
+        LOGGER.info(color + "          //\\\\                 //\\\\              //   ||          //\\\\              //\\\\          ||===========");
+        LOGGER.info(color + "         //  \\\\               //  \\\\            //               //  \\\\            //  \\\\         ||           ");
+        LOGGER.info(color + "        //    \\\\             //    \\\\          //     ||        //    \\\\          //    \\\\        ||           ");
+        LOGGER.info(color + "       //      \\\\           //      \\\\        //      ||       //      \\\\        //      \\\\       ||           ");
+        LOGGER.info(color + "      //        \\\\         //        \\\\      //       ||      //        \\\\      //        \\\\      ||===========");
+        LOGGER.info(color + "     //==========\\\\       //          \\\\    //        ||     //          \\\\    //          \\\\     ||           ");
+        LOGGER.info(color + "    //            \\\\     //            \\\\  //         ||    //            \\\\  //            \\\\    ||           ");
+        LOGGER.info(color + "   //              \\\\   //              \\\\//          ||   //              \\\\//              \\\\   ||===========");
+        LOGGER.info(color + "");
+        LOGGER.info(color + "");
+        LOGGER.info(color + "");
+        LOGGER.info(color + "     /=======\\          /=======\\       \\\\              //          //\\\\              //       /=======\\  ");
+        LOGGER.info(color + "    //       \\\\        //       \\\\       \\\\            //          //  \\\\            //       //       \\\\ ");
+        LOGGER.info(color + "   //                 //         \\\\       \\\\          //          //    \\\\          //       //         \\\\");
+        LOGGER.info(color + "  ||                 ||           ||       \\\\        //          //      \\\\        //       ||           || ");
+        LOGGER.info(color + "  ||      =====\\     ||           ||        \\\\      //          //        \\\\      //        ||           || ");
+        LOGGER.info(color + "   \\\\         //      \\\\         //          \\\\    //          //          \\\\    //          \\\\         //  ");
+        LOGGER.info(color + "    \\\\       //        \\\\       //            \\\\  //          //            \\\\  //            \\\\       //   ");
+        LOGGER.info(color + "     \\======//          \\=======/              \\\\//          //              \\\\//              \\=======/    ");
+        LOGGER.info(color);
+        LOGGER.info("\u001B[0m");
+        System.out.println();
     }
 }

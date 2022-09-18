@@ -10,7 +10,7 @@ import java.util.Objects;
 @Accessors(chain = true)
 public class OnlinePlayer implements Serializable {
     private final Integer id;
-    private final String steam64id;
+    private final Long steamId;
     private final String name;
     private final Integer teamId;
     private final Integer squadID;
@@ -23,11 +23,11 @@ public class OnlinePlayer implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OnlinePlayer onlinePlayer = (OnlinePlayer) o;
-        return getSteam64id().equals(onlinePlayer.getSteam64id());
+        return getSteamId().equals(onlinePlayer.getSteamId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSteam64id());
+        return Objects.hash(getSteamId());
     }
 }

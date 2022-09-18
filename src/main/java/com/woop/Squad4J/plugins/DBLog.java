@@ -18,6 +18,7 @@ public class DBLog implements A2SUpdatedListener, NewGameListener, PlayerDiedLis
         PlayerWoundedListener, RoundWinnerListener, ServerTickRateListener, SteamidConnectedListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DBLog.class);
+    //EntityManager entityManager = new EntityManager();
 
     @Override
     public void onA2SUpdated(A2SUpdatedEvent a2SUpdatedEvent) {
@@ -89,7 +90,7 @@ public class DBLog implements A2SUpdatedListener, NewGameListener, PlayerDiedLis
     }
 
     @Override
-    public void onSteamidConnected(SteamidConnectedEvent steamidConnectedEvent) {
+    public void onSteamIdConnected(SteamIdConnectedEvent steamidConnectedEvent) {
         //TODO: Implement
     }
 }

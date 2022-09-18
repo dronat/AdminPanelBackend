@@ -18,7 +18,7 @@ import java.util.Date;
 @Getter
 @ToString
 public class UnpossessedAdminCameraEvent extends Event {
-    private final String steamid;
+    private final long steamId;
     private final String name;
 
     /**
@@ -26,12 +26,12 @@ public class UnpossessedAdminCameraEvent extends Event {
      *
      * @param date a {@link Date} corresponding to when this event occurred
      * @param type the corresponding {@link EventType} for this event
-     * @param steamid the steam64id of the admin who exited admin cam
+     * @param steamId the steam64id of the admin who exited admin cam
      * @param name the name of the admin who exited admin cam
      */
-    public UnpossessedAdminCameraEvent(Date date, EventType type, String steamid, String name){
+    public UnpossessedAdminCameraEvent(Date date, EventType type, long steamId, String name){
         super(date, type);
-        this.steamid = steamid;
+        this.steamId = steamId;
         this.name = name;
     }
 }

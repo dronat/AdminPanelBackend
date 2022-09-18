@@ -65,7 +65,7 @@ public class TailerService {
 
     public static void initFtp() {
         TailerListener tailerListener = new LogTailer();
-        FtpTailer ftpTailerListener = new FtpTailer(tailerListener,
+        FtpLogTailer ftpLogTailerListener = new FtpLogTailer(tailerListener,
                 FTP_HOST,
                 FTP_PORT,
                 FTP_USER,
@@ -76,7 +76,7 @@ public class TailerService {
                 500);
 
         LOGGER.info("Watching logfile {} on FTP {} with path {}", FILE_NAME, FTP_HOST, FTP_LOG_ABSOLUTE_PATH);
-        new Thread(ftpTailerListener).start();
+        new Thread(ftpLogTailerListener).start();
 
         initialized = true;
         LOGGER.info("Log tailer service initialized");

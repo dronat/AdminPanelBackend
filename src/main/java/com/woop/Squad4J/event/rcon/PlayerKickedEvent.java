@@ -18,8 +18,8 @@ import java.util.Date;
 @Getter
 @ToString
 public class PlayerKickedEvent extends Event {
-    private final String playerid;
-    private final String steamid;
+    private final long playerId;
+    private final long steamId;
     private final String name;
 
     /**
@@ -27,14 +27,14 @@ public class PlayerKickedEvent extends Event {
      *
      * @param date a {@link Date} corresponding to when this event occurred
      * @param type the corresponding {@link EventType} for this event
-     * @param playerid the id the player kicked. This is NOT the steam64id
-     * @param steamid the steam64id of the player kicked
+     * @param playerId the id the player kicked. This is NOT the steam64id
+     * @param steamId the steam64id of the player kicked
      * @param name the name of the player kicked
      */
-    public PlayerKickedEvent(Date date, EventType type, String playerid, String steamid, String name){
+    public PlayerKickedEvent(Date date, EventType type, long playerId, long steamId, String name){
         super(date, type);
-        this.playerid = playerid;
-        this.steamid = steamid;
+        this.playerId = playerId;
+        this.steamId = steamId;
         this.name = name;
     }
 }
