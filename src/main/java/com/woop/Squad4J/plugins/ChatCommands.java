@@ -89,7 +89,7 @@ public class ChatCommands implements ChatMessageListener {
 
     @Override
     public void onChatMessage(ChatMessageEvent chatMessageEvent) {
-        String userSteamid = chatMessageEvent.getSteamid();
+        long userSteamId = chatMessageEvent.getSteamId();
         String message = chatMessageEvent.getMessage();
         String chatType = chatMessageEvent.getChatType();
 
@@ -100,7 +100,7 @@ public class ChatCommands implements ChatMessageListener {
                 List<String> ignoreChats = command.getIgnoreChats();
                 if(!ignoreChats.contains(chatType)){
                     String response = command.getResponse();
-                    Rcon.command(String.format("AdminWarn %s %s", userSteamid, response));
+                    Rcon.command(String.format("AdminWarn %s %s", userSteamId, response));
                 }
             }
             if(broadcastCommands.containsKey(message)){

@@ -1,5 +1,7 @@
 package com.woop.Squad4J.server;
 
+import com.example.adminpanelbackend.dataBase.EntityManager;
+import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.jayway.jsonpath.JsonPathException;
@@ -8,12 +10,10 @@ import com.woop.Squad4J.a2s.response.A2SRulesResponse;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
-import com.woop.Squad4J.event.logparser.NewGameEvent;
-import com.woop.Squad4J.event.logparser.PlayerDisconnectedEvent;
-import com.woop.Squad4J.event.logparser.RoundWinnerEvent;
-import com.woop.Squad4J.event.logparser.SteamidConnectedEvent;
+import com.woop.Squad4J.event.logparser.*;
 import com.woop.Squad4J.event.rcon.*;
 import com.woop.Squad4J.model.*;
+import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.util.AdminListReader;
 import com.woop.Squad4J.util.ConfigLoader;
 import lombok.Getter;
@@ -43,18 +43,16 @@ public class SquadServer {
 
     private static boolean initialized = false;
 
+    private static final EntityManager entityManager = new EntityManager();
+
     @Getter
     private static Integer id;
 
-    private static final BiMap<String, String> nameSteamIds = HashBiMap.create();
+    private static final BiMap<String, Long> nameSteamIds = HashBiMap.create();
 
-    @Getter
     private static Collection<OnlinePlayer> onlinePlayers;
-    @Getter
     private static Collection<DisconnectedPlayer> disconnectedPlayers;
-    @Getter
     private static Collection<Squad> squads;
-    @Getter
     private static Collection<Team> teams;
 
     private static List<String> adminSteamIds = new ArrayList<>();
@@ -151,6 +149,21 @@ public class SquadServer {
             A2SUpdater.updateA2S();
             RconUpdater.updateRcon();
 
+            getOnlinePlayers().forEach(onlinePlayer -> {
+                if (!entityManager.isPlayerExist(onlinePlayer.getSteamId())) {
+                    entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
+                } else {
+                    PlayerEntity playerEntity = entityManager.getPlayerBySteamId(onlinePlayer.getSteamId());
+                    if (!onlinePlayer.getName().equals(playerEntity.getName())) {
+                        //LOGGER.info("\u001B[46m \u001B[30m (onInit) Player change name from '{}' to '{}' \u001B[0m", playerEntity.getName(), onlinePlayer.getName());
+                        //String oldName = playerEntity.getName();
+                        playerEntity.setName(onlinePlayer.getName());
+                        entityManager.update(playerEntity);
+                        //entityManager.addPlayerNote(playerEntity, "Игрок изменил имя с '" + oldName + "' на '" + onlinePlayer.getName() + "'");
+                    }
+                }
+            });
+
             //Initialize service to update A2S and RCON information every 30 seconds.
             A2SUpdater.init();
             RconUpdater.init();
@@ -210,7 +223,9 @@ public class SquadServer {
                 RconUpdater.updatePlayerList();
                 RconUpdater.updateSquadList();
                 RconUpdater.updateLayerInfo();
-
+                if (currentLayer.toLowerCase().contains("raas")) {
+                    Rcon.command("AdminSetFogOfWar 0");
+                }
                 //TODO: Update admins since these can change between games
                 LOGGER.trace("Done updating SquadServer for NEW_GAME");
                 break;
@@ -220,7 +235,7 @@ public class SquadServer {
             case PLAYER_DISCONNECTED:
                 LOGGER.trace("Updating SquadServer for PLAYER_DISCONNECTED");
                 PlayerDisconnectedEvent playerDisconnectedEvent = (PlayerDisconnectedEvent) ev;
-                nameSteamIds.inverse().remove(playerDisconnectedEvent.getSteamid());
+                nameSteamIds.inverse().remove(playerDisconnectedEvent.getSteamId());
                 //TODO: Update admins if player disconnected has steam id in adminSteamIds
                 LOGGER.trace("Done updating SquadServer for PLAYER_DISCONNECTED");
                 break;
@@ -232,11 +247,39 @@ public class SquadServer {
                 break;
             case STEAMID_CONNECTED:
                 LOGGER.trace("Updating SquadServer for STEAMID_CONNECTED");
-                SteamidConnectedEvent steamidConnectedEvent = (SteamidConnectedEvent) ev;
-                nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamid());
+                SteamIdConnectedEvent steamidConnectedEvent = (SteamIdConnectedEvent) ev;
+                nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamId());
+                if (!entityManager.isPlayerExist(steamidConnectedEvent.getSteamId())) {
+                    RconUpdater.updatePlayerList();
+                    OnlinePlayer onlinePlayer = onlinePlayers.stream()
+                            .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
+                            .findFirst()
+                            .orElseThrow();
+                    entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
+                } else {
+                    RconUpdater.updatePlayerList();
+                    PlayerEntity playerEntity = entityManager.getPlayerBySteamId(steamidConnectedEvent.getSteamId());
+                    OnlinePlayer onlinePlayer = onlinePlayers.stream()
+                            .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
+                            .findFirst()
+                            .orElseThrow();
+                    if (!playerEntity.getName().equals(onlinePlayer.getName())) {
+                        //LOGGER.info("\u001B[46m \u001B[30m (onSteamIdConnected) Player change name from '{}' to '{}' \u001B[0m", playerEntity.getName(), onlinePlayer.getName());
+                        //String oldName = playerEntity.getName();
+                        playerEntity.setName(onlinePlayer.getName());
+                        entityManager.update(playerEntity);
+                        //entityManager.addPlayerNote(playerEntity, "Игрок изменил имя с '" + oldName + "' на '" + playerEntity.getName() + "'");
+                    }
+                }
                 LOGGER.trace("Done updating SquadServer for STEAMID_CONNECTED");
                 break;
             //Rcon
+            case CHAT_MESSAGE:
+                ChatMessageEvent cme = (ChatMessageEvent) ev;
+                entityManager.addPlayerMessage(cme.getSteamId(), cme.getChatType(), cme.getMessage());
+                LOGGER.trace("'{}' send new message '{}' in chat '{}'", cme.getPlayerName(), cme.getMessage(), cme.getChatType());
+                System.out.println();
+                break;
             case LAYERINFO_UPDATED:
                 LOGGER.trace("Updating SquadServer for LAYERINFO_UPDATED");
                 currentMap = ((LayerInfoUpdatedEvent) ev).getCurrentMap();
@@ -248,13 +291,13 @@ public class SquadServer {
             case PLAYER_BANNED:
                 LOGGER.trace("Updating SquadServer for PLAYER_BANNED");
                 PlayerBannedEvent playerBannedEvent = (PlayerBannedEvent) ev;
-                nameSteamIds.inverse().remove(playerBannedEvent.getSteamid());
+                nameSteamIds.inverse().remove(playerBannedEvent.getSteamId());
                 LOGGER.trace("Done updating SquadServer for PLAYER_BANNED");
                 break;
             case PLAYER_KICKED:
                 LOGGER.trace("Updating SquadServer for PLAYER_KICKED");
                 PlayerKickedEvent playerKickedEvent = (PlayerKickedEvent) ev;
-                nameSteamIds.inverse().remove(playerKickedEvent.getSteamid());
+                nameSteamIds.inverse().remove(playerKickedEvent.getSteamId());
                 LOGGER.trace("Done updating SquadServer for PLAYER_KICKED");
                 break;
             case PLAYERLIST_UPDATED:
@@ -267,7 +310,7 @@ public class SquadServer {
             case POSSESSED_ADMIN_CAM:
                 LOGGER.trace("Updating SquadServer for POSSESSED_ADMIN_CAM");
                 PossessedAdminCameraEvent possessedAdminCameraEvent = (PossessedAdminCameraEvent) ev;
-                getPlayerBySteamId(possessedAdminCameraEvent.getSteamid()).ifPresent(p -> adminsInAdminCam.add(p));
+                getPlayerBySteamId(possessedAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.add(p));
                 LOGGER.trace("Done updating SquadServer for POSSESSED_ADMIN_CAM");
                 break;
             case SQUADLIST_UPDATED:
@@ -280,7 +323,7 @@ public class SquadServer {
             case UNPOSSESSED_ADMIN_CAM:
                 LOGGER.trace("Updating SquadServer for UNPOSSESSED_ADMIN_CAM");
                 UnpossessedAdminCameraEvent unpossessedAdminCameraEvent = (UnpossessedAdminCameraEvent) ev;
-                getPlayerBySteamId(unpossessedAdminCameraEvent.getSteamid()).ifPresent(p -> adminsInAdminCam.remove(p));
+                getPlayerBySteamId(unpossessedAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.remove(p));
                 LOGGER.trace("Done updating SquadServer for UNPOSSESSED_ADMIN_CAM");
                 break;
             default:
@@ -304,8 +347,8 @@ public class SquadServer {
         return onlineInfo;
     }
 
-    public static Optional<OnlinePlayer> getPlayerBySteamId(String steam64id) {
-        return onlinePlayers.stream().filter(player -> player.getSteam64id().equals(steam64id)).findFirst();
+    public static Optional<OnlinePlayer> getPlayerBySteamId(long steam64id) {
+        return onlinePlayers.stream().filter(player -> player.getSteamId().equals(steam64id)).findFirst();
     }
 
     public static Collection<OnlinePlayer> getOnlinePlayers() {

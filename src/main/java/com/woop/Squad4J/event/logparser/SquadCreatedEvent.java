@@ -19,7 +19,7 @@ import java.util.Date;
 @ToString
 public class SquadCreatedEvent extends Event {
     private final String playerName;
-    private final String steamid;
+    private final long steamId;
     private final Integer squadid;
     private final String squadName;
     private final String teamName;
@@ -31,16 +31,16 @@ public class SquadCreatedEvent extends Event {
      * @param type the corresponding {@link EventType} for this event
      * @param chainID the chain ID of this event
      * @param playerName the name of the player who created the squad
-     * @param steamid the steam64id of the player who created the squad
+     * @param steamId the steam64id of the player who created the squad
      * @param squadid the id of the squad created
      * @param squadName the name of the squad
      * @param teamName the name of the team the squad was created on
      */
-    public SquadCreatedEvent(Date date, EventType type, Integer chainID, String playerName, String steamid,
+    public SquadCreatedEvent(Date date, EventType type, Integer chainID, String playerName, long steamId,
                              Integer squadid, String squadName, String teamName){
         super(date, type, chainID);
         this.playerName = playerName;
-        this.steamid = steamid;
+        this.steamId = steamId;
         this.squadid = squadid;
         this.squadName = squadName;
         this.teamName = teamName;

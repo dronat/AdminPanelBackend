@@ -14,8 +14,8 @@ import java.util.List;
 
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
-public class FtpTailer implements Runnable {
-    private final Logger LOGGER = LoggerFactory.getLogger(FtpTailer.class);
+public class FtpLogTailer implements Runnable {
+    private final Logger LOGGER = LoggerFactory.getLogger(FtpLogTailer.class);
 
     private final TailerListener TAILER_LISTENER;
     private final String HOST;
@@ -31,7 +31,7 @@ public class FtpTailer implements Runnable {
     private volatile boolean run;
 
 
-    public FtpTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
+    public FtpLogTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
         PORT = port;
         USERNAME = userName;
@@ -48,8 +48,6 @@ public class FtpTailer implements Runnable {
     public void run() {
         run = true;
         FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
-        ftpClient.setControlKeepAliveTimeout(300);
-        ftpClient.enterLocalPassiveMode();
         try {
             ftpClient.changeWorkingDirectory(PATH);
         } catch (Exception e) {
@@ -120,6 +118,8 @@ public class FtpTailer implements Runnable {
             LOGGER.error("FTP return reply code " + reply);
             throw new RuntimeException();
         }
+        ftpClient.setControlKeepAliveTimeout(300);
+        ftpClient.enterLocalPassiveMode();
         return ftpClient;
     }
 
@@ -143,7 +143,7 @@ public class FtpTailer implements Runnable {
         try {
             file = ftpClient.listFiles(FILE_NAME)[0];
         } catch (Exception e) {
-            LOGGER.error("Failed to get FTP file size");
+            LOGGER.error("Failed to get FTP file " + FILE_NAME + " size");
             throw new RuntimeException(e);
         }
         return file.getSize();
@@ -151,8 +151,8 @@ public class FtpTailer implements Runnable {
 
     private List<String> getFileRows(FTPClient ftpClient) {
         try {
+            ftpClient.setRestartOffset(lastByteRead);
             InputStream inputStream = ftpClient.retrieveFileStream(FILE_NAME);
-            inputStream.skipNBytes(lastByteRead);
             byte[] receivedBytes = inputStream.readAllBytes();
             inputStream.close();
             ftpClient.completePendingCommand();
@@ -161,7 +161,7 @@ public class FtpTailer implements Runnable {
             lastRowRead = rows.getLast();
             return rows;
         } catch (Exception e) {
-            LOGGER.error("Failed to get FTP file rows");
+            LOGGER.error("Failed to get FTP file '" + FILE_NAME + "' rows");
             throw new RuntimeException(e);
         }
     }
@@ -174,7 +174,7 @@ public class FtpTailer implements Runnable {
             ftpClient.completePendingCommand();
             return fileText.indexOf(lastRowRead + "\r\n") + (lastRowRead + "\r\n").getBytes().length;
         } catch (Exception e) {
-            LOGGER.error("Failed to get FTP file rows");
+            LOGGER.error("Failed to get FTP file '" + FILE_NAME + "' rows");
             throw new RuntimeException(e);
         }
     }

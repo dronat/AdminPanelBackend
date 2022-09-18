@@ -9,7 +9,7 @@ import lombok.ToString;
 import java.util.Date;
 
 /**
- * Describes an event where a player connects to the server. Is fired AFTER the corresponding {@link SteamidConnectedEvent}
+ * Describes an event where a player connects to the server. Is fired AFTER the corresponding {@link SteamIdConnectedEvent}
  * for the player, meaning the player's steam ID should be in memory.
  *
  * @see PlayerConnectedListener
