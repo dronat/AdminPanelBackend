@@ -45,16 +45,22 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public void addAdminActionInLog(long adminSteamId, String action) {
+    public void addAdminActionInLog(long adminSteamId, long playerSteamId, String action, String reason) {
         AdminEntity admin = getAdminBySteamID(adminSteamId);
-        addAdminActionInLog(admin, action);
+        PlayerEntity player = getPlayerBySteamId(playerSteamId);
+        addAdminActionInLog(admin, player, action, reason);
     }
 
-    public void addAdminActionInLog(AdminEntity admin, String action) {
+    public void addAdminActionInLog(AdminEntity admin, PlayerEntity player, String action, String reason) {
         LOGGER.info("\u001B[46m \u001B[30m New admin action: admin '{}' made '{}' \u001B[0m", admin.getName(), action);
-        persist(new AdminActionLogEntity().setAdminsByAdminId(admin)
-                .setAction(action)
-                .setCreateTime(new Timestamp(System.currentTimeMillis())));
+        persist(
+                new AdminActionLogEntity()
+                        .setAdminsByAdminId(admin)
+                        .setPlayerByAdminId(player)
+                        .setAction(action)
+                        .setReason(reason)
+                        .setCreateTime(new Timestamp(System.currentTimeMillis()))
+        );
         refresh(admin);
     }
 
@@ -100,7 +106,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         persist(ban);
         refresh(player);
         refresh(admin);
-        addAdminActionInLog(adminSteamId, "Забанил игрока '" + playerSteamId + "' на '" + expireTime + "' по причине '" + reason + "'");
+        addAdminActionInLog(adminSteamId, playerSteamId, "BanPlayer", null);
     }
 
     public void unbanPlayerBan(int banId, long adminSteamId) {
@@ -115,7 +121,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         );
         update(admin);
         update(ban.getPlayersBySteamId());
-        addAdminActionInLog(admin.getSteamId(), "Разбанил игрока '" + ban.getPlayersBySteamId().getSteamId() + "'");
+        addAdminActionInLog(admin.getSteamId(), ban.getPlayersBySteamId().getSteamId(), "Unban", null);
     }
 
     public List<PlayerBanEntity> getActiveBans() {

@@ -20,8 +20,12 @@ public class AdminActionLogEntity implements Serializable {
     private Integer id;
 
     @Basic
-    @Column(name = "action", nullable = false, length = 255)
+    @Column(name = "action", nullable = false, length = 20)
     private String action;
+
+    @Basic
+    @Column(name = "reason")
+    private String reason;
 
     @Basic
     @Column(name = "createTime", nullable = false, insertable = false)
@@ -31,6 +35,10 @@ public class AdminActionLogEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "adminSteamId", referencedColumnName = "steamId", nullable = false)
     private AdminEntity adminsByAdminId;
+
+    @ManyToOne
+    @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId")
+    private PlayerEntity playerByAdminId;
 
     @Override
     public boolean equals(Object o) {

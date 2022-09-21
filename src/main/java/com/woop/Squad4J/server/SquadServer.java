@@ -278,7 +278,6 @@ public class SquadServer {
                 ChatMessageEvent cme = (ChatMessageEvent) ev;
                 entityManager.addPlayerMessage(cme.getSteamId(), cme.getChatType(), cme.getMessage());
                 LOGGER.trace("'{}' send new message '{}' in chat '{}'", cme.getPlayerName(), cme.getMessage(), cme.getChatType());
-                System.out.println();
                 break;
             case LAYERINFO_UPDATED:
                 LOGGER.trace("Updating SquadServer for LAYERINFO_UPDATED");

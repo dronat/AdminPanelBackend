@@ -73,7 +73,7 @@ public class TailerService {
                 FTP_LOG_ABSOLUTE_PATH,
                 FILE_NAME,
                 FTP_ENCODING,
-                500);
+                2000);
 
         LOGGER.info("Watching logfile {} on FTP {} with path {}", FILE_NAME, FTP_HOST, FTP_LOG_ABSOLUTE_PATH);
         new Thread(ftpLogTailerListener).start();

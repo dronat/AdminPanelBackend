@@ -26,7 +26,7 @@ public class FtpBanService implements Runnable{
     private final String FTP_BAN_ABSOLUTE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
     private final String FTP_ENCODING = "UTF-8";
     private final String FILE_NAME = "Bans_test.cfg";
-    private final long DELAY_IN_MILLIS = 1 * 60000;
+    private final long DELAY_IN_MILLIS = 30 * 60000;
     private volatile boolean run;
 
     @Override
@@ -57,6 +57,7 @@ public class FtpBanService implements Runnable{
                                 .append("\n")
                 );
                 rewriteFile(ftpClient, stringToWrite.toString());
+                LOGGER.info("FTP bans file updated");
                 Thread.sleep(DELAY_IN_MILLIS);
             } catch (Exception e) {
                 LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);
