@@ -48,12 +48,6 @@ public class FtpLogTailer implements Runnable {
     public void run() {
         run = true;
         FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
-        try {
-            ftpClient.changeWorkingDirectory(PATH);
-        } catch (Exception e) {
-            LOGGER.error("Exception while trying set working FTP directory " + PATH, e);
-            throw new RuntimeException(e);
-        }
 
         lastByteRead = getFileSize(ftpClient);
 
@@ -83,6 +77,7 @@ public class FtpLogTailer implements Runnable {
     }
 
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {
+        LOGGER.info("Connecting to FTP");
         FTPClient ftpClient = new FTPClient();
         ftpClient.setControlEncoding(controlEncoding);
 
@@ -123,15 +118,24 @@ public class FtpLogTailer implements Runnable {
         }
         ftpClient.setControlKeepAliveTimeout(300);
         ftpClient.enterLocalPassiveMode();
+        try {
+            ftpClient.changeWorkingDirectory(PATH);
+        } catch (Exception e) {
+            LOGGER.error("Exception while trying set working FTP directory " + PATH, e);
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("FTP connected");
         return ftpClient;
     }
 
     private void closeFTPConnect(FTPClient ftpClient) {
         try {
+            LOGGER.info("Closing FTP");
             if (ftpClient != null && ftpClient.isConnected()) {
                 ftpClient.abort();
                 ftpClient.disconnect();
             }
+            LOGGER.info("FTP closed");
         } catch (Exception e) {
             LOGGER.error("Failed to close FTP connection");
         }
