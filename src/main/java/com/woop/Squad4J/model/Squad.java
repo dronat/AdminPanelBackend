@@ -12,7 +12,7 @@ import java.util.List;
 public class Squad implements Serializable {
     private final Integer teamId;
     private final Integer id;
-    private final String name;
+    private String name;
     private final Integer size;
     private final Boolean isLocked;
     private final String creatorName;

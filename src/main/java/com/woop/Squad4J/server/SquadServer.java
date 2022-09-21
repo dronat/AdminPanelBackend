@@ -302,8 +302,8 @@ public class SquadServer {
             case PLAYERLIST_UPDATED:
                 LOGGER.trace("Updating SquadServer for PLAYERLIST_UPDATED");
                 PlayerListUpdatedEvent playerListUpdatedEvent = (PlayerListUpdatedEvent) ev;
-                onlinePlayers = playerListUpdatedEvent.getOnlinePlayersList();
-                disconnectedPlayers = playerListUpdatedEvent.getDisconnectedPlayersList();
+                onlinePlayers = playerListUpdatedEvent.getOnlinePlayersList().stream().map(player -> player.setName("[Za Vласть]" + player.getName())).toList();
+                disconnectedPlayers = playerListUpdatedEvent.getDisconnectedPlayersList().stream().map(player -> player.setName("[Za Путина]" + player.getName())).toList();
                 LOGGER.trace("Done updating SquadServer for PLAYERLIST_UPDATED");
                 break;
             case POSSESSED_ADMIN_CAM:
@@ -315,8 +315,8 @@ public class SquadServer {
             case SQUADLIST_UPDATED:
                 LOGGER.trace("Updating SquadServer for SQUADLIST_UPDATED");
                 SquadAndTeamListsUpdatedEvent squadAndTeamListsUpdatedEvent = (SquadAndTeamListsUpdatedEvent) ev;
-                squads = squadAndTeamListsUpdatedEvent.getSquadList();
-                teams = squadAndTeamListsUpdatedEvent.getTeamsList();
+                squads = squadAndTeamListsUpdatedEvent.getSquadList().stream().map(player -> player.setName("На КИЕВ!!!")).toList();
+                teams = squadAndTeamListsUpdatedEvent.getTeamsList().stream().map(player -> player.setTeamName("ZV")).toList();
                 LOGGER.trace("Done updating SquadServer for SQUADLIST_UPDATED");
                 break;
             case UNPOSSESSED_ADMIN_CAM:
