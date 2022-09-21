@@ -43,7 +43,6 @@ public class FtpLogTailer implements Runnable {
         TAILER_LISTENER = tailerListener;
     }
 
-
     @Override
     public void run() {
         run = true;

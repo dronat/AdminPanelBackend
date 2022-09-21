@@ -24,11 +24,11 @@ import org.slf4j.LoggerFactory;
  * Will be removed in initial release.
  */
 @NoArgsConstructor
-public class DevelopmentTestPlugin implements A2SUpdatedListener, LayerInfoUpdatedListener, ChatMessageListener,
-        PossessedAdminCameraListener, UnpossessedAdminCameraListener {
+public class DevelopmentTestPlugin /*implements A2SUpdatedListener, LayerInfoUpdatedListener, ChatMessageListener,
+        PossessedAdminCameraListener, UnpossessedAdminCameraListener */{
     private static final Logger LOGGER = LoggerFactory.getLogger(DevelopmentTestPlugin.class);
 
-    @Override
+    /*@Override
     public void onA2SUpdated(A2SUpdatedEvent a2SUpdatedEvent) {
         A2SRulesResponse rules = a2SUpdatedEvent.getResponse().getRules();
         rules.getRuleEntrySet().forEach(entry -> {
@@ -61,5 +61,5 @@ public class DevelopmentTestPlugin implements A2SUpdatedListener, LayerInfoUpdat
     @Override
     public void onUnpossessedAdminCamera(UnpossessedAdminCameraEvent unpossessedAdminCameraEvent) {
         LOGGER.info("User {} exited admin cam.", unpossessedAdminCameraEvent.getName());
-    }
+    }*/
 }

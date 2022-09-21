@@ -4,13 +4,15 @@ import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.ibasco.agql.protocols.valve.source.query.info.SourceServer;
 import com.jayway.jsonpath.JsonPathException;
-import com.woop.Squad4J.a2s.response.A2SInfoResponse;
-import com.woop.Squad4J.a2s.response.A2SRulesResponse;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
-import com.woop.Squad4J.event.logparser.*;
+import com.woop.Squad4J.event.logparser.NewGameEvent;
+import com.woop.Squad4J.event.logparser.PlayerDisconnectedEvent;
+import com.woop.Squad4J.event.logparser.RoundWinnerEvent;
+import com.woop.Squad4J.event.logparser.SteamIdConnectedEvent;
 import com.woop.Squad4J.event.rcon.*;
 import com.woop.Squad4J.model.*;
 import com.woop.Squad4J.rcon.Rcon;
@@ -191,24 +193,26 @@ public class SquadServer {
             case A2S_UPDATED:
                 LOGGER.trace("Updating SquadServer A2S info");
                 A2SUpdatedEvent a2sEvent = (A2SUpdatedEvent) ev;
-                A2SInfoResponse info = a2sEvent.getResponse().getInfo();
-                A2SRulesResponse rules = a2sEvent.getResponse().getRules();
+               /* A2SInfoResponse info = a2sEvent.getResponse().getInfo();
+                A2SRulesResponse rules = a2sEvent.getResponse().getRules();*/
+                SourceServer info = a2sEvent.getResponse().getInfo().getResult();
+                Map<String, String> rules = a2sEvent.getResponse().getRules().getResult();
 
                 if (info == null || rules == null)
                     break;
 
                 serverName = info.getName();
-                maxPlayers = (int) info.getMaxPlayers();
+                maxPlayers = info.getMaxPlayers();
 
-                publicSlots = Integer.valueOf(rules.getRuleValue("NUMPUBCONN"));
-                reserveSlots = Integer.valueOf(rules.getRuleValue("NUMPRIVCONN"));
+                publicSlots = Integer.valueOf(rules.get("NUMPUBCONN"));
+                reserveSlots = Integer.valueOf(rules.get("NUMPRIVCONN"));
 
-                playerCount = Integer.valueOf(rules.getRuleValue("PlayerCount_i"));
-                publicQueue = Integer.valueOf(rules.getRuleValue("PublicQueue_i"));
-                reserveQueue = Integer.valueOf(rules.getRuleValue("ReservedQueue_i"));
+                playerCount = Integer.valueOf(rules.get("PlayerCount_i"));
+                publicQueue = Integer.valueOf(rules.get("PublicQueue_i"));
+                reserveQueue = Integer.valueOf(rules.get("ReservedQueue_i"));
 
-                matchTimeout = Double.valueOf(rules.getRuleValue("MatchTimeout_f"));
-                gameVersion = info.getVersion();
+                matchTimeout = Double.valueOf(rules.get("MatchTimeout_f"));
+                gameVersion = info.getGameVersion();
 
                 LOGGER.trace("Done updating SquadServer A2S info");
 

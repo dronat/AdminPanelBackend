@@ -1,7 +1,6 @@
 package com.woop.Squad4J.plugins;
 
-import com.woop.Squad4J.a2s.response.A2SInfoResponse;
-import com.woop.Squad4J.a2s.response.A2SRulesResponse;
+import com.ibasco.agql.protocols.valve.source.query.info.SourceServer;
 import com.woop.Squad4J.connector.MySQLConnector;
 import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
 import com.woop.Squad4J.event.logparser.*;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.Map;
 
 @NoArgsConstructor
 public class DBLog implements A2SUpdatedListener, NewGameListener, PlayerDiedListener, PlayerRevivedListener,
@@ -24,15 +24,17 @@ public class DBLog implements A2SUpdatedListener, NewGameListener, PlayerDiedLis
     public void onA2SUpdated(A2SUpdatedEvent a2SUpdatedEvent) {
         //TODO: Remove try-catch after debugging
         try{
-            A2SInfoResponse info = a2SUpdatedEvent.getResponse().getInfo();
-            A2SRulesResponse rules = a2SUpdatedEvent.getResponse().getRules();
+            /*A2SInfoResponse info = a2SUpdatedEvent.getResponse().getInfo();
+            A2SRulesResponse rules = a2SUpdatedEvent.getResponse().getRules();*/
+            SourceServer info = a2SUpdatedEvent.getResponse().getInfo().getResult();
+            Map<String, String> rules = a2SUpdatedEvent.getResponse().getRules().getResult();
 
             String serverName = info.getName();
             Date time = a2SUpdatedEvent.getTime();
 
-            Integer playerCount = Integer.valueOf(rules.getRuleValue("PlayerCount_i"));
-            Integer publicQueue = Integer.valueOf(rules.getRuleValue("PublicQueue_i"));
-            Integer reserveQueue = Integer.valueOf(rules.getRuleValue("ReservedQueue_i"));
+            Integer playerCount = Integer.valueOf(rules.get("PlayerCount_i"));
+            Integer publicQueue = Integer.valueOf(rules.get("PublicQueue_i"));
+            Integer reserveQueue = Integer.valueOf(rules.get("ReservedQueue_i"));
             Integer match = MySQLConnector.getCurrentMatchId();
 
             MySQLConnector.insertPlayerCount(time, playerCount, publicQueue, reserveQueue, match);

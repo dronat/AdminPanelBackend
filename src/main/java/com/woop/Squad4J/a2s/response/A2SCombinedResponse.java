@@ -1,5 +1,7 @@
 package com.woop.Squad4J.a2s.response;
 
+import com.ibasco.agql.protocols.valve.source.query.info.SourceQueryInfoResponse;
+import com.ibasco.agql.protocols.valve.source.query.rules.SourceQueryRulesResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,6 +17,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class A2SCombinedResponse {
-    private final A2SInfoResponse info;
-    private final A2SRulesResponse rules;
+    //private final A2SInfoResponse info;
+    //private final A2SRulesResponse rules;
+    private final SourceQueryInfoResponse info;
+    private final SourceQueryRulesResponse rules;
 }
