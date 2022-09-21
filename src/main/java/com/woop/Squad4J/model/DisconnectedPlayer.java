@@ -1,12 +1,15 @@
 package com.woop.Squad4J.model;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
 public class DisconnectedPlayer implements Serializable  {
     private final Integer id;
@@ -14,6 +17,12 @@ public class DisconnectedPlayer implements Serializable  {
     private final String sinceDisconnected;
     private String name;
 
+    public DisconnectedPlayer(Integer id, long steamId, String sinceDisconnected, String name) {
+        this.id = id;
+        this.steamId = steamId;
+        this.sinceDisconnected = sinceDisconnected;
+        this.name = name;
+    }
 
     @Override
     public boolean equals(Object o) {
