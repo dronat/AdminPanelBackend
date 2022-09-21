@@ -47,7 +47,7 @@ public class RconUpdater {
         if(initialized)
             throw new IllegalStateException(RconUpdater.class.getSimpleName() + " has already been initialized.");
 
-        GlobalThreadPool.getScheduler().scheduleWithFixedDelay(RconUpdater::updateRcon, 5, 1, TimeUnit.MILLISECONDS);
+        GlobalThreadPool.getScheduler().scheduleWithFixedDelay(RconUpdater::updateRcon, 5, 1, TimeUnit.SECONDS);
 
         initialized = true;
     }
@@ -59,6 +59,7 @@ public class RconUpdater {
         updatePlayerList();
         updateSquadList();
         updateLayerInfo();
+        LOGGER.info("Rcon updated");
     }
 
     /**
@@ -68,8 +69,8 @@ public class RconUpdater {
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving player list.");
         String response = Rcon.command("ListPlayers");
-        System.out.println(response);
-        System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
+        //System.out.println(response);
+        //System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
         long a = System.currentTimeMillis();
         List<OnlinePlayer> onlineOnlinePlayers = new ArrayList<>();
         List<DisconnectedPlayer> disconnectedPlayers = new ArrayList<>();
@@ -105,7 +106,7 @@ public class RconUpdater {
         Event event = new PlayerListUpdatedEvent(new Date(), EventType.PLAYERLIST_UPDATED, onlineOnlinePlayers, disconnectedPlayers);
 
         EventEmitter.emit(event);
-        System.out.println("ParsePlayerList: " + (System.currentTimeMillis() - a));
+        //System.out.println("ParsePlayerList: " + (System.currentTimeMillis() - a));
     }
 
     /**
@@ -115,8 +116,8 @@ public class RconUpdater {
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving squad list.");
         String response = Rcon.command("ListSquads");
-        System.out.println(response);
-        System.out.println("GetSquadList: " + (System.currentTimeMillis() - b));
+        //System.out.println(response);
+        //System.out.println("GetSquadList: " + (System.currentTimeMillis() - b));
         long a = System.currentTimeMillis();
         List<Squad> squads = new ArrayList<>();
         List<Team> teams = new ArrayList<>();
@@ -151,7 +152,7 @@ public class RconUpdater {
         Event event = new SquadAndTeamListsUpdatedEvent(new Date(), EventType.SQUADLIST_UPDATED, squads, teams);
 
         EventEmitter.emit(event);
-        System.out.println("ParseSquadList: " + (System.currentTimeMillis() - a));
+        //System.out.println("ParseSquadList: " + (System.currentTimeMillis() - a));
     }
 
     /**

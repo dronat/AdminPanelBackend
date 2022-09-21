@@ -337,9 +337,12 @@ public class MySQLConnector extends Connector {
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS Admins_Action_Log (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
                 "adminSteamId BIGINT NOT NULL, " +
-                "action VARCHAR(255) NOT NULL, " +
+                "playerSteamId BIGINT NULL," +
+                "action VARCHAR(20) NOT NULL, " +
+                "reason VARCHAR(255) NULL, " +
                 "createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
-                "CONSTRAINT logAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
+                "CONSTRAINT logAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId)," +
+                "CONSTRAINT logPlayerId FOREIGN KEY (playerSteamId) REFERENCES admins (steamId));");
     }
 
     private static void createPlayers() throws SQLException {

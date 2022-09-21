@@ -3,6 +3,7 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
+import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
 import com.woop.Squad4J.model.OnlineInfo;
 import com.woop.Squad4J.rcon.Rcon;
@@ -39,6 +40,9 @@ public class SecureController {
     AdminActionLogsService adminActionLogsService;
 
     @Autowired
+    AdminService adminService;
+
+    @Autowired
     FindByIndexNameSessionRepository<? extends Session> sessions;
 
     @GetMapping(path = "/get-online")
@@ -58,7 +62,7 @@ public class SecureController {
                                          @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         entityManager.addAdmin(adminSteamId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Добавил нового админа со steamId: " + adminSteamId);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), 0, "AddAdmin", String.valueOf(adminSteamId));
         return ResponseEntity.ok().build();
     }
 
@@ -120,7 +124,7 @@ public class SecureController {
                                                   @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         entityManager.deleteAdmin(adminSteamId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Удалил админа со steamId: " + adminSteamId);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), 0, "DeleteAdmin", String.valueOf(adminSteamId));
         Map<String, ? extends Session> resultSessions = sessions.findByPrincipalName(String.valueOf(adminSteamId));
         if (resultSessions == null || resultSessions.isEmpty()) {
             return ResponseEntity.status(BAD_REQUEST).build();
@@ -140,10 +144,7 @@ public class SecureController {
                                           @RequestParam String banLength,
                                           @RequestParam String banReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        String rconResponse = Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
-        if (rconResponse == null || !rconResponse.contains("banned player")) {
-            return ResponseEntity.status(BAD_REQUEST).build();
-        }
+        Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
         entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLength, banReason);
         LOGGER.info("Admin '{}' has banned player '{}' by reason '{}'", playerSteamId, banLength, banReason);
         return ResponseEntity.ok().build();
@@ -184,7 +185,7 @@ public class SecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
         entityManager.addPlayerKick(playerSteamId, userInfo.getSteamId(), kickReason);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Кикнул игрока по причине: " + kickReason);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "KickPlayer", kickReason);
         return ResponseEntity.ok().build();
     }
 
@@ -210,10 +211,7 @@ public class SecureController {
         if (rconResponse == null || !rconResponse.contains("Remote admin has warned player")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(
-                userInfo.getSteamId(),
-                String.format("Отправил WARN игроку '%s' с текстом '%s'", playerSteamId, warnReason)
-        );
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "WarnPlayer", warnReason);
         return ResponseEntity.ok().build();
     }
 
@@ -228,7 +226,7 @@ public class SecureController {
         if (rconResponse == null || !rconResponse.contains("Forced team change for player")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Переместил игрока " + playerSteamId + " в другую команду");
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "PlayerTeamChange", null);
         LOGGER.info("Admin '{}' has forced team change for player: '{}'", userInfo.getName(), playerSteamId);
         return ResponseEntity.ok().build();
     }
@@ -244,7 +242,7 @@ public class SecureController {
         if (rconResponse == null || !rconResponse.contains("was removed from squad")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Удалил игрока " + playerSteamId + " из отряда");
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "RemovePlayerFromSquad", null);
         LOGGER.info("Admin '{}' has removed player '{}' from squad", userInfo.getSteamId(), playerSteamId);
         return ResponseEntity.ok().build();
     }
@@ -258,7 +256,7 @@ public class SecureController {
                                               @RequestParam String note) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         entityManager.addPlayerNote(playerSteamId, userInfo.getSteamId(), note);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Добавил заметку об игроке " + playerSteamId + " с тексом: " + note);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "AddPlayerNote", note);
         return ResponseEntity.ok().build();
     }
 
@@ -270,9 +268,9 @@ public class SecureController {
                                                  @RequestParam long playerSteamId,
                                                  @RequestParam int noteId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        String note = entityManager.getPlayerNote(noteId).getNote();
+        String noteText = entityManager.getPlayerNote(noteId).getNote();
         entityManager.deletePlayerNote(noteId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Удалил заметку об игроке " + playerSteamId + " с тексом: " + note);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "DeletePlayerNote", noteText);
         return ResponseEntity.ok().build();
     }
 
@@ -283,10 +281,10 @@ public class SecureController {
                                                                        HttpServletResponse response,
                                                                        @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        List<HashMap<String, String>> responseBody = new ArrayList<>();
         return ResponseEntity.ok(entityManager.getPlayerBySteamId(playerSteamId).getPlayersNotesBySteamId());
     }
 
+    /*TODO*/
     @PostMapping(path = "/get-player-messages")
     public ResponseEntity<Collection<PlayerMessageEntity>> getPlayerMessages(@SessionAttribute AdminEntity userInfo,
                                                                              HttpSession httpSession,
@@ -295,6 +293,25 @@ public class SecureController {
                                                                              @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(entityManager.getPlayerBySteamId(playerSteamId).getPlayersMessagesBySteamId());
+    }
+
+    @PostMapping(path = "/get-admins")
+    public ResponseEntity<Collection<AdminEntity>> getAdmins(@SessionAttribute AdminEntity userInfo,
+                                                                             HttpSession httpSession,
+                                                                             HttpServletRequest request,
+                                                                             HttpServletResponse response) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(adminService.findAll());
+    }
+
+    @PostMapping(path = "/get-admin")
+    public ResponseEntity<AdminEntity> getAdmin(@SessionAttribute AdminEntity userInfo,
+                                                                             HttpSession httpSession,
+                                                                             HttpServletRequest request,
+                                                                             HttpServletResponse response,
+                                                                             @RequestParam long adminSteamId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(entityManager.getAdminBySteamID(adminSteamId));
     }
 
     @PostMapping(path = "/get-admin-actions")
@@ -340,13 +357,14 @@ public class SecureController {
                                              HttpServletRequest request,
                                              HttpServletResponse response,
                                              @RequestParam String teamId,
-                                             @RequestParam String squadId) {
+                                             @RequestParam String squadId,
+                                             @RequestParam String squadName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         String rconResponse = Rcon.command("AdminDisbandSquad " + teamId + " " + squadId);
         if (rconResponse == null || !rconResponse.contains("Remote admin disbanded squad")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Расформировал отряд №" + squadId + " в " + teamId + "-ой команде");
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), 0, "DisbandSquad", "Расформировал отряд " + squadName + " (" + squadId + ") в команде " + teamId);
         LOGGER.info("Admin '{}' has disbanded squad '{}' in team '{}'", userInfo.getName(), squadId, teamId);
         return ResponseEntity.ok().build();
     }
@@ -359,7 +377,7 @@ public class SecureController {
                                                                                @RequestParam String layerName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         Rcon.command("AdminChangeLayer " + layerName);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Поменял текущий layer на " + layerName);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), 0, "ChangeCurrentLayer", layerName);
         LOGGER.info("Admin '{}' has changed current layer to '{}'", userInfo.getName(), layerName);
         return ResponseEntity.ok().build();
     }
@@ -372,7 +390,7 @@ public class SecureController {
                                                                             @RequestParam String layerName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         Rcon.command("AdminSetNextLayer " + layerName);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), "Поменял следующий layer на " + layerName);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), 0, "ChangeNextLayer", layerName);
         LOGGER.info("Admin '{}' has changed next layer to '{}'", userInfo.getName(), layerName);
         return ResponseEntity.ok().build();
     }

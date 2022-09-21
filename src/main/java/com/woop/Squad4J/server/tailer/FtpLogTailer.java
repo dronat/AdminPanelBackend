@@ -66,6 +66,7 @@ public class FtpLogTailer implements Runnable {
                 if (isFileChange(ftpClient)) {
                     getFileRows(ftpClient).forEach(TAILER_LISTENER::handle);
                 }
+                LOGGER.info("FTP log file updated");
                 Thread.sleep(this.DELAY_IN_MILLIS);
             }
         } catch (Exception e) {
