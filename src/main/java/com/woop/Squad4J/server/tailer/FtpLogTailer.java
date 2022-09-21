@@ -57,8 +57,8 @@ public class FtpLogTailer implements Runnable {
 
         lastByteRead = getFileSize(ftpClient);
 
-        try {
-            while(run) {
+        while (run) {
+            try {
                 long fileSize = getFileSize(ftpClient);
                 if (lastByteRead > fileSize) {
                     lastByteRead = findLastByteReadByLastRowRead(ftpClient);
@@ -68,9 +68,11 @@ public class FtpLogTailer implements Runnable {
                 }
                 LOGGER.info("FTP log file updated");
                 Thread.sleep(this.DELAY_IN_MILLIS);
+
+            } catch (Exception e) {
+                LOGGER.error("Error while tailing FTP", e);
+                ftpClient = reconnect(ftpClient);
             }
-        } catch (Exception e) {
-            LOGGER.error("Error while tailing FTP", e);
         }
         closeFTPConnect(ftpClient);
         LOGGER.info("FTP connection closed");
@@ -133,6 +135,13 @@ public class FtpLogTailer implements Runnable {
         } catch (Exception e) {
             LOGGER.error("Failed to close FTP connection");
         }
+    }
+
+
+    private FTPClient reconnect(FTPClient ftpClient) {
+        LOGGER.warn("Reconnect to FTP to tailing log file");
+        closeFTPConnect(ftpClient);
+        return connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
     }
 
     private boolean isFileChange(FTPClient ftpClient) {

@@ -44,7 +44,7 @@ public class Query {
     public static A2SCombinedResponse queryBoth(){
         A2SInfoResponse info = queryInfo();
         A2SRulesResponse rules = queryRules();
-
+        LOGGER.info("Query updated");
         return new A2SCombinedResponse(info, rules);
     }
 
