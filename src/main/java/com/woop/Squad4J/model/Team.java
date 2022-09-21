@@ -1,19 +1,26 @@
 package com.woop.Squad4J.model;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter@Setter
 @Accessors(chain = true)
 public class Team implements Serializable {
     private String teamName;
     private final Integer id;
     private List<Squad> squads = new ArrayList<>();
     private List<OnlinePlayer> playersWithoutSquad = new ArrayList<>();
+
+    public Team(String teamName, Integer id) {
+        this.teamName = teamName;
+        this.id = id;
+    }
 
     public Squad getSquadById(Integer id) {
         Squad squadWithPlayers = null;
