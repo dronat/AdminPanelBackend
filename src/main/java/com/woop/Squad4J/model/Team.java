@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class Team implements Serializable {
-    private final String teamName;
+    private String teamName;
     private final Integer id;
     private List<Squad> squads = new ArrayList<>();
     private List<OnlinePlayer> playersWithoutSquad = new ArrayList<>();

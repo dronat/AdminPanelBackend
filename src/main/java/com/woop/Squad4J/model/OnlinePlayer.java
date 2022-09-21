@@ -11,7 +11,7 @@ import java.util.Objects;
 public class OnlinePlayer implements Serializable {
     private final Integer id;
     private final Long steamId;
-    private final String name;
+    private String name;
     private final Integer teamId;
     private final Integer squadID;
     private final Boolean isSquadLeader;

@@ -12,7 +12,7 @@ public class DisconnectedPlayer implements Serializable  {
     private final Integer id;
     private final long steamId;
     private final String sinceDisconnected;
-    private final String name;
+    private String name;
 
 
     @Override
