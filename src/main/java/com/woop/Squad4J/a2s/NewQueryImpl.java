@@ -60,8 +60,8 @@ public class NewQueryImpl {
         } catch (Exception e) {
             LOGGER.error("Failed to get Query info", e);
             reconnect();
+            return getQueryInfo();
         }
-        return null;
     }
 
     public SourceQueryRulesResponse getQueryRules() {
@@ -70,8 +70,8 @@ public class NewQueryImpl {
         } catch (Exception e) {
             LOGGER.error("Failed to get Query rules", e);
             reconnect();
+            return getQueryRules();
         }
-        return null;
     }
 
     public SourceQueryPlayerResponse getQueryPlayers() {
@@ -80,7 +80,7 @@ public class NewQueryImpl {
         } catch (Exception e) {
             LOGGER.error("Failed to get Query players", e);
             reconnect();
+            return getQueryPlayers();
         }
-        return null;
     }
 }

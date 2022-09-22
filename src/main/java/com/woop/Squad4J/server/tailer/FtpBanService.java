@@ -9,7 +9,6 @@ import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -19,12 +18,12 @@ import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
 public class FtpBanService implements Runnable{
     private final Logger LOGGER = LoggerFactory.getLogger(FtpBanService.class);
-    private final String FTP_HOST = ConfigLoader.get("server.host", String.class);
-    private final int FTP_PORT = ConfigLoader.get("server.ftp.port", Integer.class);
-    private final String FTP_USERNAME = ConfigLoader.get("server.ftp.user", String.class);
-    private final String FTP_PASSWORD = ConfigLoader.get("server.ftp.password", String.class);
-    private final String FTP_BAN_ABSOLUTE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
-    private final String FTP_ENCODING = "UTF-8";
+    private final String HOST = ConfigLoader.get("server.host", String.class);
+    private final int PORT = ConfigLoader.get("server.ftp.port", Integer.class);
+    private final String USERNAME = ConfigLoader.get("server.ftp.user", String.class);
+    private final String PASSWORD = ConfigLoader.get("server.ftp.password", String.class);
+    private final String ABSOLUTE_FILE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
+    private final String ENCODING = "UTF-8";
     private final String FILE_NAME = "Bans_test.cfg";
     private final long DELAY_IN_MILLIS = 30 * 60000;
     private volatile boolean run;
@@ -33,14 +32,8 @@ public class FtpBanService implements Runnable{
     public void run() {
         run = true;
         EntityManager entityManager = new EntityManager();
-        FTPClient ftpClient = connectFtpServer(FTP_HOST, FTP_PORT, FTP_USERNAME, FTP_PASSWORD, FTP_ENCODING, BINARY_FILE_TYPE);
+        FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
 
-        try {
-            ftpClient.changeWorkingDirectory(FTP_BAN_ABSOLUTE_PATH);
-        } catch (Exception e) {
-            LOGGER.error("Exception while trying set working FTP directory " + FTP_BAN_ABSOLUTE_PATH, e);
-            throw new RuntimeException(e);
-        }
 
         while (run) {
             try {
@@ -61,6 +54,7 @@ public class FtpBanService implements Runnable{
                 Thread.sleep(DELAY_IN_MILLIS);
             } catch (Exception e) {
                 LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);
+                reconnect(ftpClient);
             }
         }
         closeFTPConnect(ftpClient);
@@ -112,15 +106,30 @@ public class FtpBanService implements Runnable{
         }
         ftpClient.setControlKeepAliveTimeout(300);
         ftpClient.enterLocalPassiveMode();
+
+        try {
+            ftpClient.changeWorkingDirectory(ABSOLUTE_FILE_PATH);
+        } catch (Exception e) {
+            LOGGER.error("Exception while trying set working FTP directory " + ABSOLUTE_FILE_PATH, e);
+            throw new RuntimeException(e);
+        }
         return ftpClient;
+    }
+
+    private FTPClient reconnect(FTPClient ftpClient) {
+        LOGGER.warn("Reconnect to FTP to tailing ban file");
+        closeFTPConnect(ftpClient);
+        return connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
     }
 
     private void closeFTPConnect(FTPClient ftpClient) {
         try {
+            LOGGER.info("Closing FTP");
             if (ftpClient != null && ftpClient.isConnected()) {
                 ftpClient.abort();
                 ftpClient.disconnect();
             }
+            LOGGER.info("FTP closed");
         } catch (Exception e) {
             LOGGER.error("Failed to close FTP connection");
         }
@@ -156,14 +165,15 @@ public class FtpBanService implements Runnable{
 
     private void rewriteFile(FTPClient ftpClient, String fileContent) {
         boolean result;
-        try (InputStream inputStream = IOUtils.toInputStream(fileContent, FTP_ENCODING)) {
+        try (InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING)) {
             result = ftpClient.storeFile(FILE_NAME, inputStream);
         } catch (Exception e) {
-            LOGGER.error("Failed to rewrite FTP file '" + FILE_NAME + "'");
+            LOGGER.error("Failed to rewrite FTP file " + FILE_NAME);
             throw new RuntimeException(e);
         }
         if (!result) {
-            LOGGER.error("Failed to rewrite FTP file '" + FILE_NAME + "'");
+            LOGGER.error("Failed to rewrite FTP file " + FILE_NAME);
+            throw new RuntimeException();
         }
     }
 
