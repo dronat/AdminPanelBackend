@@ -342,7 +342,6 @@ public class SecureController {
                                                                             HttpSession httpSession,
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response,
-                                                                            @RequestParam long adminSteamId,
                                                                             @RequestParam int page,
                                                                             @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -358,8 +357,34 @@ public class SecureController {
             put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
             put("hasPrevious", resultPage.hasPrevious());
             put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
-            put("content", resultPage.getContent());
         }};
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(adminActionLogEntity -> {
+            HashMap<String, Object> playerByAdminId = null;
+            PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
+            if (player != null) {
+                playerByAdminId = new HashMap<>() {{
+                   put("steamId", player.getSteamId());
+                   put("name", player.getName());
+                   put("createTime", player.getCreateTime());
+                   put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
+                   put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
+                   put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
+                   put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                }};
+            }
+            HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", adminActionLogEntity.getId());
+                put("action", adminActionLogEntity.getAction());
+                put("reason", adminActionLogEntity.getReason());
+                put("createTime", adminActionLogEntity.getCreateTime());
+                put("playerByAdminId", finalPlayerByAdminId);
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
         return ResponseEntity.ok(map);
     }
 
