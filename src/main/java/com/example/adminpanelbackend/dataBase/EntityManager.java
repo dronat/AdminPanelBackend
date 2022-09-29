@@ -45,9 +45,9 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public void addAdminActionInLog(long adminSteamId, long playerSteamId, String action, String reason) {
+    public void addAdminActionInLog(long adminSteamId, Long playerSteamId, String action, String reason) {
         AdminEntity admin = getAdminBySteamID(adminSteamId);
-        PlayerEntity player = getPlayerBySteamId(playerSteamId);
+        PlayerEntity player = playerSteamId == null ? null : getPlayerBySteamId(playerSteamId);
         addAdminActionInLog(admin, player, action, reason);
     }
 
