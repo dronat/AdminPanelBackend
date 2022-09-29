@@ -81,7 +81,7 @@ public class SecureController {
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());
-            put("totalPlayers", resultPage.getTotalElements());
+            put("totalElements", resultPage.getTotalElements());
             put("hasNext", resultPage.hasNext());
             put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
             put("hasPrevious", resultPage.hasPrevious());
@@ -352,7 +352,7 @@ public class SecureController {
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());
-            put("totalPlayers", resultPage.getTotalElements());
+            put("totalElements", resultPage.getTotalElements());
             put("hasNext", resultPage.hasNext());
             put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
             put("hasPrevious", resultPage.hasPrevious());
