@@ -223,6 +223,20 @@ public class SecureController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping(path = "/get-player-punishment-history")
+    public ResponseEntity<HashMap<String, Object>> getPlayerPunismentHistory(@SessionAttribute AdminEntity userInfo,
+                                                                     HttpSession httpSession,
+                                                                     HttpServletRequest request,
+                                                                     HttpServletResponse response,
+                                                                     @RequestParam long playerSteamId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        return ResponseEntity.ok(new HashMap<>() {{
+            put("bans", player.getPlayersBansBySteamId());
+            put("kicks", player.getPlayersKicksBySteamId());
+        }});
+    }
+
     @PostMapping(path = "/get-player-bans")
     public ResponseEntity<Collection<PlayerBanEntity>> getPlayerBans(@SessionAttribute AdminEntity userInfo,
                                                                      HttpSession httpSession,
