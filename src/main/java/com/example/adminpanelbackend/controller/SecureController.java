@@ -6,6 +6,7 @@ import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
 import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
 import com.woop.Squad4J.model.OnlineInfo;
+import com.woop.Squad4J.model.OnlinePlayer;
 import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
@@ -86,6 +87,28 @@ public class SecureController {
             put("hasPrevious", resultPage.hasPrevious());
             put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
             put("content", resultPage.getContent());
+        }};
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping(path = "/get-player")
+    public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo,
+                                                              HttpSession httpSession,
+                                                              HttpServletRequest request,
+                                                              HttpServletResponse response,
+                                                              @RequestParam long steamId) {
+
+        PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
+        OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers()
+                .stream()
+                .filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId()))
+                .findFirst()
+                .orElse(null);
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("name", player.getName());
+            put("steamId", player.getSteamId());
+            put("isOnline", onlinePlayer);
         }};
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(map);
