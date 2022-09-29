@@ -13,6 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class Team implements Serializable {
     private final String teamName;
+    private String teamNameShort;
     private final Integer id;
     private List<Squad> squads = new ArrayList<>();
     private List<OnlinePlayer> playersWithoutSquad = new ArrayList<>();

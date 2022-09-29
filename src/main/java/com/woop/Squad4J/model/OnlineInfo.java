@@ -11,7 +11,6 @@ import java.util.List;
 @Accessors(chain = true)
 public class OnlineInfo implements Serializable {
     private List<Team> teams = new ArrayList<>();
-    private List<DisconnectedPlayer> disconnectedPlayers = new ArrayList<>();
 
     public Team getTeamById(Integer id) {
         Team team = null;
@@ -31,11 +30,11 @@ public class OnlineInfo implements Serializable {
         return this;
     }
 
-    public OnlineInfo addDisconnectedPlayer(DisconnectedPlayer disconnectedPlayer) {
+    /*public OnlineInfo addDisconnectedPlayer(DisconnectedPlayer disconnectedPlayer) {
         if (disconnectedPlayers == null) {
             disconnectedPlayers = new ArrayList<>();
         }
         disconnectedPlayers.add(disconnectedPlayer);
         return this;
-    }
+    }*/
 }

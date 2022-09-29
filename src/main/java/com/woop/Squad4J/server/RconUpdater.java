@@ -160,7 +160,7 @@ public class RconUpdater {
      *
      * Updates both the current and next layers/maps.
      */
-    protected static void updateLayerInfo(){
+    public static void updateLayerInfo(){
         LOGGER.trace("Retrieving layer information");
         String currentLayer = "";
         String nextLayer = "";
@@ -168,6 +168,7 @@ public class RconUpdater {
         String nextMap = "";
 
         String response = Rcon.command("ShowCurrentMap");
+        //System.out.println(response);
         LOGGER.trace("Getting current map. Response: {}", response);
         Matcher matcher = currentLayerPattern.matcher(response);
         if(matcher.find()){

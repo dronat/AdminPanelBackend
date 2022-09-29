@@ -9,10 +9,7 @@ import com.jayway.jsonpath.JsonPathException;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
-import com.woop.Squad4J.event.logparser.NewGameEvent;
-import com.woop.Squad4J.event.logparser.PlayerDisconnectedEvent;
-import com.woop.Squad4J.event.logparser.RoundWinnerEvent;
-import com.woop.Squad4J.event.logparser.SteamIdConnectedEvent;
+import com.woop.Squad4J.event.logparser.*;
 import com.woop.Squad4J.event.rcon.*;
 import com.woop.Squad4J.model.*;
 import com.woop.Squad4J.rcon.Rcon;
@@ -65,11 +62,15 @@ public class SquadServer {
     @Getter
     private static String currentLayer;
     @Getter
+    private static String teamOneName;
+    @Getter
+    private static String teamTwoName;
+    @Getter
     private static String currentMap;
     @Getter
-    private static String nextMap;
-    @Getter
     private static String nextLayer;
+    @Getter
+    private static String nextMap;
 
     @Getter
     private static String serverName;
@@ -93,7 +94,12 @@ public class SquadServer {
     private static Double matchTimeout;
 
     @Getter
+    private static Integer playTime;
+
+    @Getter
     private static Integer maxTickRate;
+    @Getter
+    private static Double serverTickRate;
 
     @Getter
     private static String mostRecentWinner;
@@ -150,6 +156,7 @@ public class SquadServer {
             //Update A2S and RCON information first so Squad server has attributes for them in memory
             A2SUpdater.updateA2S();
             RconUpdater.updateRcon();
+            RconUpdater.updateLayerInfo();
 
             getOnlinePlayers().forEach(onlinePlayer -> {
                 if (!entityManager.isPlayerExist(onlinePlayer.getSteamId())) {
@@ -212,7 +219,10 @@ public class SquadServer {
                 reserveQueue = Integer.valueOf(rules.get("ReservedQueue_i"));
 
                 matchTimeout = Double.valueOf(rules.get("MatchTimeout_f"));
+                playTime = Integer.valueOf(rules.get("PLAYTIME_i"));
                 gameVersion = info.getGameVersion();
+                teamOneName = rules.get("TeamOne_s");
+                teamTwoName = rules.get("TeamTwo_s");
 
                 LOGGER.trace("Done updating SquadServer A2S info");
 
@@ -232,6 +242,12 @@ public class SquadServer {
                 }
                 //TODO: Update admins since these can change between games
                 LOGGER.trace("Done updating SquadServer for NEW_GAME");
+                break;
+            case SERVER_TICK_RATE:
+                LOGGER.trace("Updating SquadServer for SERVER_TICK_RATE");
+                ServerTickRateEvent serverTickRateEvent = (ServerTickRateEvent) ev;
+                serverTickRate = serverTickRateEvent.getTickRate();
+                LOGGER.trace("Done updating SquadServer for SERVER_TICK_RATE");
                 break;
             case PLAYER_CONNECTED:
                 //TODO: Update admins if player connected has steam id in adminSteamIds
@@ -334,11 +350,11 @@ public class SquadServer {
         }
     }
 
-    public static OnlineInfo getTeamsWithSquadsAndPlayers() {
+    public static OnlineInfo getOnlineTeamsWithSquadsAndPlayers() {
         OnlineInfo onlineInfo = new OnlineInfo();
         getTeams().forEach(team -> onlineInfo.addTeam(SerializationUtils.clone(team)));
         getSquads().forEach(squad -> onlineInfo.getTeamById(squad.getTeamId()).addSquad(SerializationUtils.clone(squad)));
-        getDisconnectedPlayers().forEach(disconnectedPlayer -> onlineInfo.addDisconnectedPlayer(SerializationUtils.clone(disconnectedPlayer)));
+        //getDisconnectedPlayers().forEach(disconnectedPlayer -> onlineInfo.addDisconnectedPlayer(SerializationUtils.clone(disconnectedPlayer)));
 
         getOnlinePlayers().forEach(onlinePlayer -> {
             if (onlinePlayer.getSquadID() == null) {
@@ -347,7 +363,32 @@ public class SquadServer {
                 onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()).addPlayer(SerializationUtils.clone(onlinePlayer));
             }
         });
+        onlineInfo.getTeamById(0).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
+        onlineInfo.getTeamById(1).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
         return onlineInfo;
+    }
+
+    public static HashMap<String, Object> getServerInfo() {
+        return new HashMap<>() {{
+            put("teamOne", teamOneName);
+            put("teamTwo", teamTwoName);
+            put("currentLayer", currentLayer);
+            put("currentMap", currentMap);
+            put("nextLayer", nextLayer);
+            put("nextMap", nextMap);
+            put("serverName", serverName);
+            put("maxPlayers", maxPlayers);
+            put("publicSlots", publicSlots);
+            put("reserveSlots", reserveSlots);
+            put("playerCount", playerCount);
+            put("publicQueue", publicQueue);
+            put("reserveQueue", reserveQueue);
+            put("gameVersion", gameVersion);
+            put("matchTimeout", matchTimeout);
+            put("serverTickRate", serverTickRate);
+            put("maxTickRate", maxTickRate);
+            put("mostRecentWinner", mostRecentWinner);
+        }};
     }
 
     public static Optional<OnlinePlayer> getPlayerBySteamId(long steam64id) {

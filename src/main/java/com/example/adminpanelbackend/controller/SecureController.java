@@ -5,9 +5,11 @@ import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
 import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
+import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
 import com.woop.Squad4J.model.OnlinePlayer;
 import com.woop.Squad4J.rcon.Rcon;
+import com.woop.Squad4J.server.RconUpdater;
 import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +48,31 @@ public class SecureController {
     @Autowired
     FindByIndexNameSessionRepository<? extends Session> sessions;
 
-    @GetMapping(path = "/get-online")
+    @GetMapping(path = "/get-online-players")
     public ResponseEntity<OnlineInfo> getOnline(@SessionAttribute AdminEntity userInfo,
                                                 HttpSession httpSession,
                                                 HttpServletRequest request,
                                                 HttpServletResponse response) {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(SquadServer.getTeamsWithSquadsAndPlayers());
+        return ResponseEntity.ok(SquadServer.getOnlineTeamsWithSquadsAndPlayers());
+    }
+
+    @GetMapping(path = "/get-disconnected-players")
+    public ResponseEntity<Collection<DisconnectedPlayer>> getDisconnectedPlayers(@SessionAttribute AdminEntity userInfo,
+                                                                                 HttpSession httpSession,
+                                                                                 HttpServletRequest request,
+                                                                                 HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(SquadServer.getDisconnectedPlayers());
+    }
+
+    @GetMapping(path = "/get-server-info")
+    public ResponseEntity<HashMap<String, Object>> getServerInfo(@SessionAttribute AdminEntity userInfo,
+                                                HttpSession httpSession,
+                                                HttpServletRequest request,
+                                                HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(SquadServer.getServerInfo());
     }
 
     @PostMapping(path = "/add-admin")
@@ -440,6 +460,7 @@ public class SecureController {
         Rcon.command("AdminSetNextLayer " + layerName);
         entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "ChangeNextLayer", layerName);
         LOGGER.info("Admin '{}' has changed next layer to '{}'", userInfo.getName(), layerName);
+        RconUpdater.updateLayerInfo();
         return ResponseEntity.ok().build();
     }
 

@@ -62,11 +62,11 @@ public class SquadModule {
         EventEmitter.init();
 
         //TODO: Remove me after debugging
-        Event testEvent = new ServerTickRateEvent(new Date(), EventType.SERVER_TICK_RATE, 0, 35.5);
+        //Event testEvent = new ServerTickRateEvent(new Date(), EventType.SERVER_TICK_RATE, 0, 35.5);
 
-        LOGGER.debug("Emitting {}", testEvent);
+        //LOGGER.debug("Emitting {}", testEvent);
 
-        EventEmitter.emit(testEvent);
+        //EventEmitter.emit(testEvent);
 
         printLogo();
     }
