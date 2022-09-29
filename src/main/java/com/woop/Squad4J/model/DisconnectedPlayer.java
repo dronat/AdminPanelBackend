@@ -8,21 +8,13 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.util.Objects;
 
-@Getter
-@Setter
+@Data
 @Accessors(chain = true)
 public class DisconnectedPlayer implements Serializable  {
     private final Integer id;
     private final long steamId;
     private final String sinceDisconnected;
-    private String name;
-
-    public DisconnectedPlayer(Integer id, long steamId, String sinceDisconnected, String name) {
-        this.id = id;
-        this.steamId = steamId;
-        this.sinceDisconnected = sinceDisconnected;
-        this.name = name;
-    }
+    private final String name;
 
     @Override
     public boolean equals(Object o) {

@@ -9,18 +9,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter@Setter
+@Data
 @Accessors(chain = true)
 public class Team implements Serializable {
-    private String teamName;
+    private final String teamName;
     private final Integer id;
     private List<Squad> squads = new ArrayList<>();
     private List<OnlinePlayer> playersWithoutSquad = new ArrayList<>();
-
-    public Team(String teamName, Integer id) {
-        this.teamName = teamName;
-        this.id = id;
-    }
 
     public Squad getSquadById(Integer id) {
         Squad squadWithPlayers = null;
