@@ -225,10 +225,10 @@ public class SecureController {
 
     @PostMapping(path = "/get-player-punishment-history")
     public ResponseEntity<HashMap<String, Object>> getPlayerPunismentHistory(@SessionAttribute AdminEntity userInfo,
-                                                                     HttpSession httpSession,
-                                                                     HttpServletRequest request,
-                                                                     HttpServletResponse response,
-                                                                     @RequestParam long playerSteamId) {
+                                                                             HttpSession httpSession,
+                                                                             HttpServletRequest request,
+                                                                             HttpServletResponse response,
+                                                                             @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
         return ResponseEntity.ok(new HashMap<>() {{
@@ -371,25 +371,83 @@ public class SecureController {
     }
 
     @PostMapping(path = "/get-admins")
-    public ResponseEntity<Collection<AdminEntity>> getAdmins(@SessionAttribute AdminEntity userInfo,
+    public ResponseEntity<List<HashMap<String, Object>>> getAdmins(@SessionAttribute AdminEntity userInfo,
                                                              HttpSession httpSession,
                                                              HttpServletRequest request,
                                                              HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(adminService.findAll());
-    }
-
-    @PostMapping(path = "/get-admin")
-    public ResponseEntity<AdminEntity> getAdmin(@SessionAttribute AdminEntity userInfo,
-                                                HttpSession httpSession,
-                                                HttpServletRequest request,
-                                                HttpServletResponse response,
-                                                @RequestParam long adminSteamId) {
-        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(entityManager.getAdminBySteamID(adminSteamId));
+        List<HashMap<String, Object>> list = new ArrayList<>();
+        adminService.findAll().forEach(admin ->
+                list.add(
+                        new HashMap<>() {{
+                            put("steamId", admin.getSteamId());
+                            put("name", admin.getName());
+                            put("steamSign", admin.getSteamSign());
+                            put("role", admin.getRole());
+                            put("avatar", admin.getAvatar());
+                            put("avatarMedium", admin.getAvatarMedium());
+                            put("avatarFull", admin.getAvatarFull());
+                            put("createTime", admin.getCreateTime());
+                            put("modifiedTime", admin.getModifiedTime());
+                        }}
+                )
+        );
+        return ResponseEntity.ok(list);
     }
 
     @PostMapping(path = "/get-admin-actions")
+    public ResponseEntity<HashMap<String, Object>> getAdmin(@SessionAttribute AdminEntity userInfo,
+                                                HttpSession httpSession,
+                                                HttpServletRequest request,
+                                                HttpServletResponse response,
+                                                @RequestParam long adminSteamId,
+                                                @RequestParam int page,
+                                                @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber());
+            put("totalPages", resultPage.getTotalPages());
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
+        }};
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(adminActionLogEntity -> {
+            HashMap<String, Object> playerByAdminId = null;
+            PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
+            if (player != null) {
+                playerByAdminId = new HashMap<>() {{
+                    put("steamId", player.getSteamId());
+                    put("name", player.getName());
+                    put("createTime", player.getCreateTime());
+                    put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
+                    put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
+                    put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
+                    put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                }};
+            }
+            HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", adminActionLogEntity.getId());
+                put("action", adminActionLogEntity.getAction());
+                put("reason", adminActionLogEntity.getReason());
+                put("createTime", adminActionLogEntity.getCreateTime());
+                put("playerByAdminId", finalPlayerByAdminId);
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping(path = "/get-admins-actions")
     public ResponseEntity<HashMap<String, Object>> getAdminActions(@SessionAttribute AdminEntity userInfo,
                                                                    HttpSession httpSession,
                                                                    HttpServletRequest request,

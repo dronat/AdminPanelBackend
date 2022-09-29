@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -53,6 +54,7 @@ public class AdminEntity implements Serializable {
     @Column(name = "modifiedTime", nullable = false)
     private Timestamp modifiedTime;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "adminsByAdminId")
     private Collection<AdminActionLogEntity> adminsActionLogsById;
 
