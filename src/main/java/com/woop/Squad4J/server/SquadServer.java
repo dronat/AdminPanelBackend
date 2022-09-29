@@ -363,8 +363,8 @@ public class SquadServer {
                 onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()).addPlayer(SerializationUtils.clone(onlinePlayer));
             }
         });
-        onlineInfo.getTeamById(0).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
-        onlineInfo.getTeamById(1).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
+        onlineInfo.getTeamById(1).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
+        onlineInfo.getTeamById(2).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
         return onlineInfo;
     }
 
