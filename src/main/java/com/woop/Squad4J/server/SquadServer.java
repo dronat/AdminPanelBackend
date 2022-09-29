@@ -221,8 +221,13 @@ public class SquadServer {
                 matchTimeout = Double.valueOf(rules.get("MatchTimeout_f"));
                 playTime = Integer.valueOf(rules.get("PLAYTIME_i"));
                 gameVersion = info.getGameVersion();
-                teamOneName = rules.get("TeamOne_s");
-                teamTwoName = rules.get("TeamTwo_s");
+
+                if (currentLayer == null || currentMap == null) {
+                    RconUpdater.updateLayerInfo();
+                }
+
+                teamOneName = rules.get("TeamOne_s").replace(currentLayer.replace(" ", "_"), "").replace("_","").trim();
+                teamTwoName = rules.get("TeamTwo_s").replace(currentLayer.replace(" ", "_"), "").replace("_","").trim();
 
                 LOGGER.trace("Done updating SquadServer A2S info");
 
@@ -385,6 +390,7 @@ public class SquadServer {
             put("reserveQueue", reserveQueue);
             put("gameVersion", gameVersion);
             put("matchTimeout", matchTimeout);
+            put("playTime", playTime);
             put("serverTickRate", serverTickRate);
             put("maxTickRate", maxTickRate);
             put("mostRecentWinner", mostRecentWinner);

@@ -68,6 +68,7 @@ public class RconUpdater {
     protected static void updatePlayerList(){
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving player list.");
+        //System.out.println("ListPlayers");
         String response = Rcon.command("ListPlayers");
         //System.out.println(response);
         //System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
@@ -115,6 +116,7 @@ public class RconUpdater {
     protected static void updateSquadList(){
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving squad list.");
+        //System.out.println("ListSquads");
         String response = Rcon.command("ListSquads");
         //System.out.println(response);
         //System.out.println("GetSquadList: " + (System.currentTimeMillis() - b));
@@ -166,7 +168,7 @@ public class RconUpdater {
         String nextLayer = "";
         String currentMap = "";
         String nextMap = "";
-
+        //System.out.println("ShowCurrentMap");
         String response = Rcon.command("ShowCurrentMap");
         //System.out.println(response);
         LOGGER.trace("Getting current map. Response: {}", response);
