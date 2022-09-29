@@ -1,6 +1,7 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -31,11 +32,12 @@ public class AdminActionLogEntity implements Serializable {
     @Column(name = "createTime", nullable = false, insertable = false)
     private Timestamp createTime;
 
-    @JsonBackReference
+    @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "adminSteamId", referencedColumnName = "steamId", nullable = false)
     private AdminEntity adminsByAdminId;
 
+    @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId")
     private PlayerEntity playerByAdminId;

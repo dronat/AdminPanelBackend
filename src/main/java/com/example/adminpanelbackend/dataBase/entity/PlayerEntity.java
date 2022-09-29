@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -27,19 +28,19 @@ public class PlayerEntity implements Serializable {
     @Column(name = "createTime", nullable = false)
     private Timestamp createTime;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerBanEntity> playersBansBySteamId;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerMessageEntity> playersMessagesBySteamId;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerNoteEntity> playersNotesBySteamId;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerKickEntity> playersKicksBySteamId;
 
