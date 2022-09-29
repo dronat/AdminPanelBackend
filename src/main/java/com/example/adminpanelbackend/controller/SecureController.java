@@ -68,9 +68,9 @@ public class SecureController {
 
     @GetMapping(path = "/get-server-info")
     public ResponseEntity<HashMap<String, Object>> getServerInfo(@SessionAttribute AdminEntity userInfo,
-                                                HttpSession httpSession,
-                                                HttpServletRequest request,
-                                                HttpServletResponse response) {
+                                                                 HttpSession httpSession,
+                                                                 HttpServletRequest request,
+                                                                 HttpServletResponse response) {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getServerInfo());
     }
@@ -108,16 +108,34 @@ public class SecureController {
             put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
             put("content", resultPage.getContent());
         }};
+
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(player ->
+                contentList.add(
+                        new HashMap<>() {{
+                            put("steamId", player.getSteamId());
+                            put("name", player.getName());
+                            put("createTime", player.getCreateTime());
+                            put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
+                            put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
+                            put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
+                            put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                        }}
+                )
+        );
+        map.put("content", contentList);
+
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(map);
     }
 
     @PostMapping(path = "/get-player")
     public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo,
-                                                              HttpSession httpSession,
-                                                              HttpServletRequest request,
-                                                              HttpServletResponse response,
-                                                              @RequestParam long steamId) {
+                                                             HttpSession httpSession,
+                                                             HttpServletRequest request,
+                                                             HttpServletResponse response,
+                                                             @RequestParam long steamId) {
 
         PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
         OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers()
@@ -340,30 +358,30 @@ public class SecureController {
 
     @PostMapping(path = "/get-admins")
     public ResponseEntity<Collection<AdminEntity>> getAdmins(@SessionAttribute AdminEntity userInfo,
-                                                                             HttpSession httpSession,
-                                                                             HttpServletRequest request,
-                                                                             HttpServletResponse response) {
+                                                             HttpSession httpSession,
+                                                             HttpServletRequest request,
+                                                             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(adminService.findAll());
     }
 
     @PostMapping(path = "/get-admin")
     public ResponseEntity<AdminEntity> getAdmin(@SessionAttribute AdminEntity userInfo,
-                                                                             HttpSession httpSession,
-                                                                             HttpServletRequest request,
-                                                                             HttpServletResponse response,
-                                                                             @RequestParam long adminSteamId) {
+                                                HttpSession httpSession,
+                                                HttpServletRequest request,
+                                                HttpServletResponse response,
+                                                @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(entityManager.getAdminBySteamID(adminSteamId));
     }
 
     @PostMapping(path = "/get-admin-actions")
     public ResponseEntity<HashMap<String, Object>> getAdminActions(@SessionAttribute AdminEntity userInfo,
-                                                                            HttpSession httpSession,
-                                                                            HttpServletRequest request,
-                                                                            HttpServletResponse response,
-                                                                            @RequestParam int page,
-                                                                            @RequestParam int size) {
+                                                                   HttpSession httpSession,
+                                                                   HttpServletRequest request,
+                                                                   HttpServletResponse response,
+                                                                   @RequestParam int page,
+                                                                   @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
@@ -385,13 +403,13 @@ public class SecureController {
             PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
             if (player != null) {
                 playerByAdminId = new HashMap<>() {{
-                   put("steamId", player.getSteamId());
-                   put("name", player.getName());
-                   put("createTime", player.getCreateTime());
-                   put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
-                   put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
-                   put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
-                   put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                    put("steamId", player.getSteamId());
+                    put("name", player.getName());
+                    put("createTime", player.getCreateTime());
+                    put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
+                    put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
+                    put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
+                    put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
                 }};
             }
             HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
