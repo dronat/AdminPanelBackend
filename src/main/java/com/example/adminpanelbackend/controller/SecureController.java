@@ -5,6 +5,7 @@ import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
 import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
+import com.woop.Squad4J.event.rcon.ChatMessageEvent;
 import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
 import com.woop.Squad4J.model.OnlinePlayer;
@@ -55,6 +56,15 @@ public class SecureController {
                                                 HttpServletResponse response) {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getOnlineTeamsWithSquadsAndPlayers());
+    }
+
+    @GetMapping(path = "/get-chat-messages")
+    public ResponseEntity<Collection<ChatMessageEvent>> getChatMessages(@SessionAttribute AdminEntity userInfo,
+                                                                  HttpSession httpSession,
+                                                                  HttpServletRequest request,
+                                                                  HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(SquadServer.getChatMessages());
     }
 
     @GetMapping(path = "/get-disconnected-players")

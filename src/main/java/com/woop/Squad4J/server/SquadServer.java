@@ -58,6 +58,7 @@ public class SquadServer {
 
     private static Collection<OnlinePlayer> admins;
     private static Collection<OnlinePlayer> adminsInAdminCam;
+    private static Collection<ChatMessageEvent> chatMessages;
 
     @Getter
     private static String currentLayer;
@@ -245,6 +246,7 @@ public class SquadServer {
                 if (currentLayer.toLowerCase().contains("raas")) {
                     Rcon.command("AdminSetFogOfWar 0");
                 }
+                chatMessages.clear();
                 //TODO: Update admins since these can change between games
                 LOGGER.trace("Done updating SquadServer for NEW_GAME");
                 break;
@@ -301,6 +303,7 @@ public class SquadServer {
             //Rcon
             case CHAT_MESSAGE:
                 ChatMessageEvent cme = (ChatMessageEvent) ev;
+                chatMessages.add(cme);
                 entityManager.addPlayerMessage(cme.getSteamId(), cme.getChatType(), cme.getMessage());
                 LOGGER.trace("'{}' send new message '{}' in chat '{}'", cme.getPlayerName(), cme.getMessage(), cme.getChatType());
                 break;
@@ -423,5 +426,8 @@ public class SquadServer {
 
     public static Collection<OnlinePlayer> getAdminsInAdminCam() {
         return Collections.unmodifiableCollection(adminsInAdminCam);
+    }
+    public static Collection<ChatMessageEvent> getChatMessages() {
+        return Collections.unmodifiableCollection(chatMessages);
     }
 }
