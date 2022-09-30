@@ -58,7 +58,7 @@ public class SquadServer {
 
     private static Collection<OnlinePlayer> admins;
     private static Collection<OnlinePlayer> adminsInAdminCam;
-    private static Collection<ChatMessageEvent> chatMessages;
+    private static Collection<ChatMessageEvent> chatMessages = new LinkedList<>();
 
     @Getter
     private static String currentLayer;
