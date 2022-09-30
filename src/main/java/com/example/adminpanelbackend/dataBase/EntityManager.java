@@ -92,7 +92,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public void addPlayerBan(long playerSteamId, long adminSteamId, String expireTime, String reason) {
+    public void addPlayerBan(long playerSteamId, long adminSteamId, Timestamp expireTime, String reason) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         PlayerBanEntity ban = new PlayerBanEntity()
@@ -100,7 +100,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
                 .setAdminsBySteamId(admin)
                 .setReason(reason)
                 .setIsUnbannedManually(false)
-                .setExpirationTime(new Timestamp(Long.parseLong(expireTime)))
+                .setExpirationTime(expireTime)
                 .setCreationTime(new Timestamp(System.currentTimeMillis()));
 
         persist(ban);

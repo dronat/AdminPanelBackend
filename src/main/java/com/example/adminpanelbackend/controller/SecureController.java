@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.sql.Timestamp;
 import java.util.*;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -213,10 +214,11 @@ public class SecureController {
                                           HttpServletResponse response,
                                           @RequestParam long playerSteamId,
                                           @RequestParam String banLength,
+                                          @RequestParam Timestamp banLengthInTimeStamp,
                                           @RequestParam String banReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
-        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLength, banReason);
+        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLengthInTimeStamp, banReason);
         LOGGER.info("Admin '{}' has banned player '{}' by reason '{}'", playerSteamId, banLength, banReason);
         return ResponseEntity.ok().build();
     }
