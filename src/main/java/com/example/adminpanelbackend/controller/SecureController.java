@@ -214,11 +214,11 @@ public class SecureController {
                                           HttpServletResponse response,
                                           @RequestParam long playerSteamId,
                                           @RequestParam String banLength,
-                                          @RequestParam Timestamp banLengthInTimeStamp,
+                                          @RequestParam Long banLengthInTimeStamp,
                                           @RequestParam String banReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
-        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLengthInTimeStamp, banReason);
+        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), new Timestamp(System.currentTimeMillis() + banLengthInTimeStamp), banReason);
         LOGGER.info("Admin '{}' has banned player '{}' by reason '{}'", playerSteamId, banLength, banReason);
         return ResponseEntity.ok().build();
     }
