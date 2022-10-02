@@ -504,6 +504,7 @@ public class SecureController {
                 put("action", adminActionLogEntity.getAction());
                 put("reason", adminActionLogEntity.getReason());
                 put("createTime", adminActionLogEntity.getCreateTime());
+                put("adminsByAdminId", adminActionLogEntity.getAdminsByAdminId().getName());
                 put("playerByAdminId", finalPlayerByAdminId);
             }};
             contentList.add(contentMap);
