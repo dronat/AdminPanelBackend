@@ -153,7 +153,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         PlayerEntity player = playerNote.getPlayersBySteamId();
         LOGGER.info("\u001B[46m \u001B[30m Deleted player note: player '{}' note: '{}' \u001B[0m", player.getName(), playerNote.getNote());
         remove(playerNote);
-        refresh(playerNote);
+        refresh(player);
     }
 
     public PlayerNoteEntity getPlayerNote(int noteId) {
