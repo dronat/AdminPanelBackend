@@ -365,14 +365,43 @@ public class SquadServer {
         //getDisconnectedPlayers().forEach(disconnectedPlayer -> onlineInfo.addDisconnectedPlayer(SerializationUtils.clone(disconnectedPlayer)));
 
         getOnlinePlayers().forEach(onlinePlayer -> {
-            if (onlinePlayer.getSquadID() == null) {
-                onlineInfo.getTeamById(onlinePlayer.getTeamId()).addPlayerWithoutSquad(SerializationUtils.clone(onlinePlayer));
-            } else {
-                onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()).addPlayer(SerializationUtils.clone(onlinePlayer));
+            if (onlinePlayer.getTeamId() != null && !onlineInfo.getTeams().isEmpty()) {
+                    if (onlinePlayer.getSquadID() == null) {
+                        onlineInfo.getTeamById(onlinePlayer.getTeamId()).addPlayerWithoutSquad(SerializationUtils.clone(onlinePlayer));
+                    } else {
+                        if (onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()) == null) {
+                            onlineInfo.getTeamById(onlinePlayer.getTeamId()).addSquad(new Squad(onlinePlayer.getTeamId(),onlinePlayer.getSquadID(), null, null, null, null, null));
+                        }
+                        onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()).addPlayer(SerializationUtils.clone(onlinePlayer));
+                    }
             }
         });
-        onlineInfo.getTeamById(1).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
-        onlineInfo.getTeamById(2).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
+        if (!onlineInfo.getTeams().isEmpty() ) {
+            //onlineInfo.getTeamById(1).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
+            //onlineInfo.getTeamById(2).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
+            try {
+                onlineInfo.getTeamById(1).setTeamNameShort(
+                        onlineInfo.getTeamById(1)
+                                .getSquads()
+                                .get(0)
+                                .getPlayers()
+                                .get(0)
+                                .getRole()
+                                .substring(0, onlineInfo.getTeamById(1).getSquads().get(0).getPlayers().get(0).getRole().indexOf("_"))
+                );
+            } catch (Exception ignored) {}
+            try {
+                onlineInfo.getTeamById(2).setTeamNameShort(
+                        onlineInfo.getTeamById(2)
+                                .getSquads()
+                                .get(0)
+                                .getPlayers()
+                                .get(0)
+                                .getRole()
+                                .substring(0, onlineInfo.getTeamById(2).getSquads().get(0).getPlayers().get(0).getRole().indexOf("_"))
+                );
+            } catch (Exception ignored) {}
+        }
         return onlineInfo;
     }
 

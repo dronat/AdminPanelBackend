@@ -33,7 +33,7 @@ public class RconUpdater {
 
     private static boolean initialized = false;
 
-    private static final Pattern onlinePlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Name: (.+) \\| Team ID: (1|2) \\| Squad ID: ([0-9]+|N\\/A) \\| Is Leader: (True|False) \\| Role: (.+)");
+    private static final Pattern onlinePlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Name: (.+) \\| Team ID: (1|2|N/A) \\| Squad ID: ([0-9]+|N/A) \\| Is Leader: (True|False) \\| Role: (.+)");
     private static final Pattern disconnectedPlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Since Disconnect: (.+) \\| Name: (.+)");
     private static final Pattern squadPattern = Pattern.compile("ID: ([0-9]+) \\| Name: (.+) \\| Size: ([0-9]+) \\| Locked: (True|False) \\| Creator Name: (.+) \\| Creator Steam ID: ([0-9]{17})");
     private static final Pattern currentLayerPattern = Pattern.compile("Current level is (.+), layer is (.+)");
@@ -56,9 +56,9 @@ public class RconUpdater {
      * Helper method to update information retrieved through RCON: player list, squad list, and layer info.
      */
     public static void updateRcon() {
-        updatePlayerList();
         updateSquadList();
         updateLayerInfo();
+        updatePlayerList();
         LOGGER.info("Rcon updated");
     }
 
@@ -66,7 +66,7 @@ public class RconUpdater {
      * Updates the player list by querying the RCON console for a player list.
      */
     protected static void updatePlayerList(){
-        long b = System.currentTimeMillis();
+        //long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving player list.");
         //System.out.println("ListPlayers");
         String response = Rcon.command("ListPlayers");
@@ -84,7 +84,7 @@ public class RconUpdater {
                 Integer id = Integer.valueOf(onlineMatcher.group(1));
                 long steamId = Long.parseLong(onlineMatcher.group(2));
                 String name = onlineMatcher.group(3);
-                Integer teamId = Integer.valueOf(onlineMatcher.group(4));
+                Integer teamId = onlineMatcher.group(4).equals("N/A") ? null : Integer.valueOf(onlineMatcher.group(4));
                 Integer squadId = onlineMatcher.group(5).equals("N/A") ? null : Integer.valueOf(onlineMatcher.group(5));
                 Boolean isLeader = Boolean.valueOf(onlineMatcher.group(6));
                 String role = onlineMatcher.group(7);
@@ -105,6 +105,7 @@ public class RconUpdater {
         LOGGER.trace("Retrieved {} disconnected Players.", disconnectedPlayers.size());
 
         Event event = new PlayerListUpdatedEvent(new Date(), EventType.PLAYERLIST_UPDATED, onlineOnlinePlayers, disconnectedPlayers);
+        //System.out.println("SquadsAndTeamsResponse: \n" + response);
 
         EventEmitter.emit(event);
         //System.out.println("ParsePlayerList: " + (System.currentTimeMillis() - a));
@@ -152,7 +153,6 @@ public class RconUpdater {
         LOGGER.trace("Retrieved {} squads.", squads.size());
 
         Event event = new SquadAndTeamListsUpdatedEvent(new Date(), EventType.SQUADLIST_UPDATED, squads, teams);
-
         EventEmitter.emit(event);
         //System.out.println("ParseSquadList: " + (System.currentTimeMillis() - a));
     }
