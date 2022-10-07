@@ -5,6 +5,7 @@ import com.woop.Squad4J.main.SquadModule;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 
 import java.util.HashMap;
 
@@ -26,6 +27,7 @@ public class AdminPanelBackendApplication {
             put("spring.session.store-type", "jdbc");
         }});
 
+        springApplication.addListeners(new ApplicationPidFileWriter("./bin/shutdown.pid"));
         springApplication.run(args);
     }
 }
