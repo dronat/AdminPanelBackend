@@ -106,7 +106,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         persist(ban);
         refresh(player);
         refresh(admin);
-        addAdminActionInLog(adminSteamId, playerSteamId, "BanPlayer", null);
+        addAdminActionInLog(adminSteamId, playerSteamId, "BanPlayer", reason);
     }
 
     public void unbanPlayerBan(int banId, long adminSteamId) {
