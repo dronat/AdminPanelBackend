@@ -45,7 +45,7 @@ public class RconImpl {
 
     private int requestId;
 
-    private final Queue<RconPacket> commandResponsePackets = new LinkedList<>();
+    private volatile Queue<RconPacket> commandResponsePackets = new LinkedList<>();
 
     private final List<Consumer<RconPacket>> onPacketConsumers = new ArrayList<>();
 
@@ -240,7 +240,6 @@ public class RconImpl {
             LOGGER.error(e.getMessage());
         }
         while(socketHasData()){}
-        return;
     }
 
     /**
