@@ -221,7 +221,7 @@ public class SecureController {
         banReason += " До " + expirationTime;
         Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
         entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), expirationTime, banReason);
-        LOGGER.info("Admin '{}' has banned player '{}' by reason '{}'", playerSteamId, banLength, banReason);
+        LOGGER.info("Admin '{}' has banned player '{}' by reason '{}' for length '{}'", userInfo.getName(), playerSteamId, banLength, banReason);
         return ResponseEntity.ok().build();
     }
 
