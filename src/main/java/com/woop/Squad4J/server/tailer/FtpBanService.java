@@ -34,7 +34,6 @@ public class FtpBanService implements Runnable{
         EntityManager entityManager = new EntityManager();
         FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
 
-
         while (run) {
             try {
                 StringBuilder stringToWrite = new StringBuilder();
@@ -104,7 +103,7 @@ public class FtpBanService implements Runnable{
             LOGGER.error("FTP return reply code " + reply);
             throw new RuntimeException();
         }
-        ftpClient.setControlKeepAliveTimeout(300);
+        ftpClient.setControlKeepAliveTimeout((DELAY_IN_MILLIS / 1000) + 300);
         ftpClient.enterLocalPassiveMode();
 
         try {
@@ -167,7 +166,6 @@ public class FtpBanService implements Runnable{
         boolean result;
         try (InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING)) {
             result = ftpClient.storeFile(FILE_NAME, inputStream);
-            ftpClient.completePendingCommand();
         } catch (Exception e) {
             LOGGER.error("Failed to rewrite FTP file " + FILE_NAME);
             throw new RuntimeException(e);
