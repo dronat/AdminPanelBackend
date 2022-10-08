@@ -167,6 +167,7 @@ public class FtpBanService implements Runnable{
         boolean result;
         try (InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING)) {
             result = ftpClient.storeFile(FILE_NAME, inputStream);
+            ftpClient.completePendingCommand();
         } catch (Exception e) {
             LOGGER.error("Failed to rewrite FTP file " + FILE_NAME);
             throw new RuntimeException(e);
