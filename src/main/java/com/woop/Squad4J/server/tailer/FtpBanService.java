@@ -131,7 +131,7 @@ public class FtpBanService implements Runnable{
             }
             LOGGER.info("FTP closed");
         } catch (Exception e) {
-            LOGGER.error("Failed to close FTP connection");
+            LOGGER.error("Failed to close FTP connection", e);
         }
     }
 
