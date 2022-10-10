@@ -25,7 +25,7 @@ public class FtpBanService implements Runnable{
     private final String ABSOLUTE_FILE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
     private final String ENCODING = "UTF-8";
     private final String FILE_NAME = "Bans_test.cfg";
-    private final long DELAY_IN_MILLIS = 5 * 60000;
+    private final long DELAY_IN_MILLIS = 60000;
     private volatile boolean run;
 
     @Override
@@ -103,7 +103,7 @@ public class FtpBanService implements Runnable{
             LOGGER.error("FTP return reply code " + reply);
             throw new RuntimeException();
         }
-        ftpClient.setControlKeepAliveTimeout((DELAY_IN_MILLIS / 1000) + 300);
+        ftpClient.setControlKeepAliveTimeout(15000);
         ftpClient.enterLocalPassiveMode();
 
         try {
