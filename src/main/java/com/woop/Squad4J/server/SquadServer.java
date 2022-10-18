@@ -278,7 +278,6 @@ public class SquadServer {
                     int i = 0;
                     while (i < 10) {
                         try {
-                            LOGGER.error("CHECK " + i);
                             LOGGER.trace("Updating SquadServer for STEAMID_CONNECTED");
                             nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamId());
                             if (!entityManager.isPlayerExist(steamidConnectedEvent.getSteamId())) {
