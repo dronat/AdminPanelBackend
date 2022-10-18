@@ -290,6 +290,7 @@ public class SquadServer {
                             .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
                             .findFirst()
                             .orElse(null);
+                    //TODO: Fix bug, while onlinePlayer == null
                     if (onlinePlayer != null && !playerEntity.getName().equals(onlinePlayer.getName())) {
                         //LOGGER.info("\u001B[46m \u001B[30m (onSteamIdConnected) Player change name from '{}' to '{}' \u001B[0m", playerEntity.getName(), onlinePlayer.getName());
                         //String oldName = playerEntity.getName();
