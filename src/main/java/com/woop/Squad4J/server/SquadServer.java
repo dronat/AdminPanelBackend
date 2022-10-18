@@ -273,33 +273,51 @@ public class SquadServer {
                 LOGGER.trace("Done updating SquadServer for ROUDN_WINNER");
                 break;
             case STEAMID_CONNECTED:
-                LOGGER.trace("Updating SquadServer for STEAMID_CONNECTED");
-                SteamIdConnectedEvent steamidConnectedEvent = (SteamIdConnectedEvent) ev;
-                nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamId());
-                if (!entityManager.isPlayerExist(steamidConnectedEvent.getSteamId())) {
-                    RconUpdater.updatePlayerList();
-                    OnlinePlayer onlinePlayer = onlinePlayers.stream()
-                            .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
-                            .findFirst()
-                            .orElseThrow();
-                    entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
-                } else {
-                    RconUpdater.updatePlayerList();
-                    PlayerEntity playerEntity = entityManager.getPlayerBySteamId(steamidConnectedEvent.getSteamId());
-                    OnlinePlayer onlinePlayer = onlinePlayers.stream()
-                            .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
-                            .findFirst()
-                            .orElse(null);
-                    //TODO: Fix bug, while onlinePlayer == null
-                    if (onlinePlayer != null && !playerEntity.getName().equals(onlinePlayer.getName())) {
-                        //LOGGER.info("\u001B[46m \u001B[30m (onSteamIdConnected) Player change name from '{}' to '{}' \u001B[0m", playerEntity.getName(), onlinePlayer.getName());
-                        //String oldName = playerEntity.getName();
-                        playerEntity.setName(onlinePlayer.getName());
-                        entityManager.update(playerEntity);
-                        //entityManager.addPlayerNote(playerEntity, "Игрок изменил имя с '" + oldName + "' на '" + playerEntity.getName() + "'");
+                Runnable runnable = () -> {
+                    SteamIdConnectedEvent steamidConnectedEvent = (SteamIdConnectedEvent) ev;
+                    int i = 0;
+                    while (i < 10) {
+                        try {
+                            LOGGER.error("CHECK " + i);
+                            LOGGER.trace("Updating SquadServer for STEAMID_CONNECTED");
+                            nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamId());
+                            if (!entityManager.isPlayerExist(steamidConnectedEvent.getSteamId())) {
+                                RconUpdater.updatePlayerList();
+                                OnlinePlayer onlinePlayer = onlinePlayers.stream()
+                                        .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
+                                        .findFirst()
+                                        .orElseThrow();
+                                entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
+                            } else {
+                                RconUpdater.updatePlayerList();
+                                PlayerEntity playerEntity = entityManager.getPlayerBySteamId(steamidConnectedEvent.getSteamId());
+                                OnlinePlayer onlinePlayer = onlinePlayers.stream()
+                                        .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
+                                        .findFirst()
+                                        .orElseThrow();
+                                if (!playerEntity.getName().equals(onlinePlayer.getName())) {
+                                    //LOGGER.info("\u001B[46m \u001B[30m (onSteamIdConnected) Player change name from '{}' to '{}' \u001B[0m", playerEntity.getName(), onlinePlayer.getName());
+                                    //String oldName = playerEntity.getName();
+                                    playerEntity.setName(onlinePlayer.getName());
+                                    entityManager.update(playerEntity);
+                                    //entityManager.addPlayerNote(playerEntity, "Игрок изменил имя с '" + oldName + "' на '" + playerEntity.getName() + "'");
+                                }
+                            }
+                            LOGGER.trace("Done updating SquadServer for STEAMID_CONNECTED");
+                            return;
+                        } catch (NoSuchElementException e) {
+                            LOGGER.warn("Player {} not initialized in RCON", steamidConnectedEvent.getSteamId());
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                            i++;
+                        }
                     }
-                }
-                LOGGER.trace("Done updating SquadServer for STEAMID_CONNECTED");
+                    LOGGER.error("Cant get info from rcon after 10 retrying by player " + steamidConnectedEvent.getSteamId());
+                };
+                new Thread(runnable).start();
                 break;
             //Rcon
             case CHAT_MESSAGE:
