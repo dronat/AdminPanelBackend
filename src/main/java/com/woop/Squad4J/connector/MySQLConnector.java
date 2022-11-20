@@ -121,19 +121,25 @@ public class MySQLConnector extends Connector {
             createDbLogRevives();
         }*/
         try {
+            statement.executeQuery("SELECT COUNT(*) FROM Spring_Session");
+            statement.executeQuery("SELECT COUNT(*) FROM spring_session_attributes");
+        } catch (SQLException e) {
+            createSpringSessions();
+        }
+        try {
             statement.executeQuery("SELECT COUNT(*) FROM admins");
         } catch (SQLException e) {
             createAdmin();
         }
         try {
-            statement.executeQuery("SELECT COUNT(*) FROM admins_action_log");
-        } catch (SQLException e) {
-            createAdminActionLog();
-        }
-        try {
             statement.executeQuery("SELECT COUNT(*) FROM players");
         } catch (SQLException e) {
             createPlayers();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM admins_action_log");
+        } catch (SQLException e) {
+            createAdminActionLog();
         }
         try {
             statement.executeQuery("SELECT COUNT(*) FROM players_bans");
@@ -154,12 +160,6 @@ public class MySQLConnector extends Connector {
             statement.executeQuery("SELECT COUNT(*) FROM players_notes");
         } catch (SQLException e) {
             createPlayersNotes();
-        }
-        try {
-            statement.executeQuery("SELECT COUNT(*) FROM Spring_Session");
-            statement.executeQuery("SELECT COUNT(*) FROM spring_session_attributes");
-        } catch (SQLException e) {
-            createSpringSessions();
         }
     }
 

@@ -1,6 +1,7 @@
 package com.woop.Squad4J.server.tailer;
 
 import org.apache.commons.io.input.TailerListener;
+import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,7 +31,6 @@ public class FtpLogTailer implements Runnable {
     private long lastByteRead = 0;
     private String lastRowRead;
     private volatile boolean run;
-
 
     public FtpLogTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
@@ -78,6 +79,8 @@ public class FtpLogTailer implements Runnable {
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {
         LOGGER.info("Connecting to FTP");
         FTPClient ftpClient = new FTPClient();
+        //ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
+
         ftpClient.setControlEncoding(controlEncoding);
 
         try {
@@ -98,7 +101,9 @@ public class FtpLogTailer implements Runnable {
         }
 
         try {
-            ftpClient.setFileType(fileType);
+            if (!ftpClient.setFileType(fileType)) {
+                throw new IllegalArgumentException("Cant set file type in FTP");
+            }
         } catch (Exception e) {
             LOGGER.error("Exception while trying set BINARY_FILE_TYPE on FTP " + addr + port, e);
             throw new RuntimeException(e);
@@ -118,7 +123,9 @@ public class FtpLogTailer implements Runnable {
         ftpClient.setControlKeepAliveTimeout(300);
         ftpClient.enterLocalPassiveMode();
         try {
-            ftpClient.changeWorkingDirectory(PATH);
+            if (!ftpClient.changeWorkingDirectory(PATH)) {
+                throw new IllegalArgumentException("Cant change working directory in FTP");
+            }
         } catch (Exception e) {
             LOGGER.error("Exception while trying set working FTP directory " + PATH, e);
             throw new RuntimeException(e);
