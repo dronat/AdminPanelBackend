@@ -1,7 +1,6 @@
 package com.woop.Squad4J.server.tailer;
 
 import org.apache.commons.io.input.TailerListener;
-import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
@@ -9,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.io.PrintWriter;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -120,7 +119,15 @@ public class FtpLogTailer implements Runnable {
             LOGGER.error("FTP return reply code " + reply);
             throw new RuntimeException();
         }
-        ftpClient.setControlKeepAliveTimeout(300);
+        try {
+            ftpClient.setControlKeepAliveTimeout(1);
+            ftpClient.setControlKeepAliveReplyTimeout(5000);
+            ftpClient.setConnectTimeout(5000);
+            ftpClient.setSoTimeout(5000);
+            ftpClient.setDataTimeout(10000);
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
         ftpClient.enterLocalPassiveMode();
         try {
             if (!ftpClient.changeWorkingDirectory(PATH)) {

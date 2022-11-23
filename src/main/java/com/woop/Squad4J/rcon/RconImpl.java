@@ -49,7 +49,7 @@ public class RconImpl {
 
     private final List<Consumer<RconPacket>> onPacketConsumers = new ArrayList<>();
 
-    public static int SERVERDATA_RESPONSE_VALUE = 0;
+    public static final int SERVERDATA_RESPONSE_VALUE = 0;
     //This one isn't technically defined in Source RCON Protocol, but is used for some games such as Squad
     public static final int SERVERDATA_BROADCAST = 1;
     public static final int SERVERDATA_EXECCOMMAND = 2;
@@ -218,11 +218,14 @@ public class RconImpl {
     private boolean socketHasData(){
         boolean status = false;
         try {
+            Thread.sleep(100);
             status = socket.getInputStream().available() > 0;
         } catch (IOException e) {
             LOGGER.error("Error with socket stream");
             LOGGER.error(e.getMessage());
             reconnect();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
         return status;
     }
@@ -363,11 +366,19 @@ public class RconImpl {
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
 
                 int length = buffer.getInt();
+                if (length < 10) {
+                    LOGGER.error("Rcon pocket have length less then 10");
+                    throw new RuntimeException();
+                }
                 int requestId = buffer.getInt();
                 int type = buffer.getInt();
 
-                // Payload size can be computed now that we have its length
-                byte[] payload = new byte[length - 4 - 4 - 2];
+                byte[] payload;
+                try {
+                    payload = new byte[length - 10];
+                } catch (NegativeArraySizeException e) {
+                    throw new RuntimeException(e);
+                }
 
                 DataInputStream dis = new DataInputStream(in);
 
@@ -381,7 +392,7 @@ public class RconImpl {
             }
         }
         catch(BufferUnderflowException | EOFException e) {
-            LOGGER.error("Error reading packet");
+            LOGGER.error("Error reading packet", e);
             LOGGER.error(e.getMessage());
         }
         return null;

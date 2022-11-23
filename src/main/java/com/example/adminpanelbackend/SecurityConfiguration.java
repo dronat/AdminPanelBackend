@@ -25,7 +25,9 @@ public class SecurityConfiguration implements WebMvcConfigurer {
         return http
                 .authorizeRequests().antMatchers("/**").permitAll()
                 .and()
-                .sessionManagement(session -> session.maximumSessions(1))
+                .sessionManagement(session -> {
+                    session.maximumSessions(1);
+                })
                 .csrf().disable()
                 //.httpBasic().disable()
                 .build();
