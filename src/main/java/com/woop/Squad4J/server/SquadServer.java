@@ -276,19 +276,17 @@ public class SquadServer {
                 Runnable runnable = () -> {
                     SteamIdConnectedEvent steamidConnectedEvent = (SteamIdConnectedEvent) ev;
                     int i = 0;
-                    while (i < 10) {
+                    while (i < 20) {
                         try {
                             LOGGER.trace("Updating SquadServer for STEAMID_CONNECTED");
                             nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamId());
                             if (!entityManager.isPlayerExist(steamidConnectedEvent.getSteamId())) {
-                                RconUpdater.updatePlayerList();
                                 OnlinePlayer onlinePlayer = onlinePlayers.stream()
                                         .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
                                         .findFirst()
                                         .orElseThrow();
                                 entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
                             } else {
-                                RconUpdater.updatePlayerList();
                                 PlayerEntity playerEntity = entityManager.getPlayerBySteamId(steamidConnectedEvent.getSteamId());
                                 OnlinePlayer onlinePlayer = onlinePlayers.stream()
                                         .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
@@ -305,9 +303,9 @@ public class SquadServer {
                             LOGGER.trace("Done updating SquadServer for STEAMID_CONNECTED");
                             return;
                         } catch (NoSuchElementException e) {
-                            LOGGER.warn("Player {} not initialized in RCON", steamidConnectedEvent.getSteamId());
+                            //LOGGER.warn("Player {} not initialized in RCON", steamidConnectedEvent.getSteamId());
                             try {
-                                Thread.sleep(1000);
+                                Thread.sleep(3000);
                             } catch (InterruptedException ex) {
                                 throw new RuntimeException(ex);
                             }

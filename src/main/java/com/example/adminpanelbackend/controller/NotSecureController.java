@@ -1,6 +1,7 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.SteamOpenID;
+import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.model.SteamUserModel;
@@ -27,9 +28,7 @@ import java.util.HashMap;
 public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);
     private final SteamOpenID steamOpenID = new SteamOpenID();
-    private final RestTemplate restTemplate = new RestTemplate();
     EntityManager entityManager = new EntityManager();
-    private final String steamApiKey = ConfigLoader.get("server.steamApiKey", String.class);
 
     @PostMapping(path = "/get-steam-link")
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
@@ -59,11 +58,7 @@ public class NotSecureController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        SteamUserModel.Response.Player steamUser = restTemplate
-                .getForObject("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + steamApiKey + "&steamids=" + steamId, SteamUserModel.class)
-                .getResponse()
-                .getPlayers()
-                .get(0);
+        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
         AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
         if (adminEntity == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
