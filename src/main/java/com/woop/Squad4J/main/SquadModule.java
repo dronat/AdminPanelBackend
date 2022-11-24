@@ -5,6 +5,7 @@ import com.woop.Squad4J.connector.MySQLConnector;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.logparser.ServerTickRateEvent;
+import com.woop.Squad4J.rcon.NewRcon;
 import com.woop.Squad4J.server.EventEmitter;
 import com.woop.Squad4J.server.SquadServer;
 import com.woop.Squad4J.server.tailer.FtpBanService;
@@ -46,7 +47,8 @@ public class SquadModule {
 
         //Initialize services
         //Initialize RCON service
-        Rcon.init();
+        //Rcon.init();
+        NewRcon.init();
 
         //Initialize log tailer service
         TailerService.init();

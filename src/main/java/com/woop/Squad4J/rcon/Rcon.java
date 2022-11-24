@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * Singleton wrapper for RconImpl
  */
 public class Rcon {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Rcon.class);
+    /*private static final Logger LOGGER = LoggerFactory.getLogger(Rcon.class);
 
     private static RconImpl rconImpl;
     private static boolean initialized = false;
@@ -49,6 +49,10 @@ public class Rcon {
 
     public static String command(String cmd){
         return initialized ? rconImpl.command(cmd) : "";
+    }*/
+
+    public static String command(String cmd){
+        return NewRcon.command(cmd);
     }
 
 }

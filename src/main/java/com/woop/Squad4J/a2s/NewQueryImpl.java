@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class NewQueryImpl {
     private final Logger LOGGER = LoggerFactory.getLogger(NewQueryImpl.class);
@@ -56,7 +57,16 @@ public class NewQueryImpl {
 
     public SourceQueryInfoResponse getQueryInfo() {
         try {
-            return queryClient.getInfo(address).get(TIMEOUT, TimeUnit.MILLISECONDS);
+            SourceQueryInfoResponse sqir = null;
+            while (sqir == null) {
+                try {
+                    sqir = queryClient.getInfo(address).get(TIMEOUT, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException ignore) {}
+                if (sqir == null) {
+                    LOGGER.warn("Failed to get Query, trying again");
+                }
+            }
+            return sqir;
         } catch (Exception e) {
             LOGGER.error("Failed to get Query info", e);
             reconnect();

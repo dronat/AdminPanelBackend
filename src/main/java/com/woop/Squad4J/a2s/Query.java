@@ -48,7 +48,7 @@ public class Query {
         LOGGER.info("Starting query service.");
         String host = ConfigLoader.get("$.server.host", String.class);
         Integer port = ConfigLoader.get("$.server.queryPort", Integer.class);
-        newQueryImpl = new NewQueryImpl(host, port, 3000).init();
+        newQueryImpl = new NewQueryImpl(host, port, 10000).init();
         initialized = true;
     }
 

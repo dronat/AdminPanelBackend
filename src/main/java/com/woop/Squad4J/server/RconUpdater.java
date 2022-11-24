@@ -47,7 +47,7 @@ public class RconUpdater {
         if(initialized)
             throw new IllegalStateException(RconUpdater.class.getSimpleName() + " has already been initialized.");
 
-        GlobalThreadPool.getScheduler().scheduleAtFixedRate(RconUpdater::updateRcon, 5, 2, TimeUnit.SECONDS);
+        GlobalThreadPool.getScheduler().scheduleWithFixedDelay(RconUpdater::updateRcon, 5, 2, TimeUnit.SECONDS);
 
         initialized = true;
     }
