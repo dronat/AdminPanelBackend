@@ -73,12 +73,6 @@ public class NotSecureController {
         entityManager.update(adminEntity);
         httpSession.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, String.valueOf(adminEntity.getSteamId()));
         httpSession.setAttribute("userInfo", adminEntity);
-        /*for (Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals("SESSION")) {
-                cookie.setHttpOnly(false);
-                cookie.setMaxAge(1 * 86400);
-            }
-        }*/
         return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
     }
 
