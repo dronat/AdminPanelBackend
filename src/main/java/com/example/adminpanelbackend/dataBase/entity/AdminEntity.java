@@ -17,7 +17,7 @@ import java.util.Objects;
 @Table(name = "admins", schema = "squad")
 public class AdminEntity implements Serializable {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Basic
     @Column(name = "steamId", nullable = false)
