@@ -20,14 +20,19 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public void addAdmin(long steamId) {
         LOGGER.info("\u001B[46m \u001B[30m Added new admin with steamId: {} \u001B[0m", steamId);
-        persist(
-                new AdminEntity()
-                        .setSteamId(steamId)
-                        .setName("notLoggedIn")
-                        .setRole(1)
-                        .setCreateTime(new Timestamp(System.currentTimeMillis()))
-                        .setModifiedTime(new Timestamp(System.currentTimeMillis()))
-        );
+        AdminEntity admin = getAdminBySteamID(steamId);
+        if (admin != null) {
+            update(admin.setRole(1).setModifiedTime(new Timestamp(System.currentTimeMillis())));
+        } else {
+            persist(
+                    new AdminEntity()
+                            .setSteamId(steamId)
+                            .setName("notLoggedIn")
+                            .setRole(1)
+                            .setCreateTime(new Timestamp(System.currentTimeMillis()))
+                            .setModifiedTime(new Timestamp(System.currentTimeMillis()))
+            );
+        }
     }
 
     public void deactivateAdmin(long steamId) {
@@ -41,7 +46,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .setParameter("steamId", adminSteamId)
                     .getSingleResult();
         } catch (Exception e) {
-            LOGGER.error("SQL error while get admin by steamId " + adminSteamId, e);
+            LOGGER.warn("SQL error while get admin by steamId " + adminSteamId, e);
             return null;
         }
     }
