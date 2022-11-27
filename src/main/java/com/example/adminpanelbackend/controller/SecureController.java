@@ -481,12 +481,12 @@ public class SecureController {
         return entityManager.getAdminBySteamID(userInfo.getSteamId()) == null ? ResponseEntity.ok(null) : ResponseEntity.status(401).build();
     }
 
-    @GetMapping(path = "/logout")
-    public ResponseEntity<Void> logout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping(path = "/user-logout")
+    public ResponseEntity<Void> userLogout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
         httpSession.removeAttribute("userInfo");
         httpSession.invalidate();
-        return httpSession.getAttribute("userInfo") == null ? ResponseEntity.status(200).build() : ResponseEntity.status(500).build();
+        return httpSession.getAttribute("userInfo") == null ? ResponseEntity.ok().build() : ResponseEntity.status(500).build();
     }
 
 }
