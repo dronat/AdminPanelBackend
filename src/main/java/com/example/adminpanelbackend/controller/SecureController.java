@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
@@ -119,7 +120,6 @@ public class SecureController {
 
     @PostMapping(path = "/get-player")
     public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
-
         PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
         if (player == null) {
             return ResponseEntity.status(404).build();
@@ -129,6 +129,7 @@ public class SecureController {
             put("name", player.getName());
             put("steamId", player.getSteamId());
             put("isOnline", onlinePlayer);
+            put("avatarFull", SteamService.getSteamUserInfo(steamId).getAvatarfull());
         }};
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(map);
