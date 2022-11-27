@@ -6,6 +6,7 @@ import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
 import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
+import com.example.adminpanelbackend.dataBase.service.PlayerBanService;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
 import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
@@ -45,6 +46,8 @@ public class SecureController {
 
     @Autowired
     AdminActionLogsService adminActionLogsService;
+    @Autowired
+    PlayerBanService playerBanService;
 
     @Autowired
     AdminService adminService;
@@ -133,7 +136,7 @@ public class SecureController {
             put("numOfActiveBans", player
                     .getPlayersBansBySteamId()
                     .stream()
-                    .filter(ban -> ban.getExpirationTime().after(new Date()))
+                    .filter(ban -> ban.getExpirationTime().after(new Date()) && !ban.getIsUnbannedManually())
                     .count()
             );
         }};
@@ -219,6 +222,57 @@ public class SecureController {
             return ResponseEntity.status(404).build();
         }
         return ResponseEntity.ok(player.getPlayersBansBySteamId());
+    }
+
+    @PostMapping(path = "/get-bans")
+    public ResponseEntity<HashMap<String, Object>> getAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam boolean showOnlyActiveBans, @RequestParam int page, @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+
+        Page<PlayerBanEntity> resultPage = showOnlyActiveBans ?
+                playerBanService.findAllActiveBans(PageRequest.of(page, size, Sort.by("id").descending()))
+                : playerBanService.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber());
+            put("totalPages", resultPage.getTotalPages());
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
+        }};
+        List<LinkedHashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(ban -> contentList.add(
+                new LinkedHashMap<>() {{
+                    put("id", ban.getId());
+                    put("bannedPlayer", new HashMap<>() {{
+                        put("playerName", ban.getPlayersBySteamId().getName());
+                        put("steamId", ban.getPlayersBySteamId().getSteamId());
+                    }});
+                    put("bannedBy", new HashMap<>() {{
+                        put("adminName", ban.getAdminsBySteamId().getName());
+                        put("steamId", ban.getAdminsBySteamId().getSteamId());
+                    }});
+                    put("reason", ban.getReason());
+                    put("isUnbannedManual", ban.getIsUnbannedManually());
+                    put("unbannedManualBy",
+                            ban.getIsUnbannedManually() ?
+                                    new HashMap<>() {{
+                                        put("adminName", ban.getUnbannedAdminBySteamId().getName());
+                                        put("steamId", ban.getUnbannedAdminBySteamId().getSteamId());
+                                    }}
+                                    : null
+                    );
+                    put("manualUnbannedTime", ban.getUnbannedTime());
+                    put("expirationTime", ban.getExpirationTime());
+                    put("creationTime", ban.getCreationTime());
+                }})
+        );
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
     }
 
     @PostMapping(path = "/kick-player")
@@ -357,7 +411,7 @@ public class SecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size, Sort.Direction.DESC));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());

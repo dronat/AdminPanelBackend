@@ -1,8 +1,10 @@
 package com.example.adminpanelbackend.dataBase;
 
+import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.core.JpaConnection;
 import com.example.adminpanelbackend.dataBase.core.JpaManager;
 import com.example.adminpanelbackend.dataBase.entity.*;
+import com.example.adminpanelbackend.model.SteamUserModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +91,10 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public PlayerEntity getPlayerBySteamId(long steamId) {
         try {
+            if (!isPlayerExist(steamId)) {
+                SteamUserModel.Response.Player player = SteamService.getSteamUserInfo(steamId);
+                addPlayer(steamId, player.getPersonaname());
+            }
             return em.createQuery("SELECT a FROM PlayerEntity a WHERE a.steamId=:steamId", PlayerEntity.class)
                     .setParameter("steamId", steamId)
                     .getSingleResult();
