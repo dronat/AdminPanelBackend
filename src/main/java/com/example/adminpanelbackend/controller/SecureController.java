@@ -486,7 +486,7 @@ public class SecureController {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
         httpSession.removeAttribute("userInfo");
         httpSession.invalidate();
-        return entityManager.getAdminBySteamID(userInfo.getSteamId()) != null ? ResponseEntity.status(200).build() : ResponseEntity.status(401).build();
+        return httpSession.getAttribute("userInfo") == null ? ResponseEntity.status(200).build() : ResponseEntity.status(500).build();
     }
 
 }
