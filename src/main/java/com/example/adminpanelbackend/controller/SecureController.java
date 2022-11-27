@@ -393,7 +393,7 @@ public class SecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAll(PageRequest.of(page, size, Sort.Direction.DESC));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());
