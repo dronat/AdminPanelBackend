@@ -240,9 +240,7 @@ public class SquadServer {
                 maxTickRate = newGameEvent.getMaxTickRate();
                 currentLayer = newGameEvent.getLayerName();
                 A2SUpdater.updateA2S();
-                RconUpdater.updatePlayerList();
-                RconUpdater.updateSquadList();
-                RconUpdater.updateLayerInfo();
+                RconUpdater.updateRcon();
                 if (currentLayer.toLowerCase().contains("raas")) {
                     Rcon.command("AdminSetFogOfWar 0");
                 }
@@ -281,21 +279,21 @@ public class SquadServer {
                             LOGGER.trace("Updating SquadServer for STEAMID_CONNECTED");
                             nameSteamIds.put(steamidConnectedEvent.getName(), steamidConnectedEvent.getSteamId());
                             if (!entityManager.isPlayerExist(steamidConnectedEvent.getSteamId())) {
-                                OnlinePlayer onlinePlayer = onlinePlayers.stream()
+                                /*OnlinePlayer onlinePlayer = onlinePlayers.stream()
                                         .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
                                         .findFirst()
-                                        .orElseThrow();
-                                entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
+                                        .orElseThrow();*/
+                                entityManager.addPlayer(steamidConnectedEvent.getSteamId(), steamidConnectedEvent.getName());
                             } else {
                                 PlayerEntity playerEntity = entityManager.getPlayerBySteamId(steamidConnectedEvent.getSteamId());
-                                OnlinePlayer onlinePlayer = onlinePlayers.stream()
+                                /*OnlinePlayer onlinePlayer = onlinePlayers.stream()
                                         .filter(onlPlayer -> onlPlayer.getSteamId() == steamidConnectedEvent.getSteamId())
                                         .findFirst()
-                                        .orElseThrow();
-                                if (!playerEntity.getName().equals(onlinePlayer.getName())) {
+                                        .orElseThrow();*/
+                                if (!playerEntity.getName().equals(steamidConnectedEvent.getName())) {
                                     //LOGGER.info("\u001B[46m \u001B[30m (onSteamIdConnected) Player change name from '{}' to '{}' \u001B[0m", playerEntity.getName(), onlinePlayer.getName());
                                     //String oldName = playerEntity.getName();
-                                    playerEntity.setName(onlinePlayer.getName());
+                                    playerEntity.setName(steamidConnectedEvent.getName());
                                     entityManager.update(playerEntity);
                                     //entityManager.addPlayerNote(playerEntity, "Игрок изменил имя с '" + oldName + "' на '" + playerEntity.getName() + "'");
                                 }
@@ -312,7 +310,7 @@ public class SquadServer {
                             i++;
                         }
                     }
-                    LOGGER.error("Cant get info from rcon after 10 retrying by player " + steamidConnectedEvent.getSteamId());
+                    LOGGER.warn("Cant get info from rcon after 10 retrying by player " + steamidConnectedEvent.getSteamId());
                 };
                 new Thread(runnable).start();
                 break;

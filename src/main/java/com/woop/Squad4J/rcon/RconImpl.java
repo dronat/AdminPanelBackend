@@ -97,7 +97,7 @@ public class RconImpl {
                         if(pak == null){
                             break;
                         }
-                        if(pak.getSize() > 1300){
+                        if(pak.getSize() > 4098) {
                             multiPacketLikely = true;
                             LOGGER.trace("RCON response most likely has multi-packet response.");
                         }
@@ -108,8 +108,7 @@ public class RconImpl {
                     }
                 }
             } catch (IOException e) {
-                LOGGER.error("I/O error with socket stream.");
-                LOGGER.error(e.getMessage());
+                LOGGER.error("I/O error with socket stream.", e);
             }
         }, "rcon").start();
     }
@@ -191,7 +190,7 @@ public class RconImpl {
      * @throws IOException
      */
     private void reconnect(){
-        LOGGER.error("Reconnecting to RCON server.");
+        LOGGER.warn("Reconnecting to RCON server . . .");
         try{
             connect(this.host, this.port, this.password);
         }catch (AuthenticationException ex){
@@ -199,6 +198,7 @@ public class RconImpl {
             LOGGER.error(ex.getMessage());
             System.exit(1);
         }
+        LOGGER.warn("Rcon reconnected");
     }
 
     /**
@@ -219,10 +219,13 @@ public class RconImpl {
         boolean status = false;
         try {
             Thread.sleep(100);
+            if (socket.isClosed()) {
+                LOGGER.warn("Socket is closed by unknown reason");
+                reconnect();
+            }
             status = socket.getInputStream().available() > 0;
         } catch (IOException e) {
-            LOGGER.error("Error with socket stream");
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Error with socket stream", e);
             reconnect();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -239,8 +242,7 @@ public class RconImpl {
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
-            LOGGER.error("Thread error");
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Thread error", e);
         }
         while(socketHasData()){}
     }
@@ -253,6 +255,7 @@ public class RconImpl {
      * @throws AuthenticationException when the password is incorrect
      */
     private void connect(String host, Integer port, byte[] password) throws AuthenticationException {
+        LOGGER.info("Connecting to rcon . . . ");
         synchronized (sync){
             try {
                 //New request id
@@ -263,6 +266,7 @@ public class RconImpl {
 
                 //Can't reuse socket, so make a new one
                 socket = new Socket(host, port);
+                socket.setSoTimeout(5000);
             } catch (IOException e) {
                 LOGGER.error("Error creating socket");
                 LOGGER.error(e.getMessage());
@@ -280,9 +284,9 @@ public class RconImpl {
                 throw new AuthenticationException("Incorrect password.");
             }
         } catch (IOException e) {
-            LOGGER.error("Error with socket stream");
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Error with socket stream", e);
         }
+        LOGGER.info("Rcon successfully connected");
     }
 
     /**
@@ -367,8 +371,8 @@ public class RconImpl {
 
                 int length = buffer.getInt();
                 if (length < 10) {
-                    LOGGER.error("Rcon pocket have length less then 10");
-                    throw new RuntimeException();
+                    LOGGER.warn("Rcon pocket have length less then 10");
+                    return null;
                 }
                 int requestId = buffer.getInt();
                 int type = buffer.getInt();
@@ -383,17 +387,26 @@ public class RconImpl {
                 DataInputStream dis = new DataInputStream(in);
 
                 // Read the full payload
-                dis.readFully(payload);
+                try {
+                    dis.readFully(payload);
+                } catch (Exception e) {
+                    LOGGER.warn("Exception while trying read DataInputStream in Payload", e);
+                    return null;
+                }
+
 
                 // Read the null bytes
                 dis.read(new byte[2]);
-
+                /*try {
+                    System.out.println("Received packet: \n" + new String(payload));
+                } catch (Exception e) {
+                    LOGGER.error("Cant convert byte to string");
+                }*/
                 return new RconPacket(new Date(), length, requestId, type, payload);
             }
         }
         catch(BufferUnderflowException | EOFException e) {
             LOGGER.error("Error reading packet", e);
-            LOGGER.error(e.getMessage());
         }
         return null;
     }

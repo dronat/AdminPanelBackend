@@ -59,7 +59,7 @@ public class RconUpdater {
         updateSquadList();
         updateLayerInfo();
         updatePlayerList();
-        LOGGER.info("Rcon updated");
+        //LOGGER.info("Rcon updated");
     }
 
     /**
@@ -73,7 +73,7 @@ public class RconUpdater {
         //System.out.println(response);
         //System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
         long a = System.currentTimeMillis();
-        List<OnlinePlayer> onlineOnlinePlayers = new ArrayList<>();
+        List<OnlinePlayer> onlinePlayers = new ArrayList<>();
         List<DisconnectedPlayer> disconnectedPlayers = new ArrayList<>();
         StringTokenizer tokenizer = new StringTokenizer(response, "\n");
         while(tokenizer.hasMoreElements()){
@@ -90,7 +90,7 @@ public class RconUpdater {
                 String role = onlineMatcher.group(7);
 
                 OnlinePlayer onlinePlayer = new OnlinePlayer(id, steamId, name, teamId, squadId, isLeader, role);
-                onlineOnlinePlayers.add(onlinePlayer);
+                onlinePlayers.add(onlinePlayer);
             } else if (disconnectedMatcher.find()) {
                 Integer id = Integer.valueOf(disconnectedMatcher.group(1));
                 long steamId = Long.parseLong(disconnectedMatcher.group(2));
@@ -101,13 +101,15 @@ public class RconUpdater {
                 disconnectedPlayers.add(disconnectedPlayer);
             }
         }
-        LOGGER.trace("Retrieved {} onlinePlayers.", onlineOnlinePlayers.size());
+        LOGGER.trace("Retrieved {} onlinePlayers.", onlinePlayers.size());
         LOGGER.trace("Retrieved {} disconnected Players.", disconnectedPlayers.size());
 
-        Event event = new PlayerListUpdatedEvent(new Date(), EventType.PLAYERLIST_UPDATED, onlineOnlinePlayers, disconnectedPlayers);
+        Event event = new PlayerListUpdatedEvent(new Date(), EventType.PLAYERLIST_UPDATED, onlinePlayers, disconnectedPlayers);
         //System.out.println("SquadsAndTeamsResponse: \n" + response);
 
         EventEmitter.emit(event);
+
+        LOGGER.info("Rcon updated, online players: {}", onlinePlayers.size());
         //System.out.println("ParsePlayerList: " + (System.currentTimeMillis() - a));
     }
 

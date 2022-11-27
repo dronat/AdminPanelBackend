@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -120,6 +121,9 @@ public class SecureController {
     public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
 
         PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
+        if (player == null) {
+            return ResponseEntity.status(404).build();
+        }
         OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers().stream().filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId())).findFirst().orElse(null);
         HashMap<String, Object> map = new HashMap<>() {{
             put("name", player.getName());
@@ -188,6 +192,9 @@ public class SecureController {
     public ResponseEntity<HashMap<String, Object>> getPlayerPunismentHistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        if (player == null) {
+            return ResponseEntity.status(404).build();
+        }
         return ResponseEntity.ok(new HashMap<>() {{
             put("bans", player.getPlayersBansBySteamId());
             put("kicks", player.getPlayersKicksBySteamId());
@@ -197,7 +204,11 @@ public class SecureController {
     @PostMapping(path = "/get-player-bans")
     public ResponseEntity<Collection<PlayerBanEntity>> getPlayerBans(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(entityManager.getPlayerBySteamId(playerSteamId).getPlayersBansBySteamId());
+        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        if (player == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(player.getPlayersBansBySteamId());
     }
 
     @PostMapping(path = "/kick-player")
@@ -215,7 +226,11 @@ public class SecureController {
     @PostMapping(path = "/get-player-kicks")
     public ResponseEntity<Collection<PlayerKickEntity>> getPlayerKicks(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(entityManager.getPlayerBySteamId(playerSteamId).getPlayersKicksBySteamId());
+        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        if (player == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(player.getPlayersKicksBySteamId());
     }
 
     @PostMapping(path = "/warn-player")
@@ -229,7 +244,7 @@ public class SecureController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(path = "/broadcast-message")
+    @PostMapping(path = "/send-broadcast")
     public ResponseEntity<Void> broadcastMessage(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
@@ -290,14 +305,22 @@ public class SecureController {
     @PostMapping(path = "/get-player-notes")
     public ResponseEntity<Collection<PlayerNoteEntity>> getPlayerNotes(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(entityManager.getPlayerBySteamId(playerSteamId).getPlayersNotesBySteamId());
+        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        if (player == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(player.getPlayersNotesBySteamId());
     }
 
     /*TODO*/
     @PostMapping(path = "/get-player-messages")
     public ResponseEntity<Collection<PlayerMessageEntity>> getPlayerMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(entityManager.getPlayerBySteamId(playerSteamId).getPlayersMessagesBySteamId());
+        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        if (player == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(player.getPlayersMessagesBySteamId());
     }
 
     @PostMapping(path = "/get-admins")
@@ -324,7 +347,7 @@ public class SecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size, Sort.Direction.DESC));
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());
@@ -370,7 +393,7 @@ public class SecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAll(PageRequest.of(page, size));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAll(PageRequest.of(page, size, Sort.Direction.DESC));
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());
