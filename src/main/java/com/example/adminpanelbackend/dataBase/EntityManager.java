@@ -20,7 +20,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public void addAdmin(long steamId) {
         LOGGER.info("\u001B[46m \u001B[30m Added new admin with steamId: {} \u001B[0m", steamId);
-        persist(
+        update(
                 new AdminEntity()
                         .setSteamId(steamId)
                         .setName("notLoggedIn")
