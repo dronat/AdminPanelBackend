@@ -61,7 +61,7 @@ public class NotSecureController {
 
         SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
         AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
-        if (adminEntity == null) {
+        if (adminEntity == null || adminEntity.getRole() == 0) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

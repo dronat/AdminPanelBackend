@@ -154,21 +154,21 @@ public class SecureController {
         return ResponseEntity.ok(resultMap);
     }
 
-    @PostMapping(path = "/delete-admin")
-    public ResponseEntity<OnlineInfo> deleteAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
+    @PostMapping(path = "/deactivate-admin")
+    public ResponseEntity<OnlineInfo> deactivateAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (userInfo.getSteamId() != 76561198069397368L) {
             return ResponseEntity.status(403).build();
         }
-        entityManager.deleteAdmin(adminSteamId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DeleteAdmin", String.valueOf(adminSteamId));
+        entityManager.deactivateAdmin(adminSteamId);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DeactivateAdmin", String.valueOf(adminSteamId));
         Map<String, ? extends Session> resultSessions = sessions.findByPrincipalName(String.valueOf(adminSteamId));
-        if (resultSessions == null || resultSessions.isEmpty()) {
-            return ResponseEntity.status(BAD_REQUEST).build();
-        }
         resultSessions.forEach((k, v) -> {
             sessions.deleteById(v.getId());
         });
+        if (!resultSessions.isEmpty()) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
         return ResponseEntity.ok().build();
     }
 

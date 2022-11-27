@@ -24,15 +24,15 @@ public class EntityManager extends JpaManager implements JpaConnection {
                 new AdminEntity()
                         .setSteamId(steamId)
                         .setName("notLoggedIn")
-                        .setRole(0)
+                        .setRole(1)
                         .setCreateTime(new Timestamp(System.currentTimeMillis()))
                         .setModifiedTime(new Timestamp(System.currentTimeMillis()))
         );
     }
 
-    public void deleteAdmin(long steamId) {
+    public void deactivateAdmin(long steamId) {
         LOGGER.info("\u001B[46m \u001B[30m Delete admin with steamId: {} \u001B[0m", steamId);
-        remove(getAdminBySteamID(steamId));
+        update(getAdminBySteamID(steamId).setRole(0));
     }
 
     public AdminEntity getAdminBySteamID(long adminSteamId) {
