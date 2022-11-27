@@ -130,6 +130,12 @@ public class SecureController {
             put("steamId", player.getSteamId());
             put("isOnline", onlinePlayer);
             put("avatarFull", SteamService.getSteamUserInfo(steamId).getAvatarfull());
+            put("numOfActiveBans", player
+                    .getPlayersBansBySteamId()
+                    .stream()
+                    .filter(ban -> ban.getExpirationTime().after(new Date()))
+                    .count()
+            );
         }};
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(map);
