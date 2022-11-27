@@ -26,6 +26,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
                         .setName("notLoggedIn")
                         .setRole(0)
                         .setCreateTime(new Timestamp(System.currentTimeMillis()))
+                        .setModifiedTime(new Timestamp(System.currentTimeMillis()))
         );
     }
 
