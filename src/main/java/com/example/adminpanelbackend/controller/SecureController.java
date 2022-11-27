@@ -484,6 +484,7 @@ public class SecureController {
     @GetMapping(path = "/logout")
     public ResponseEntity<Void> logout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        httpSession.removeAttribute("userInfo");
         httpSession.invalidate();
         return entityManager.getAdminBySteamID(userInfo.getSteamId()) != null ? ResponseEntity.status(200).build() : ResponseEntity.status(401).build();
     }
