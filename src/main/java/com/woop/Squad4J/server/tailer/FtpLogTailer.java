@@ -29,7 +29,7 @@ public class FtpLogTailer implements Runnable {
     private final long DELAY_IN_MILLIS;
     private long lastByteRead = 0;
     private String lastRowRead;
-    private volatile boolean run;
+    private static volatile boolean run;
 
     public FtpLogTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
@@ -63,16 +63,18 @@ public class FtpLogTailer implements Runnable {
                 Thread.sleep(this.DELAY_IN_MILLIS);
 
             } catch (Exception e) {
-                LOGGER.error("Error while tailing FTP", e);
-                ftpClient = reconnect(ftpClient);
+                if (run) {
+                    LOGGER.error("Error while tailing FTP", e);
+                    ftpClient = reconnect(ftpClient);
+                }
             }
         }
         closeFTPConnect(ftpClient);
         LOGGER.info("FTP connection closed");
     }
 
-    public void stop() {
-        this.run = false;
+    public static void stop() {
+        run = false;
     }
 
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {

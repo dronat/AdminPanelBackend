@@ -27,7 +27,7 @@ public class FtpBanService implements Runnable{
     private final String ENCODING = "UTF-8";
     private final String FILE_NAME = "Bans_test.cfg";
     private final long DELAY_IN_MILLIS = 60000;
-    private volatile boolean run;
+    private static volatile boolean run;
 
     @Override
     public void run() {
@@ -53,16 +53,18 @@ public class FtpBanService implements Runnable{
                 LOGGER.info("FTP bans file updated");
                 Thread.sleep(DELAY_IN_MILLIS);
             } catch (Exception e) {
-                LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);
-                reconnect(ftpClient);
+                if (run) {
+                    LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);
+                    reconnect(ftpClient);
+                }
             }
         }
         closeFTPConnect(ftpClient);
         LOGGER.info("FTP connection closed");
     }
 
-    public void stop() {
-        this.run = false;
+    public static void stop() {
+        run = false;
     }
 
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {

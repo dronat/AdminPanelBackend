@@ -61,12 +61,15 @@ public class NewQueryImpl {
             while (sqir == null) {
                 try {
                     sqir = queryClient.getInfo(address).get(TIMEOUT, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException ignore) {}
+                } catch (TimeoutException ignore) {
+                }
                 if (sqir == null) {
                     LOGGER.warn("Failed to get Query info, trying again");
                 }
             }
             return sqir;
+        } catch (InterruptedException e) {
+            return null;
         } catch (Exception e) {
             LOGGER.error("Failed to get Query info", e);
             reconnect();

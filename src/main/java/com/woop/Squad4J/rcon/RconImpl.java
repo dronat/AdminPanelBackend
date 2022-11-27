@@ -55,6 +55,7 @@ public class RconImpl {
     public static final int SERVERDATA_EXECCOMMAND = 2;
     public static final int SERVERDATA_AUTH_RESPONSE = 2;
     public static final int SERVERDATA_AUTH = 3;
+    private static boolean run = false;
 
     /**
      * Constructs a {@link RconImpl} object with the given connection properties.
@@ -75,6 +76,7 @@ public class RconImpl {
      * @param password a byte array representing the password to logon to the RCON server with.
      */
     private RconImpl(String host, Integer port, byte[] password) throws AuthenticationException {
+        run = true;
         this.host = host;
         this.port = port;
         this.password = password;
@@ -90,7 +92,7 @@ public class RconImpl {
 
                 boolean multiPacketLikely = false;
 
-                while(true){
+                while(run){
                     while(multiPacketLikely || socketHasData()){
                         multiPacketLikely = false;
                         RconPacket pak = read(socket.getInputStream());
@@ -111,6 +113,15 @@ public class RconImpl {
                 LOGGER.error("I/O error with socket stream.", e);
             }
         }, "rcon").start();
+        try {
+            disconnect();
+        } catch (IOException e) {
+            LOGGER.error("Cant disconnect");
+        }
+    }
+
+    public static void stop() {
+        run = false;
     }
 
     /**

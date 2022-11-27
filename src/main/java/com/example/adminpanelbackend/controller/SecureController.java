@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.AdminPanelBackendApplication;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.*;
@@ -43,12 +44,10 @@ public class SecureController {
     EntityManager entityManager = new EntityManager();
     @Autowired
     PlayerEntityService playerEntityService;
-
     @Autowired
     AdminActionLogsService adminActionLogsService;
     @Autowired
     PlayerBanService playerBanService;
-
     @Autowired
     AdminService adminService;
 
@@ -550,4 +549,8 @@ public class SecureController {
         return httpSession.getAttribute("userInfo") == null ? ResponseEntity.ok().build() : ResponseEntity.status(500).build();
     }
 
+    @PostMapping("/restart")
+    public void restart() {
+        AdminPanelBackendApplication.restart();
+    }
 }

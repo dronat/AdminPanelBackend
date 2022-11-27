@@ -16,9 +16,9 @@ public class GlobalThreadPool {
 
     private static final ExecutorService executorService = new ThreadPoolExecutor(
             CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TIME_UNIT, new SynchronousQueue<>(),
-            new NamedThreadFactory("Squad4J - Central ExecutorService"));
+            new NamedThreadFactory("Central ExecutorService"));
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(
-            CORE_POOL_SIZE, new NamedThreadFactory("Squad4J - Central ScheduledExecutorService"));
+            CORE_POOL_SIZE, new NamedThreadFactory("Central ScheduledExecutorService"));
 
     private GlobalThreadPool(){
         throw new IllegalStateException("Utility classes cannot be instantiated.");
