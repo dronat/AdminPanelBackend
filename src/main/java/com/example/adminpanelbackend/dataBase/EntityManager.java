@@ -22,7 +22,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
     }
 
 
-    public void addAdmin(long adminSteamId) {
+    public synchronized void addAdmin(long adminSteamId) {
         LOGGER.info("\u001B[46m \u001B[30m Added new admin with adminSteamId: {} \u001B[0m", adminSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         if (admin != null) {
@@ -40,13 +40,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
         SquadServer.admins.add(adminSteamId);
     }
 
-    public void deactivateAdmin(long adminSteamId) {
+    public synchronized void deactivateAdmin(long adminSteamId) {
         LOGGER.info("\u001B[46m \u001B[30m Delete admin with adminSteamId: {} \u001B[0m", adminSteamId);
         update(getAdminBySteamID(adminSteamId).setRole(0).setModifiedTime(new Timestamp(System.currentTimeMillis())));
         SquadServer.admins.remove(adminSteamId);
     }
 
-    public AdminEntity getAdminBySteamID(long adminSteamId) {
+    public synchronized AdminEntity getAdminBySteamID(long adminSteamId) {
         try {
             return em.createQuery("SELECT a FROM AdminEntity a WHERE a.steamId=:steamId", AdminEntity.class)
                     .setParameter("steamId", adminSteamId)
@@ -57,7 +57,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public List<Long> getActiveAdminsSteamId() {
+    public synchronized List<Long> getActiveAdminsSteamId() {
         try {
             return em.createQuery("SELECT a FROM AdminEntity a WHERE a.role > 0", AdminEntity.class)
                     .getResultList()
@@ -70,13 +70,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public void addAdminActionInLog(long adminSteamId, Long playerSteamId, String action, String reason) {
+    public synchronized void addAdminActionInLog(long adminSteamId, Long playerSteamId, String action, String reason) {
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         PlayerEntity player = playerSteamId == null ? null : getPlayerBySteamId(playerSteamId);
         addAdminActionInLog(admin, player, action, reason);
     }
 
-    public void addAdminActionInLog(AdminEntity admin, PlayerEntity player, String action, String reason) {
+    public synchronized void addAdminActionInLog(AdminEntity admin, PlayerEntity player, String action, String reason) {
         LOGGER.info("\u001B[46m \u001B[30m New admin action: admin '{}' made '{}' \u001B[0m", admin.getName(), action);
         persist(
                 new AdminActionLogEntity()
@@ -89,14 +89,19 @@ public class EntityManager extends JpaManager implements JpaConnection {
         refresh(admin);
     }
 
-    public boolean isPlayerExist(long steamId) {
-        return !em.createQuery("SELECT a FROM PlayerEntity a WHERE a.steamId=:steamId", PlayerEntity.class)
-                .setParameter("steamId", steamId)
-                .getResultList()
-                .isEmpty();
+    public synchronized boolean isPlayerExist(long steamId) {
+        try {
+            return !em.createQuery("SELECT a FROM PlayerEntity a WHERE a.steamId=:steamId", PlayerEntity.class)
+                    .setParameter("steamId", steamId)
+                    .getResultList()
+                    .isEmpty();
+        } catch (Exception e) {
+            LOGGER.error("Exception while trying execute sql query isPlayerExist");
+            throw new RuntimeException(e);
+        }
     }
 
-    public void addPlayer(long steamId, String name) {
+    public synchronized void addPlayer(long steamId, String name) {
         LOGGER.info("\u001B[46m \u001B[30m New unique player entered on the server: {} ({}) \u001B[0m", name, steamId);
         persist(
                 new PlayerEntity()
@@ -106,7 +111,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         );
     }
 
-    public PlayerEntity getPlayerBySteamId(long steamId) {
+    public synchronized PlayerEntity getPlayerBySteamId(long steamId) {
         try {
             if (!isPlayerExist(steamId)) {
                 SteamUserModel.Response.Player player = SteamService.getSteamUserInfo(steamId);
@@ -121,7 +126,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public List<Long> getPlayersOnControl() {
+    public synchronized List<Long> getPlayersOnControl() {
         try {
             return em.createQuery("SELECT a FROM PlayerEntity a WHERE a.onControl=true", PlayerEntity.class)
                     .getResultList().stream().map(PlayerEntity::getSteamId)
@@ -132,7 +137,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public void addPlayerBan(long playerSteamId, long adminSteamId, Timestamp expireTime, String reason) {
+    public synchronized void addPlayerBan(long playerSteamId, long adminSteamId, Timestamp expireTime, String reason) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         PlayerBanEntity ban = new PlayerBanEntity()
@@ -149,7 +154,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         addAdminActionInLog(adminSteamId, playerSteamId, "BanPlayer", reason);
     }
 
-    public void unbanPlayerBan(int banId, long adminSteamId) {
+    public synchronized void unbanPlayerBan(int banId, long adminSteamId) {
         PlayerBanEntity ban = em.createQuery("SELECT a FROM PlayerBanEntity a WHERE a.id=:id", PlayerBanEntity.class)
                 .setParameter("id", banId)
                 .getSingleResult();
@@ -164,19 +169,19 @@ public class EntityManager extends JpaManager implements JpaConnection {
         addAdminActionInLog(admin.getSteamId(), ban.getPlayersBySteamId().getSteamId(), "Unban", null);
     }
 
-    public List<PlayerBanEntity> getActiveBans() {
+    public synchronized List<PlayerBanEntity> getActiveBans() {
         return em.createQuery("SELECT a FROM PlayerBanEntity a WHERE a.isUnbannedManually = false AND a.expirationTime > :currentTime", PlayerBanEntity.class)
                 .setParameter("currentTime", new Timestamp(System.currentTimeMillis()))
                 .getResultList();
     }
 
-    public void addPlayerNote(long playerSteamId, long adminSteamId, String note) {
+    public synchronized void addPlayerNote(long playerSteamId, long adminSteamId, String note) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         addPlayerNote(player, admin, note);
     }
 
-    public void addPlayerNote(PlayerEntity player, AdminEntity admin, String note) {
+    public synchronized void addPlayerNote(PlayerEntity player, AdminEntity admin, String note) {
         LOGGER.info("\u001B[46m \u001B[30m New player note: player '{}' note: '{}' \u001B[0m", player.getName(), note);
         persist(
                 new PlayerNoteEntity()
@@ -189,17 +194,17 @@ public class EntityManager extends JpaManager implements JpaConnection {
         addAdminActionInLog(admin, player, "AddPlayerNote", note);
     }
 
-    public PlayerNoteEntity getPlayerNote(int noteId) {
+    public synchronized PlayerNoteEntity getPlayerNote(int noteId) {
         return em.find(PlayerNoteEntity.class, noteId);
     }
 
-    public void addPlayerOnControl(long adminSteamId, long playerSteamId) {
+    public synchronized void addPlayerOnControl(long adminSteamId, long playerSteamId) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         addPlayerOnControl(admin, player);
     }
 
-    public void addPlayerOnControl(AdminEntity admin, PlayerEntity player) {
+    public synchronized void addPlayerOnControl(AdminEntity admin, PlayerEntity player) {
         LOGGER.info("\u001B[46m \u001B[30m Player {} added on control by admin {} \u001B[0m", player.getName(), admin.getName());
         refresh(player.setOnControl(true));
         addPlayerNote(player, admin, "Добавил игрока на контроль");
@@ -207,13 +212,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
         SquadServer.playersOnControl.add(player.getSteamId());
     }
 
-    public void removePlayerFromControl(long adminSteamId, long playerSteamId) {
+    public synchronized void removePlayerFromControl(long adminSteamId, long playerSteamId) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         removePlayerFromControl(admin, player);
     }
 
-    public void removePlayerFromControl(AdminEntity admin, PlayerEntity player) {
+    public synchronized void removePlayerFromControl(AdminEntity admin, PlayerEntity player) {
         LOGGER.info("\u001B[46m \u001B[30m Player {} removed from control by admin {} \u001B[0m", player.getName(), admin.getName());
         refresh(player.setOnControl(false));
         addPlayerNote(player, admin, "Убрал игрока с контроля");
@@ -221,7 +226,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         SquadServer.playersOnControl.remove(player.getSteamId());
     }
 
-    public void deletePlayerNote(int noteId) {
+    public synchronized void deletePlayerNote(int noteId) {
         PlayerNoteEntity playerNote = em.find(PlayerNoteEntity.class, noteId);
         PlayerEntity player = playerNote.getPlayersBySteamId();
         LOGGER.info("\u001B[46m \u001B[30m Deleted player note: player '{}' note: '{}' \u001B[0m", player.getName(), playerNote.getNote());
@@ -229,12 +234,12 @@ public class EntityManager extends JpaManager implements JpaConnection {
         refresh(player);
     }
 
-    public void addPlayerMessage(long steamId, String chatType, String message) {
+    public synchronized void addPlayerMessage(long steamId, String chatType, String message) {
         PlayerEntity player = getPlayerBySteamId(steamId);
         addPlayerMessage(player, chatType, message);
     }
 
-    public void addPlayerMessage(PlayerEntity player, String chatType, String message) {
+    public synchronized void addPlayerMessage(PlayerEntity player, String chatType, String message) {
         LOGGER.info("\u001B[46m \u001B[30m New player message - player: '{}' chatType: '{}' message: '{}' \u001B[0m", player.getName(), chatType, message);
         persist(
                 new PlayerMessageEntity()
@@ -246,23 +251,23 @@ public class EntityManager extends JpaManager implements JpaConnection {
         refresh(player);
     }
 
-    public void addPlayerKick(long playerSteamId, long adminSteamId, String reason) {
+    public synchronized void addPlayerKick(long playerSteamId, long adminSteamId, String reason) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         addPlayerKick(player, admin, reason);
     }
 
-    public void addPlayerKick(PlayerEntity player, long adminSteamId, String reason) {
+    public synchronized void addPlayerKick(PlayerEntity player, long adminSteamId, String reason) {
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         addPlayerKick(player, admin, reason);
     }
 
-    public void addPlayerKick(long playerSteamId, AdminEntity admin, String reason) {
+    public synchronized void addPlayerKick(long playerSteamId, AdminEntity admin, String reason) {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         addPlayerKick(player, admin, reason);
     }
 
-    public void addPlayerKick(PlayerEntity player, AdminEntity admin, String reason) {
+    public synchronized void addPlayerKick(PlayerEntity player, AdminEntity admin, String reason) {
         LOGGER.info("\u001B[46m \u001B[30m Player '{}' kicked by '{}' by reason '{}' \u001B[0m", player.getName(), admin.getName(), reason);
         persist(
                 new PlayerKickEntity()
