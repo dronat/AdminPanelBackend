@@ -5,11 +5,13 @@ import com.example.adminpanelbackend.dataBase.core.JpaConnection;
 import com.example.adminpanelbackend.dataBase.core.JpaManager;
 import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.model.SteamUserModel;
+import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EntityManager extends JpaManager implements JpaConnection {
 
@@ -20,26 +22,28 @@ public class EntityManager extends JpaManager implements JpaConnection {
     }
 
 
-    public void addAdmin(long steamId) {
-        LOGGER.info("\u001B[46m \u001B[30m Added new admin with steamId: {} \u001B[0m", steamId);
-        AdminEntity admin = getAdminBySteamID(steamId);
+    public void addAdmin(long adminSteamId) {
+        LOGGER.info("\u001B[46m \u001B[30m Added new admin with adminSteamId: {} \u001B[0m", adminSteamId);
+        AdminEntity admin = getAdminBySteamID(adminSteamId);
         if (admin != null) {
             update(admin.setRole(1).setModifiedTime(new Timestamp(System.currentTimeMillis())));
         } else {
             persist(
                     new AdminEntity()
-                            .setSteamId(steamId)
+                            .setSteamId(adminSteamId)
                             .setName("notLoggedIn")
                             .setRole(1)
                             .setCreateTime(new Timestamp(System.currentTimeMillis()))
                             .setModifiedTime(new Timestamp(System.currentTimeMillis()))
             );
         }
+        SquadServer.admins.add(adminSteamId);
     }
 
-    public void deactivateAdmin(long steamId) {
-        LOGGER.info("\u001B[46m \u001B[30m Delete admin with steamId: {} \u001B[0m", steamId);
-        update(getAdminBySteamID(steamId).setRole(0));
+    public void deactivateAdmin(long adminSteamId) {
+        LOGGER.info("\u001B[46m \u001B[30m Delete admin with adminSteamId: {} \u001B[0m", adminSteamId);
+        update(getAdminBySteamID(adminSteamId).setRole(0).setModifiedTime(new Timestamp(System.currentTimeMillis())));
+        SquadServer.admins.remove(adminSteamId);
     }
 
     public AdminEntity getAdminBySteamID(long adminSteamId) {
@@ -49,6 +53,19 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .getSingleResult();
         } catch (Exception e) {
             LOGGER.warn("SQL error while get admin by steamId " + adminSteamId, e);
+            return null;
+        }
+    }
+
+    public List<Long> getActiveAdminsSteamId() {
+        try {
+            return em.createQuery("SELECT a FROM AdminEntity a WHERE a.role > 0", AdminEntity.class)
+                    .getResultList()
+                    .stream()
+                    .map(AdminEntity::getSteamId)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            LOGGER.warn("SQL error while get steam ids of active admins", e);
             return null;
         }
     }
@@ -100,6 +117,17 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .getSingleResult();
         } catch (Exception e) {
             LOGGER.error("SQL error while get player by steamId " + steamId, e);
+            return null;
+        }
+    }
+
+    public List<Long> getPlayersOnControl() {
+        try {
+            return em.createQuery("SELECT a FROM PlayerEntity a WHERE a.onControl=true", PlayerEntity.class)
+                    .getResultList().stream().map(PlayerEntity::getSteamId)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            LOGGER.error("SQL error while get players on control ", e);
             return null;
         }
     }
@@ -158,6 +186,39 @@ public class EntityManager extends JpaManager implements JpaConnection {
                         .setCreationTime(new Timestamp(System.currentTimeMillis()))
         );
         refresh(player);
+        addAdminActionInLog(admin, player, "AddPlayerNote", note);
+    }
+
+    public PlayerNoteEntity getPlayerNote(int noteId) {
+        return em.find(PlayerNoteEntity.class, noteId);
+    }
+
+    public void addPlayerOnControl(long adminSteamId, long playerSteamId) {
+        PlayerEntity player = getPlayerBySteamId(playerSteamId);
+        AdminEntity admin = getAdminBySteamID(adminSteamId);
+        addPlayerOnControl(admin, player);
+    }
+
+    public void addPlayerOnControl(AdminEntity admin, PlayerEntity player) {
+        LOGGER.info("\u001B[46m \u001B[30m Player {} added on control by admin {} \u001B[0m", player.getName(), admin.getName());
+        refresh(player.setOnControl(true));
+        addPlayerNote(player, admin, "Добавил игрока на контроль");
+        addAdminActionInLog(admin, player, "AddPlayerOnControl", null);
+        SquadServer.playersOnControl.add(player.getSteamId());
+    }
+
+    public void removePlayerFromControl(long adminSteamId, long playerSteamId) {
+        PlayerEntity player = getPlayerBySteamId(playerSteamId);
+        AdminEntity admin = getAdminBySteamID(adminSteamId);
+        removePlayerFromControl(admin, player);
+    }
+
+    public void removePlayerFromControl(AdminEntity admin, PlayerEntity player) {
+        LOGGER.info("\u001B[46m \u001B[30m Player {} removed from control by admin {} \u001B[0m", player.getName(), admin.getName());
+        refresh(player.setOnControl(false));
+        addPlayerNote(player, admin, "Убрал игрока с контроля");
+        addAdminActionInLog(admin, player, "RemovePlayerFromControl", null);
+        SquadServer.playersOnControl.remove(player.getSteamId());
     }
 
     public void deletePlayerNote(int noteId) {
@@ -166,10 +227,6 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m Deleted player note: player '{}' note: '{}' \u001B[0m", player.getName(), playerNote.getNote());
         remove(playerNote);
         refresh(player);
-    }
-
-    public PlayerNoteEntity getPlayerNote(int noteId) {
-        return em.find(PlayerNoteEntity.class, noteId);
     }
 
     public void addPlayerMessage(long steamId, String chatType, String message) {

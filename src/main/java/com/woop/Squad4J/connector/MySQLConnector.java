@@ -350,6 +350,7 @@ public class MySQLConnector extends Connector {
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS Players (" +
                 "steamId BIGINT PRIMARY KEY," +
                 "name VARCHAR(255)," +
+                "onControl BOOL DEFAULT FALSE NOT NULL," +
                 "createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)");
     }
 

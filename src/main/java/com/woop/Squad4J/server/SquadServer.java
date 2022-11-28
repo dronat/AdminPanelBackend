@@ -49,14 +49,13 @@ public class SquadServer {
 
     private static final BiMap<String, Long> nameSteamIds = HashBiMap.create();
 
+    public static List<Long> playersOnControl;
+    public static List<Long> admins;
     private static Collection<OnlinePlayer> onlinePlayers;
     private static Collection<DisconnectedPlayer> disconnectedPlayers;
     private static Collection<Squad> squads;
     private static Collection<Team> teams;
-
     private static List<String> adminSteamIds = new ArrayList<>();
-
-    private static Collection<OnlinePlayer> admins;
     private static Collection<OnlinePlayer> adminsInAdminCam;
     private static Collection<ChatMessageEvent> chatMessages = new LinkedList<>();
 
@@ -177,6 +176,8 @@ public class SquadServer {
             //Initialize service to update A2S and RCON information every 30 seconds.
             A2SUpdater.init();
             RconUpdater.init();
+            playersOnControl = entityManager.getPlayersOnControl();
+            admins = entityManager.getActiveAdminsSteamId();
 
         } catch (JsonPathException jsexp) {
             LOGGER.error("Error reading admin list configuration.", jsexp);
@@ -381,12 +382,38 @@ public class SquadServer {
         getOnlinePlayers().forEach(onlinePlayer -> {
             if (onlinePlayer.getTeamId() != null && !onlineInfo.getTeams().isEmpty()) {
                     if (onlinePlayer.getSquadID() == null) {
-                        onlineInfo.getTeamById(onlinePlayer.getTeamId()).addPlayerWithoutSquad(SerializationUtils.clone(onlinePlayer));
+                        onlineInfo
+                                .getTeamById(onlinePlayer.getTeamId())
+                                .addPlayerWithoutSquad(
+                                        SerializationUtils
+                                                .clone(onlinePlayer)
+                                                .setIsAdmin(admins.contains(onlinePlayer.getSteamId()))
+                                                .setIsOnControl(playersOnControl.contains(onlinePlayer.getSteamId()))
+                                );
                     } else {
                         if (onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()) == null) {
-                            onlineInfo.getTeamById(onlinePlayer.getTeamId()).addSquad(new Squad(onlinePlayer.getTeamId(),onlinePlayer.getSquadID(), null, null, null, null, null));
+                            onlineInfo
+                                    .getTeamById(onlinePlayer.getTeamId())
+                                    .addSquad(
+                                            new Squad(
+                                                    onlinePlayer.getTeamId(),
+                                                    onlinePlayer.getSquadID(),
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    null)
+                                    );
                         }
-                        onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()).addPlayer(SerializationUtils.clone(onlinePlayer));
+                        onlineInfo
+                                .getTeamById(onlinePlayer.getTeamId())
+                                .getSquadById(onlinePlayer.getSquadID())
+                                .addPlayer(
+                                        SerializationUtils
+                                                .clone(onlinePlayer)
+                                                .setIsAdmin(admins.contains(onlinePlayer.getSteamId()))
+                                                .setIsOnControl(playersOnControl.contains(onlinePlayer.getSteamId()))
+                                );
                     }
             }
         });
@@ -461,10 +488,6 @@ public class SquadServer {
 
     public static Collection<Team> getTeams() {
         return Collections.unmodifiableCollection(teams);
-    }
-
-    public static Collection<OnlinePlayer> getAdmins() {
-        return Collections.unmodifiableCollection(admins);
     }
 
     public static Collection<OnlinePlayer> getAdminsInAdminCam() {

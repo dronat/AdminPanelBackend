@@ -17,6 +17,8 @@ public class OnlinePlayer implements Serializable {
     private final Integer teamId;
     private final Integer squadID;
     private final Boolean isSquadLeader;
+    private Boolean isOnControl = false;
+    private Boolean isAdmin = false;
     private final String role;
 
     @Override

@@ -25,6 +25,10 @@ public class PlayerEntity implements Serializable {
     private String name;
 
     @Basic
+    @Column(name = "onControl", nullable = false)
+    private Boolean onControl = false;
+
+    @Basic
     @Column(name = "createTime", nullable = false)
     private Timestamp createTime;
 

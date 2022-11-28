@@ -87,6 +87,24 @@ public class SecureController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping(path = "/deactivate-admin")
+    public ResponseEntity<OnlineInfo> deactivateAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (userInfo.getSteamId() != 76561198069397368L) {
+            return ResponseEntity.status(403).build();
+        }
+        entityManager.deactivateAdmin(adminSteamId);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DeactivateAdmin", String.valueOf(adminSteamId));
+        Map<String, ? extends Session> resultSessions = sessions.findByPrincipalName(String.valueOf(adminSteamId));
+        resultSessions.forEach((k, v) -> {
+            sessions.deleteById(v.getId());
+        });
+        if (!resultSessions.isEmpty()) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping(path = "/get-players")
     public ResponseEntity<HashMap<String, Object>> getPlayers(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
         if (size > 100) {
@@ -132,6 +150,7 @@ public class SecureController {
             put("name", player.getName());
             put("steamId", player.getSteamId());
             put("isOnline", onlinePlayer);
+            put("isOnControl", player.getOnControl());
             put("avatarFull", SteamService.getSteamUserInfo(steamId).getAvatarfull());
             put("numOfActiveBans", player
                     .getPlayersBansBySteamId()
@@ -164,21 +183,19 @@ public class SecureController {
         return ResponseEntity.ok(resultMap);
     }
 
-    @PostMapping(path = "/deactivate-admin")
-    public ResponseEntity<OnlineInfo> deactivateAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
+    @PostMapping(path = "/add-player-on-control")
+    public ResponseEntity<Void> addPlayerOnControl(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        if (userInfo.getSteamId() != 76561198069397368L) {
-            return ResponseEntity.status(403).build();
-        }
-        entityManager.deactivateAdmin(adminSteamId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DeactivateAdmin", String.valueOf(adminSteamId));
-        Map<String, ? extends Session> resultSessions = sessions.findByPrincipalName(String.valueOf(adminSteamId));
-        resultSessions.forEach((k, v) -> {
-            sessions.deleteById(v.getId());
-        });
-        if (!resultSessions.isEmpty()) {
-            return ResponseEntity.status(BAD_REQUEST).build();
-        }
+        entityManager.addPlayerOnControl(userInfo.getSteamId(), playerSteamId);
+        LOGGER.info("Admin '{}' add player '{}' on control", userInfo.getName(), playerSteamId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/remove-player-from-control")
+    public ResponseEntity<Void> removePlayerFromControl(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        entityManager.removePlayerFromControl(userInfo.getSteamId(), playerSteamId);
+        LOGGER.info("Admin '{}' remove player '{}' from control", userInfo.getName(), playerSteamId);
         return ResponseEntity.ok().build();
     }
 
@@ -358,7 +375,6 @@ public class SecureController {
     public ResponseEntity<Void> addPlayerNote(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String note) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         entityManager.addPlayerNote(playerSteamId, userInfo.getSteamId(), note);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "AddPlayerNote", note);
         return ResponseEntity.ok().build();
     }
 
