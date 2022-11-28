@@ -364,7 +364,7 @@ public class MySQLConnector extends Connector {
                 "isUnbannedManually BOOL DEFAULT false NOT NULL, " +
                 "unbannedAdminId BIGINT NULL," +
                 "unbannedTime DATETIME NULL," +
-                "expirationTime DATETIME NOT NULL," +
+                "expirationTime DATETIME NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
                 "CONSTRAINT bansSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
                 "CONSTRAINT bansAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId)," +

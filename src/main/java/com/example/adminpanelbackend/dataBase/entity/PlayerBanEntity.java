@@ -34,7 +34,7 @@ public class PlayerBanEntity implements Serializable {
     private Timestamp unbannedTime;
 
     @Basic
-    @Column(name = "expirationTime", nullable = false)
+    @Column(name = "expirationTime", nullable = true)
     private Timestamp expirationTime;
 
     @Basic

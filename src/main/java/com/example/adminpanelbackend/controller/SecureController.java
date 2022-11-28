@@ -236,7 +236,7 @@ public class SecureController {
         Timestamp expirationTime = new Timestamp(System.currentTimeMillis() + banLengthInTimeStamp);
         banReason += " До " + expirationTime;
         Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
-        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), expirationTime, banReason);
+        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLength.equalsIgnoreCase("0") ? null : expirationTime, banReason);
         LOGGER.info("Admin '{}' has banned player '{}' by reason '{}' for length '{}'", userInfo.getName(), playerSteamId, banReason, banLength);
         return ResponseEntity.ok().build();
     }
