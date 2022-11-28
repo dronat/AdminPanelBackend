@@ -133,7 +133,12 @@ public class SecureController {
                                 if (ban.getExpirationTime() == null) {
                                     return !ban.getIsUnbannedManually();
                                 } else {
-                                    return ban.getExpirationTime().after(new Date());
+                                    if (ban.getIsUnbannedManually()) {
+                                        return false;
+                                    } else {
+                                        return ban.getExpirationTime().after(new Date());
+                                    }
+
                                 }
                             })
                             .count()
@@ -197,7 +202,12 @@ public class SecureController {
                         if (ban.getExpirationTime() == null) {
                             return !ban.getIsUnbannedManually();
                         } else {
-                            return ban.getExpirationTime().after(new Date());
+                            if (ban.getIsUnbannedManually()) {
+                                return false;
+                            } else {
+                                return ban.getExpirationTime().after(new Date());
+                            }
+
                         }
                     })
                     .count()
@@ -372,14 +382,15 @@ public class SecureController {
         entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "WarnPlayer", warnReason);
         return ResponseEntity.ok().build();
     }
+
     @PostMapping(path = "/warn-squad")
     public ResponseEntity<Void> warnSquad(@SessionAttribute AdminEntity userInfo,
-                                           HttpSession httpSession,
-                                           HttpServletRequest request,
-                                           HttpServletResponse response,
-                                           @RequestParam int squadId,
-                                           @RequestParam int teamId,
-                                           @RequestParam String warnReason) {
+                                          HttpSession httpSession,
+                                          HttpServletRequest request,
+                                          HttpServletResponse response,
+                                          @RequestParam int squadId,
+                                          @RequestParam int teamId,
+                                          @RequestParam String warnReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         SquadServer.getOnlinePlayers().forEach(onlinePlayer -> {
             if (onlinePlayer.getSquadID() == squadId && onlinePlayer.getTeamId() == teamId) {
