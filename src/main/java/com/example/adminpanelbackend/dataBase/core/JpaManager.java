@@ -16,11 +16,13 @@ public class JpaManager {
         this.em = em;
     }
 
-    protected void transaction(Consumer<EntityManager> action) {
+    protected synchronized void transaction(Consumer<EntityManager> action) {
         EntityTransaction tx = this.em.getTransaction();
 
         try {
-            tx.begin();
+            if (!tx.isActive()) {
+                tx.begin();
+            }
             action.accept(this.em);
             tx.commit();
         } catch (RuntimeException var4) {
@@ -30,23 +32,23 @@ public class JpaManager {
         }
     }
 
-    public <T> void persist(T entity) {
+    public synchronized  <T> void persist(T entity) {
         this.transaction((em) -> {
             em.persist(entity);
         });
     }
 
-    public <T> void update(T entity) {
+    public synchronized <T> void update(T entity) {
         this.transaction((em) -> {
             em.merge(entity);
         });
     }
 
-    public <T> void refresh(T entity) {
+    public synchronized <T> void refresh(T entity) {
         this.em.refresh(entity);
     }
 
-    public <T> void remove(T entity) {
+    public synchronized <T> void remove(T entity) {
         this.transaction((em) -> {
             em.remove(entity);
         });
