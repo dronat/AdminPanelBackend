@@ -7,6 +7,7 @@ import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
 import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
 import com.example.adminpanelbackend.dataBase.service.PlayerBanService;
+import com.example.adminpanelbackend.model.SteamUserModel;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
 import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -105,8 +107,38 @@ public class SecureController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping(path = "/add-player")
+    public ResponseEntity<HashMap<String, Object>> addPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
+        if (player == null) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
+        entityManager.addPlayer(steamId, steamUser.getPersonaname());
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), steamId, "AddNewPlayer", null);
+        OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers().stream().filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId())).findFirst().orElse(null);
+        return ResponseEntity.ok(
+                new HashMap<>() {{
+                    put("name", player.getName());
+                    put("steamId", player.getSteamId());
+                    put("isOnline", onlinePlayer);
+                    put("isOnControl", player.getOnControl());
+                    put("isAdmin", SquadServer.admins.contains(steamId));
+                    put("avatarFull", steamUser.getAvatarfull());
+                    put("numOfActiveBans", player
+                            .getPlayersBansBySteamId()
+                            .stream()
+                            .filter(ban -> ban.getExpirationTime().after(new Date()) && !ban.getIsUnbannedManually())
+                            .count()
+                    );
+                }}
+        );
+    }
+
     @PostMapping(path = "/get-players")
     public ResponseEntity<HashMap<String, Object>> getPlayers(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
@@ -134,13 +166,12 @@ public class SecureController {
             put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
         }}));
         map.put("content", contentList);
-
-        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(map);
     }
 
     @PostMapping(path = "/get-player")
     public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
         if (player == null) {
             return ResponseEntity.status(404).build();
@@ -160,12 +191,12 @@ public class SecureController {
                     .count()
             );
         }};
-        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(map);
     }
 
     @PostMapping(path = "/get-players-by-contains-text")
     public ResponseEntity<HashMap<String, Object>> getPlayersByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int maxSize, @RequestParam String text) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (maxSize > 10) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
@@ -180,7 +211,6 @@ public class SecureController {
         } catch (NumberFormatException e) {
             resultMap.put("foundPlayers", playerEntityService.findAllByNameContainsIgnoreCase(text, PageRequest.of(0, maxSize)).getContent());
         }
-        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(resultMap);
     }
 
@@ -330,15 +360,32 @@ public class SecureController {
         entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "WarnPlayer", warnReason);
         return ResponseEntity.ok().build();
     }
+    @PostMapping(path = "/warn-squad")
+    public ResponseEntity<Void> warnSquad(@SessionAttribute AdminEntity userInfo,
+                                           HttpSession httpSession,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           @RequestParam int squadId,
+                                           @RequestParam int teamId,
+                                           @RequestParam String warnReason) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        SquadServer.getOnlinePlayers().forEach(onlinePlayer -> {
+            if (onlinePlayer.getSquadID() == squadId && onlinePlayer.getTeamId() == teamId) {
+                Rcon.command(String.format("AdminWarn %s %s ", onlinePlayer.getSteamId(), warnReason));
+            }
+        });
+
+        entityManager.addAdminActionInLog(
+                userInfo.getSteamId(),
+                null,
+                "WarnSquad",
+                "(Warn to squad " + squadId + " in team " + teamId + ") | " + warnReason
+        );
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping(path = "/send-broadcast")
-    public ResponseEntity<Void> broadcastMessage(
-            @SessionAttribute AdminEntity userInfo,
-            HttpSession httpSession,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            @RequestParam String broadcastMessage
-    ) {
+    public ResponseEntity<Void> broadcastMessage(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String broadcastMessage) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         String rconResponse = Rcon.command(String.format("AdminBroadcast %s ", broadcastMessage));
         if (rconResponse == null || !rconResponse.contains("Message broadcasted")) {
