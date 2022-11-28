@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface PlayerBanService extends JpaRepository<PlayerBanEntity, Integer> {
 
     @NotNull
-    @Query(value = "SELECT a FROM PlayerBanEntity a WHERE a.expirationTime > CURRENT_TIMESTAMP AND a.isUnbannedManually = false")
+    @Query(value = "SELECT a FROM PlayerBanEntity a WHERE a.isUnbannedManually = FALSE AND (a.expirationTime IS NULL OR a.expirationTime > CURRENT_TIMESTAMP )")
     Page<PlayerBanEntity> findAllActiveBans(@NotNull Pageable pageable);
 
     @NotNull

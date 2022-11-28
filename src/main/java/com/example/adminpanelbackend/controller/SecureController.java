@@ -129,18 +129,7 @@ public class SecureController {
                     put("numOfActiveBans", player
                             .getPlayersBansBySteamId()
                             .stream()
-                            .filter(ban -> {
-                                if (ban.getExpirationTime() == null) {
-                                    return !ban.getIsUnbannedManually();
-                                } else {
-                                    if (ban.getIsUnbannedManually()) {
-                                        return false;
-                                    } else {
-                                        return ban.getExpirationTime().after(new Date());
-                                    }
-
-                                }
-                            })
+                            .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
                             .count()
                     );
                 }}
@@ -198,18 +187,7 @@ public class SecureController {
             put("numOfActiveBans", player
                     .getPlayersBansBySteamId()
                     .stream()
-                    .filter(ban -> {
-                        if (ban.getExpirationTime() == null) {
-                            return !ban.getIsUnbannedManually();
-                        } else {
-                            if (ban.getIsUnbannedManually()) {
-                                return false;
-                            } else {
-                                return ban.getExpirationTime().after(new Date());
-                            }
-
-                        }
-                    })
+                    .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
                     .count()
             );
         }};
