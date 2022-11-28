@@ -298,7 +298,12 @@ public class SecureController {
     }
 
     @PostMapping(path = "/warn-player")
-    public ResponseEntity<Void> warnPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String warnReason) {
+    public ResponseEntity<Void> warnPlayer(@SessionAttribute AdminEntity userInfo,
+                                           HttpSession httpSession,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           @RequestParam long playerSteamId,
+                                           @RequestParam String warnReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         String rconResponse = Rcon.command(String.format("AdminWarn %s %s ", playerSteamId, warnReason));
         if (rconResponse == null || !rconResponse.contains("Remote admin has warned player")) {
