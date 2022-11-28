@@ -66,7 +66,9 @@ public class FtpBanService implements Runnable{
     }
 
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {
+        LOGGER.info("Connecting to FTP");
         FTPClient ftpClient = new FTPClient();
+
         ftpClient.setControlEncoding(controlEncoding);
 
         try {
@@ -87,7 +89,9 @@ public class FtpBanService implements Runnable{
         }
 
         try {
-            ftpClient.setFileType(fileType);
+            if (!ftpClient.setFileType(fileType)) {
+                throw new IllegalArgumentException("Cant set file type in FTP");
+            }
         } catch (Exception e) {
             LOGGER.error("Exception while trying set BINARY_FILE_TYPE on FTP " + addr + port, e);
             throw new RuntimeException(e);
@@ -114,9 +118,10 @@ public class FtpBanService implements Runnable{
             throw new RuntimeException(e);
         }
         ftpClient.enterLocalPassiveMode();
-
         try {
-            ftpClient.changeWorkingDirectory(ABSOLUTE_FILE_PATH);
+            if (!ftpClient.changeWorkingDirectory(ABSOLUTE_FILE_PATH)) {
+                throw new IllegalArgumentException("Cant change working directory in FTP");
+            }
         } catch (Exception e) {
             LOGGER.error("Exception while trying set working FTP directory " + ABSOLUTE_FILE_PATH, e);
             throw new RuntimeException(e);
@@ -135,16 +140,12 @@ public class FtpBanService implements Runnable{
         try {
             LOGGER.info("Closing FTP");
             if (ftpClient != null && ftpClient.isConnected()) {
-                try {
-                    ftpClient.abort();
-                } catch (Exception e) {
-                    LOGGER.error("Cant abort FTP");
-                }
+                ftpClient.abort();
                 ftpClient.disconnect();
             }
             LOGGER.info("FTP closed");
         } catch (Exception e) {
-            LOGGER.error("Failed to close FTP connection", e);
+            LOGGER.error("Failed to close FTP connection");
         }
     }
 

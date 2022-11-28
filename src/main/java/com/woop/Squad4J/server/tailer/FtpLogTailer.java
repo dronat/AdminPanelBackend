@@ -78,7 +78,6 @@ public class FtpLogTailer implements Runnable {
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {
         LOGGER.info("Connecting to FTP");
         FTPClient ftpClient = new FTPClient();
-        //ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
 
         ftpClient.setControlEncoding(controlEncoding);
 
