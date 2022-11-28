@@ -298,11 +298,11 @@ public class SecureController {
                     put("id", ban.getId());
                     put("bannedPlayer", new HashMap<>() {{
                         put("playerName", ban.getPlayersBySteamId().getName());
-                        put("steamId", ban.getPlayersBySteamId().getSteamId());
+                        put("steamId", ban.getPlayersBySteamId().getSteamId().toString());
                     }});
                     put("bannedBy", new HashMap<>() {{
                         put("adminName", ban.getAdminsBySteamId().getName());
-                        put("steamId", ban.getAdminsBySteamId().getSteamId());
+                        put("steamId", ban.getAdminsBySteamId().getSteamId().toString());
                     }});
                     put("reason", ban.getReason());
                     put("isUnbannedManual", ban.getIsUnbannedManually());
@@ -310,7 +310,7 @@ public class SecureController {
                             ban.getIsUnbannedManually() ?
                                     new HashMap<>() {{
                                         put("adminName", ban.getUnbannedAdminBySteamId().getName());
-                                        put("steamId", ban.getUnbannedAdminBySteamId().getSteamId());
+                                        put("steamId", ban.getUnbannedAdminBySteamId().getSteamId().toString());
                                     }}
                                     : null
                     );
