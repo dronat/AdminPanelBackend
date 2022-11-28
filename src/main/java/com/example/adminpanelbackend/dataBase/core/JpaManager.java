@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 public class JpaManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(SquadServer.class);
-    protected final EntityManager em;
+    protected volatile EntityManager em;
 
     public JpaManager(EntityManager em) {
         this.em = em;
