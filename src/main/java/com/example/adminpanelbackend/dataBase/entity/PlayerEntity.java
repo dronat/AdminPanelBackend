@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -33,19 +35,23 @@ public class PlayerEntity implements Serializable {
     private Timestamp createTime;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerBanEntity> playersBansBySteamId;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerMessageEntity> playersMessagesBySteamId;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerNoteEntity> playersNotesBySteamId;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "playersBySteamId")
     private Collection<PlayerKickEntity> playersKicksBySteamId;
 
     @Override

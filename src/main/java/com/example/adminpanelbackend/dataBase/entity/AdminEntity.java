@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -56,7 +58,8 @@ public class AdminEntity implements Serializable {
     private Timestamp modifiedTime;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "adminsByAdminId", fetch = FetchType.EAGER)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "adminsByAdminId")
     private Collection<AdminActionLogEntity> adminsActionLogsById;
 
     /*@OneToOne(mappedBy = "primary_id", , fetch = FetchType.EAGER)
