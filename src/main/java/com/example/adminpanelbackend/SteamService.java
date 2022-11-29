@@ -20,6 +20,7 @@ public class SteamService {
 
     public static SteamUserModel.Response.Player getSteamUserInfo(Long steamId) {
         SteamUserModel.Response.Player steamUserModel = null;
+        Exception exception = null;
         int i = 0;
         while (steamUserModel == null && i < 10) {
             i++;
@@ -30,6 +31,7 @@ public class SteamService {
                         .getPlayers()
                         .get(0);
             } catch (Exception e) {
+                exception = e;
                 LOGGER.warn("Exception while trying get user from steam api", e);
                 try {
                     Thread.sleep(1000);
@@ -37,7 +39,7 @@ public class SteamService {
             }
         }
         if (steamUserModel == null) {
-            LOGGER.error("Can't get steamUser from steam api");
+            LOGGER.error("Can't get steamUser from steam api", exception);
         }
         return steamUserModel;
     }
