@@ -8,6 +8,7 @@ import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
 import com.example.adminpanelbackend.dataBase.service.PlayerBanService;
 import com.example.adminpanelbackend.model.SteamUserModel;
+import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
 import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
@@ -15,6 +16,8 @@ import com.woop.Squad4J.model.OnlinePlayer;
 import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.RconUpdater;
 import com.woop.Squad4J.server.SquadServer;
+import com.woop.Squad4J.server.tailer.FtpBanService;
+import com.woop.Squad4J.server.tailer.FtpLogTailer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -371,7 +374,10 @@ public class SecureController {
                                           @RequestParam String warnReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         SquadServer.getOnlinePlayers().forEach(onlinePlayer -> {
-            if (onlinePlayer.getSquadID() == squadId && onlinePlayer.getTeamId() == teamId) {
+            if (onlinePlayer.getSquadID() != null
+                    && onlinePlayer.getTeamId() != null
+                    && onlinePlayer.getSquadID() == squadId
+                    && onlinePlayer.getTeamId() == teamId) {
                 Rcon.command(String.format("AdminWarn %s %s ", onlinePlayer.getSteamId(), warnReason));
             }
         });
@@ -618,6 +624,17 @@ public class SecureController {
         httpSession.removeAttribute("userInfo");
         httpSession.invalidate();
         return httpSession.getAttribute("userInfo") == null ? ResponseEntity.ok().build() : ResponseEntity.status(500).build();
+    }
+
+    @GetMapping(path = "/get-backend-status")
+    public ResponseEntity<HashMap<String, Object>> getBackendStatus(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(new HashMap<>() {{
+            put("RconUpdater", RconUpdater.lastSuccessfullyWork);
+            put("QueryUpdater", Query.lastSuccessfullyWork);
+            put("FtpLogTailer", FtpLogTailer.lastSuccessfullyWork);
+            put("FtpBanService", FtpBanService.lastSuccessfullyWork);
+        }});
     }
 
 }

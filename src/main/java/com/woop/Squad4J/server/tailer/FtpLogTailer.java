@@ -4,6 +4,7 @@ import org.apache.commons.io.input.TailerListener;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ public class FtpLogTailer implements Runnable {
     private long lastByteRead = 0;
     private String lastRowRead;
     private volatile boolean run;
+    public static TimeStamp lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
 
     public FtpLogTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
@@ -60,8 +62,8 @@ public class FtpLogTailer implements Runnable {
                     getFileRows(ftpClient).forEach(TAILER_LISTENER::handle);
                 }
                 LOGGER.info("FTP log file updated");
+                lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
                 Thread.sleep(this.DELAY_IN_MILLIS);
-
             } catch (Exception e) {
                 LOGGER.error("Error while tailing FTP", e);
                 ftpClient = reconnect(ftpClient);

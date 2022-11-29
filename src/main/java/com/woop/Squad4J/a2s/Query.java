@@ -4,6 +4,7 @@ import com.ibasco.agql.protocols.valve.source.query.info.SourceQueryInfoResponse
 import com.ibasco.agql.protocols.valve.source.query.rules.SourceQueryRulesResponse;
 import com.woop.Squad4J.a2s.response.A2SCombinedResponse;
 import com.woop.Squad4J.util.ConfigLoader;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,8 @@ public class Query {
     //private static QueryImpl queryImpl;
     private static NewQueryImpl newQueryImpl;
     private static boolean initialized = false;
+    public static TimeStamp lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
+
 
     private Query(){
         throw new UnsupportedOperationException("You cannot instantiate this class.");
@@ -63,6 +66,7 @@ public class Query {
         SourceQueryInfoResponse info = newQueryImpl.getQueryInfo();
         SourceQueryRulesResponse rules = newQueryImpl.getQueryRules();
         LOGGER.info("Query updated");
+        lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
         return new A2SCombinedResponse(info, rules);
     }
 

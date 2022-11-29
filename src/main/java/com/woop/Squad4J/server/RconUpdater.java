@@ -11,6 +11,7 @@ import com.woop.Squad4J.model.OnlinePlayer;
 import com.woop.Squad4J.model.Squad;
 import com.woop.Squad4J.model.Team;
 import com.woop.Squad4J.rcon.Rcon;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ public class RconUpdater {
     private static final Pattern squadPattern = Pattern.compile("ID: ([0-9]+) \\| Name: (.+) \\| Size: ([0-9]+) \\| Locked: (True|False) \\| Creator Name: (.+) \\| Creator Steam ID: ([0-9]{17})");
     private static final Pattern currentLayerPattern = Pattern.compile("Current level is (.+), layer is (.+)");
     private static final Pattern nextLayerPattern = Pattern.compile("Next level is (.+), layer is (.+)");
+    public static TimeStamp lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
 
     private RconUpdater(){
         throw new IllegalStateException("This class cannot be instantiated.");
@@ -56,20 +58,24 @@ public class RconUpdater {
      * Helper method to update information retrieved through RCON: player list, squad list, and layer info.
      */
     public static void updateRcon() {
-        updateSquadList();
-        updateLayerInfo();
-        updatePlayerList();
+        if (updateSquadList() && updateLayerInfo() && updatePlayerList()) {
+            lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
+        }
         //LOGGER.info("Rcon updated");
     }
 
     /**
      * Updates the player list by querying the RCON console for a player list.
      */
-    protected static void updatePlayerList(){
+    protected static boolean updatePlayerList(){
         //long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving player list.");
         //System.out.println("ListPlayers");
         String response = Rcon.command("ListPlayers");
+        if (response == null || response.isEmpty()) {
+            LOGGER.error("ListPlayer returned empty or null response");
+            return false;
+        }
         //System.out.println(response);
         //System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
         long a = System.currentTimeMillis();
@@ -110,17 +116,22 @@ public class RconUpdater {
         EventEmitter.emit(event);
 
         LOGGER.info("Rcon updated, online players: {}", onlinePlayers.size());
+        return true;
         //System.out.println("ParsePlayerList: " + (System.currentTimeMillis() - a));
     }
 
     /**
      * Updates the squad list by querying the RCON console.
      */
-    protected static void updateSquadList(){
+    protected static boolean updateSquadList(){
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving squad list.");
         //System.out.println("ListSquads");
         String response = Rcon.command("ListSquads");
+        if (response == null || response.isEmpty()) {
+            LOGGER.error("ListSquads returned empty or null response");
+            return false;
+        }
         //System.out.println(response);
         //System.out.println("GetSquadList: " + (System.currentTimeMillis() - b));
         long a = System.currentTimeMillis();
@@ -157,6 +168,7 @@ public class RconUpdater {
         Event event = new SquadAndTeamListsUpdatedEvent(new Date(), EventType.SQUADLIST_UPDATED, squads, teams);
         EventEmitter.emit(event);
         //System.out.println("ParseSquadList: " + (System.currentTimeMillis() - a));
+        return true;
     }
 
     /**
@@ -164,7 +176,7 @@ public class RconUpdater {
      *
      * Updates both the current and next layers/maps.
      */
-    public static void updateLayerInfo(){
+    public static boolean updateLayerInfo(){
         LOGGER.trace("Retrieving layer information");
         String currentLayer = "";
         String nextLayer = "";
@@ -172,6 +184,10 @@ public class RconUpdater {
         String nextMap = "";
         //System.out.println("ShowCurrentMap");
         String response = Rcon.command("ShowCurrentMap");
+        if (response == null || response.isEmpty()) {
+            LOGGER.error("ShowCurrentMap returned empty or null response");
+            return false;
+        }
         //System.out.println(response);
         LOGGER.trace("Getting current map. Response: {}", response);
         Matcher matcher = currentLayerPattern.matcher(response);
@@ -194,5 +210,6 @@ public class RconUpdater {
 
         LOGGER.trace("Retrieved layer information");
         EventEmitter.emit(event);
+        return true;
     }
 }
