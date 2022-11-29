@@ -154,6 +154,8 @@ public class SquadServer {
             }*/
 
             //Update A2S and RCON information first so Squad server has attributes for them in memory
+            playersOnControl = entityManager.getPlayersOnControl();
+            admins = entityManager.getActiveAdminsSteamId();
             A2SUpdater.updateA2S();
             RconUpdater.updateRcon();
             RconUpdater.updateLayerInfo();
@@ -176,9 +178,6 @@ public class SquadServer {
             //Initialize service to update A2S and RCON information every 30 seconds.
             A2SUpdater.init();
             RconUpdater.init();
-            playersOnControl = entityManager.getPlayersOnControl();
-            admins = entityManager.getActiveAdminsSteamId();
-
         } catch (JsonPathException jsexp) {
             LOGGER.error("Error reading admin list configuration.", jsexp);
         }

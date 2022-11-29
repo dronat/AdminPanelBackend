@@ -52,8 +52,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .setParameter("steamId", adminSteamId)
                     .getSingleResult();
         } catch (Exception e) {
-            LOGGER.warn("SQL error while get admin by steamId " + adminSteamId, e);
-            return null;
+            LOGGER.warn("SQL error while get admin by steamId " + adminSteamId);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return getAdminBySteamID(adminSteamId);
         }
     }
 
@@ -65,8 +70,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .map(AdminEntity::getSteamId)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            LOGGER.warn("SQL error while get steam ids of active admins", e);
-            return null;
+            LOGGER.warn("SQL error while get steam ids of active admins");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return getActiveAdminsSteamId();
         }
     }
 
@@ -96,8 +106,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .getResultList()
                     .isEmpty();
         } catch (Exception e) {
-            LOGGER.error("Exception while trying execute sql query isPlayerExist");
-            throw new RuntimeException(e);
+            LOGGER.warn("Exception while trying execute sql query isPlayerExist");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return isPlayerExist(steamId);
         }
     }
 
@@ -121,8 +136,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .setParameter("steamId", steamId)
                     .getSingleResult();
         } catch (Exception e) {
-            LOGGER.error("SQL error while get player by steamId " + steamId, e);
-            return null;
+            LOGGER.warn("SQL error while get player by steamId " + steamId);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return getPlayerBySteamId(steamId);
         }
     }
 
@@ -132,8 +152,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .getResultList().stream().map(PlayerEntity::getSteamId)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            LOGGER.error("SQL error while get players on control ", e);
-            return null;
+            LOGGER.error("SQL error while get players on control ");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return getPlayersOnControl();
         }
     }
 

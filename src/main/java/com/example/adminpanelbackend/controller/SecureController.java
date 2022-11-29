@@ -177,12 +177,13 @@ public class SecureController {
             return ResponseEntity.status(404).build();
         }
         OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers().stream().filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId())).findFirst().orElse(null);
-        HashMap<String, Object> map = new HashMap<>() {{
+
+        return ResponseEntity.ok(new HashMap<>() {{
             put("name", player.getName());
             put("steamId", player.getSteamId());
             put("isOnline", onlinePlayer);
             put("isOnControl", player.getOnControl());
-            put("isAdmin", SquadServer.admins.contains(steamId));
+            put("isAdmin", SquadServer.getAdmins().contains(steamId));
             put("avatarFull", SteamService.getSteamUserInfo(steamId).getAvatarfull());
             put("numOfActiveBans", player
                     .getPlayersBansBySteamId()
@@ -190,8 +191,7 @@ public class SecureController {
                     .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
                     .count()
             );
-        }};
-        return ResponseEntity.ok(map);
+        }});
     }
 
     @PostMapping(path = "/get-players-by-contains-text")
