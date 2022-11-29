@@ -20,6 +20,7 @@ public interface PlayerEntityService extends JpaRepository<PlayerEntity, Integer
     //Page<PlayerEntity> findAllBySteamIdIsLike(long steamId, Pageable pageable);
 
     Page<PlayerEntity> findAllByNameContainsIgnoreCase(String name, Pageable pageable);
+    PlayerEntity findPlayerEntityBySteamId(long steamId);
 
     //@Query("SELECT a FROM PlayerEntity a  WHERE a.name LIKE '%:value%' OR a.steamId ")
     //Page<PlayerEntity> findFirst10BySteamIdContainingIgnoreCaseOrNameContainsIgnoreCase(Long steamId, String name, Pageable pageable);

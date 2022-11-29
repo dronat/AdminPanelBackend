@@ -175,7 +175,7 @@ public class SecureController {
     @PostMapping(path = "/get-player")
     public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
+        PlayerEntity player = playerEntityService.findPlayerEntityBySteamId(steamId);
         if (player == null) {
             return ResponseEntity.status(404).build();
         }
@@ -255,7 +255,7 @@ public class SecureController {
     @PostMapping(path = "/get-player-punishment-history")
     public ResponseEntity<HashMap<String, Object>> getPlayerPunismentHistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
+        PlayerEntity player = playerEntityService.findPlayerEntityBySteamId(playerSteamId);
         if (player == null) {
             return ResponseEntity.status(404).build();
         }

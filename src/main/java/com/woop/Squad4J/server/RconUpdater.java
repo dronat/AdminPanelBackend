@@ -73,7 +73,7 @@ public class RconUpdater {
         //System.out.println("ListPlayers");
         String response = Rcon.command("ListPlayers");
         if (response == null || response.isEmpty()) {
-            LOGGER.error("ListPlayer returned empty or null response");
+            LOGGER.warn("ListPlayer returned empty or null response");
             return false;
         }
         //System.out.println(response);
@@ -129,7 +129,7 @@ public class RconUpdater {
         //System.out.println("ListSquads");
         String response = Rcon.command("ListSquads");
         if (response == null || response.isEmpty()) {
-            LOGGER.error("ListSquads returned empty or null response");
+            LOGGER.warn("ListSquads returned empty or null response");
             return false;
         }
         //System.out.println(response);
@@ -185,7 +185,7 @@ public class RconUpdater {
         //System.out.println("ShowCurrentMap");
         String response = Rcon.command("ShowCurrentMap");
         if (response == null || response.isEmpty()) {
-            LOGGER.error("ShowCurrentMap returned empty or null response");
+            LOGGER.warn("ShowCurrentMap returned empty or null response");
             return false;
         }
         //System.out.println(response);
