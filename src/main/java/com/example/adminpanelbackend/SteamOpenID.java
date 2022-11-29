@@ -16,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SteamOpenID {
-    private static final String STEAM_OPENID = "http://steamcommunity.com/openid";
+    private static final String STEAM_OPENID = "https://steamcommunity.com/openid/";
     private final ConsumerManager manager;
     private final Pattern STEAM_REGEX = Pattern.compile("(\\d+)");
     private DiscoveryInformation discovered;

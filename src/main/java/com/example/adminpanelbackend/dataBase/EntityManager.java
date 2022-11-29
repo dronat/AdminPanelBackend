@@ -37,13 +37,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
                             .setModifiedTime(new Timestamp(System.currentTimeMillis()))
             );
         }
-        SquadServer.admins.add(adminSteamId);
+        SquadServer.addAdmin(adminSteamId);
     }
 
     public synchronized void deactivateAdmin(long adminSteamId) {
         LOGGER.info("\u001B[46m \u001B[30m Delete admin with adminSteamId: {} \u001B[0m", adminSteamId);
         update(getAdminBySteamID(adminSteamId).setRole(0).setModifiedTime(new Timestamp(System.currentTimeMillis())));
-        SquadServer.admins.remove(adminSteamId);
+        SquadServer.removeAdmin(adminSteamId);
     }
 
     public synchronized AdminEntity getAdminBySteamID(long adminSteamId) {
@@ -206,10 +206,10 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public synchronized void addPlayerOnControl(AdminEntity admin, PlayerEntity player) {
         LOGGER.info("\u001B[46m \u001B[30m Player {} added on control by admin {} \u001B[0m", player.getName(), admin.getName());
-        refresh(player.setOnControl(true));
+        update(player.setOnControl(true));
         addPlayerNote(player, admin, "Добавил игрока на контроль");
         addAdminActionInLog(admin, player, "AddPlayerOnControl", null);
-        SquadServer.playersOnControl.add(player.getSteamId());
+        SquadServer.addPlayerOnControl(player.getSteamId());
     }
 
     public synchronized void removePlayerFromControl(long adminSteamId, long playerSteamId) {
@@ -220,10 +220,10 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public synchronized void removePlayerFromControl(AdminEntity admin, PlayerEntity player) {
         LOGGER.info("\u001B[46m \u001B[30m Player {} removed from control by admin {} \u001B[0m", player.getName(), admin.getName());
-        refresh(player.setOnControl(false));
+        update(player.setOnControl(false));
         addPlayerNote(player, admin, "Убрал игрока с контроля");
         addAdminActionInLog(admin, player, "RemovePlayerFromControl", null);
-        SquadServer.playersOnControl.remove(player.getSteamId());
+        SquadServer.removePlayerFromControl(player.getSteamId());
     }
 
     public synchronized void deletePlayerNote(int noteId) {

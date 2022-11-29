@@ -5,11 +5,13 @@ import com.woop.Squad4J.main.SquadModule;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 
 import java.util.HashMap;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { UserDetailsServiceAutoConfiguration.class })
 public class AdminPanelBackendApplication {
 
     public static void main(String[] args) {

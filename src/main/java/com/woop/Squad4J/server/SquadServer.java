@@ -49,8 +49,8 @@ public class SquadServer {
 
     private static final BiMap<String, Long> nameSteamIds = HashBiMap.create();
 
-    public static List<Long> playersOnControl;
-    public static List<Long> admins;
+    private static List<Long> playersOnControl;
+    private static List<Long> admins;
     private static Collection<OnlinePlayer> onlinePlayers;
     private static Collection<DisconnectedPlayer> disconnectedPlayers;
     private static Collection<Squad> squads;
@@ -116,7 +116,7 @@ public class SquadServer {
         String sourceRef = null;
         //TODO: Improve admin reading to take union all permissions for UNIQUE ADMINS across all files. Currently, this logic actually sucks
         try {
-            Integer numAdminLists = ConfigLoader.get("server.adminLists.length()", Integer.class);
+            /*Integer numAdminLists = ConfigLoader.get("server.adminLists.length()", Integer.class);
             for (int i = 0; i < numAdminLists; i++) {
                 Map<Object, Object> adminListMap = ConfigLoader.get("server.adminLists[" + i + "]", Map.class);
                 boolean isRemote = adminListMap.get("type").equals("remote");
@@ -151,7 +151,7 @@ public class SquadServer {
                 }
 
                 LOGGER.trace("Read {} admins from {}", adminSteamIds.size(), source);
-            }
+            }*/
 
             //Update A2S and RCON information first so Squad server has attributes for them in memory
             A2SUpdater.updateA2S();
@@ -345,7 +345,14 @@ public class SquadServer {
             case PLAYERLIST_UPDATED:
                 LOGGER.trace("Updating SquadServer for PLAYERLIST_UPDATED");
                 PlayerListUpdatedEvent playerListUpdatedEvent = (PlayerListUpdatedEvent) ev;
-                onlinePlayers = playerListUpdatedEvent.getOnlinePlayersList();
+                onlinePlayers = playerListUpdatedEvent
+                        .getOnlinePlayersList()
+                        .stream()
+                        .peek(player -> {
+                            player.setIsOnControl(playersOnControl.contains(player.getSteamId()));
+                            player.setIsAdmin(admins.contains(player.getSteamId()));
+                        })
+                        .collect(Collectors.toList());
                 disconnectedPlayers = playerListUpdatedEvent.getDisconnectedPlayersList();
                 LOGGER.trace("Done updating SquadServer for PLAYERLIST_UPDATED");
                 break;
@@ -384,12 +391,7 @@ public class SquadServer {
                     if (onlinePlayer.getSquadID() == null) {
                         onlineInfo
                                 .getTeamById(onlinePlayer.getTeamId())
-                                .addPlayerWithoutSquad(
-                                        SerializationUtils
-                                                .clone(onlinePlayer)
-                                                .setIsAdmin(admins.contains(onlinePlayer.getSteamId()))
-                                                .setIsOnControl(playersOnControl.contains(onlinePlayer.getSteamId()))
-                                );
+                                .addPlayerWithoutSquad(SerializationUtils.clone(onlinePlayer));
                     } else {
                         if (onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()) == null) {
                             onlineInfo
@@ -408,12 +410,7 @@ public class SquadServer {
                         onlineInfo
                                 .getTeamById(onlinePlayer.getTeamId())
                                 .getSquadById(onlinePlayer.getSquadID())
-                                .addPlayer(
-                                        SerializationUtils
-                                                .clone(onlinePlayer)
-                                                .setIsAdmin(admins.contains(onlinePlayer.getSteamId()))
-                                                .setIsOnControl(playersOnControl.contains(onlinePlayer.getSteamId()))
-                                );
+                                .addPlayer(SerializationUtils.clone(onlinePlayer));
                     }
             }
         });
@@ -495,5 +492,48 @@ public class SquadServer {
     }
     public static Collection<ChatMessageEvent> getChatMessages() {
         return Collections.unmodifiableCollection(chatMessages);
+    }
+
+    public static void addPlayerOnControl(long steamId) {
+        playersOnControl.add(steamId);
+        onlinePlayers.forEach(player -> {
+            if (player.getSteamId() == steamId) {
+                player.setIsOnControl(true);
+            }
+        });
+    }
+
+    public static void removePlayerFromControl(long steamId) {
+        playersOnControl.remove(steamId);
+        onlinePlayers.forEach(player -> {
+            if (player.getSteamId() == steamId) {
+                player.setIsOnControl(false);
+            }
+        });
+    }
+
+    public static void addAdmin(long steamId) {
+        admins.add(steamId);
+        onlinePlayers.forEach(player -> {
+            if (player.getSteamId() == steamId) {
+                player.setIsAdmin(true);
+            }
+        });
+    }
+
+    public static void removeAdmin(long steamId) {
+        admins.remove(steamId);
+        onlinePlayers.forEach(player -> {
+            if (player.getSteamId() == steamId) {
+                player.setIsAdmin(false);
+            }
+        });
+    }
+    public static Collection<Long> getAdmins() {
+        return Collections.unmodifiableCollection(admins);
+    }
+
+    public static Collection<Long> getPlayersOnControl() {
+        return Collections.unmodifiableCollection(playersOnControl);
     }
 }

@@ -124,7 +124,7 @@ public class SecureController {
                     put("steamId", player.getSteamId());
                     put("isOnline", onlinePlayer);
                     put("isOnControl", player.getOnControl());
-                    put("isAdmin", SquadServer.admins.contains(steamId));
+                    put("isAdmin", SquadServer.getAdmins().contains(steamId));
                     put("avatarFull", steamUser.getAvatarfull());
                     put("numOfActiveBans", player
                             .getPlayersBansBySteamId()
