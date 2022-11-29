@@ -33,19 +33,19 @@ public class PlayerEntity implements Serializable {
     private Timestamp createTime;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId")
+    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
     private Collection<PlayerBanEntity> playersBansBySteamId;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId")
+    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
     private Collection<PlayerMessageEntity> playersMessagesBySteamId;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId")
+    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
     private Collection<PlayerNoteEntity> playersNotesBySteamId;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "playersBySteamId")
+    @OneToMany(mappedBy = "playersBySteamId", fetch = FetchType.EAGER)
     private Collection<PlayerKickEntity> playersKicksBySteamId;
 
     @Override

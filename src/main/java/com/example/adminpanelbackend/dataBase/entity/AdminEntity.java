@@ -56,10 +56,10 @@ public class AdminEntity implements Serializable {
     private Timestamp modifiedTime;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "adminsByAdminId")
+    @OneToMany(mappedBy = "adminsByAdminId", fetch = FetchType.EAGER)
     private Collection<AdminActionLogEntity> adminsActionLogsById;
 
-    /*@OneToOne(mappedBy = "primary_id")
+    /*@OneToOne(mappedBy = "primary_id", , fetch = FetchType.EAGER)
     private SpringSessionEntity springSessionById;*/
 
     @Override
