@@ -3,10 +3,7 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.*;
-import com.example.adminpanelbackend.dataBase.service.AdminActionLogsService;
-import com.example.adminpanelbackend.dataBase.service.AdminService;
-import com.example.adminpanelbackend.dataBase.service.PlayerEntityService;
-import com.example.adminpanelbackend.dataBase.service.PlayerBanService;
+import com.example.adminpanelbackend.dataBase.service.*;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
@@ -51,6 +48,9 @@ public class SecureController {
 
     @Autowired
     AdminActionLogsService adminActionLogsService;
+
+    @Autowired
+    LayersHistoryService layersHistoryService;
     @Autowired
     PlayerBanService playerBanService;
 
@@ -574,6 +574,36 @@ public class SecureController {
         return ResponseEntity.ok(map);
     }
 
+    @PostMapping(path = "/get-layers-history")
+    public ResponseEntity<HashMap<String, Object>> getLayershistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+        Page<LayerHistoryEntity> resultPage = layersHistoryService.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber());
+            put("totalPages", resultPage.getTotalPages());
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
+        }};
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(layerHistoryEntity -> {
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", layerHistoryEntity.getId());
+                put("layer", layerHistoryEntity.getLayer());
+                put("time", layerHistoryEntity.getCreationTime());
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
+    }
+
     /*TODO*/
     @PostMapping(path = "/get-admin-actions-by-text")
     public ResponseEntity<Collection<AdminActionLogEntity>> getAdminActionsByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String logText) {
@@ -622,8 +652,9 @@ public class SecureController {
     public ResponseEntity<Void> userLogout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
         httpSession.removeAttribute("userInfo");
+        httpSession.removeAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME);
         httpSession.invalidate();
-        return httpSession.getAttribute("userInfo") == null ? ResponseEntity.ok().build() : ResponseEntity.status(500).build();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(path = "/get-backend-status")

@@ -134,7 +134,7 @@ public class RconImpl {
      * @param command the command to output
      * @return the output of the command sent if the RCON server returns one
      */
-    protected String command(String command){
+    protected synchronized String command(String command){
 
         final AtomicReference<String> response = new AtomicReference<>();
         response.set("");
@@ -179,7 +179,7 @@ public class RconImpl {
      * @param payload a byte array of the payload for the command
      * @return a {@link CompletableFuture<Void>} representing the state of execution for the command
      */
-    private CompletableFuture<Void> command(byte[] payload){
+    private synchronized CompletableFuture<Void> command(byte[] payload){
         send(SERVERDATA_EXECCOMMAND, payload);
         return CompletableFuture.runAsync(this::waitUntilNoData);
     }
@@ -192,8 +192,9 @@ public class RconImpl {
     private void reconnect(){
         LOGGER.warn("Reconnecting to RCON server . . .");
         try{
+            Thread.sleep(1000);
             connect(this.host, this.port, this.password);
-        }catch (AuthenticationException ex){
+        } catch (AuthenticationException | InterruptedException ex){
             LOGGER.error("Error authenticating with RCON server.");
             LOGGER.error(ex.getMessage());
             System.exit(1);

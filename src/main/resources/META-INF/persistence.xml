@@ -11,5 +11,6 @@
         <class>com.example.adminpanelbackend.dataBase.entity.PlayerKickEntity</class>
         <class>com.example.adminpanelbackend.dataBase.entity.PlayerMessageEntity</class>
         <class>com.example.adminpanelbackend.dataBase.entity.PlayerNoteEntity</class>
+        <class>com.example.adminpanelbackend.dataBase.entity.LayerHistoryEntity</class>
     </persistence-unit>
 </persistence>

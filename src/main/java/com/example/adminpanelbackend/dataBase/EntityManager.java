@@ -303,4 +303,12 @@ public class EntityManager extends JpaManager implements JpaConnection {
         );
         refresh(player);
     }
+
+    public synchronized void addLayer(String layer) {
+        persist(
+                new LayerHistoryEntity()
+                        .setLayer(layer)
+                        .setCreationTime(new Timestamp(System.currentTimeMillis()))
+        );
+    }
 }

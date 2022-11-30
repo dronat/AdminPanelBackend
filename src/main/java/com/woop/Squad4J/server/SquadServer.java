@@ -237,6 +237,7 @@ public class SquadServer {
             case NEW_GAME:
                 LOGGER.trace("Updating SquadServer for NEW_GAME");
                 NewGameEvent newGameEvent = (NewGameEvent) ev;
+                entityManager.addLayer(newGameEvent.getLayerName());
                 maxTickRate = newGameEvent.getMaxTickRate();
                 currentLayer = newGameEvent.getLayerName();
                 A2SUpdater.updateA2S();

@@ -161,6 +161,11 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             createPlayersNotes();
         }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM layers_history");
+        } catch (SQLException e) {
+            createLayersHistory();
+        }
     }
 
     /*private static void createDbLogServers() throws SQLException {
@@ -404,6 +409,14 @@ public class MySQLConnector extends Connector {
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
                 "CONSTRAINT kicksSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
                 "CONSTRAINT kicksAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
+    }
+
+    private static void createLayersHistory() throws SQLException {
+        LOGGER.info("Creating table layers_history");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS layers_history (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "layer VARCHAR(255) NOT NULL," +
+                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)");
     }
 
     public static void createSpringSessions() throws SQLException {

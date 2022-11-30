@@ -51,6 +51,9 @@ public class NewQueryImpl {
     public void reconnect() {
         LOGGER.info("Reconnecting to Query");
         disconnect();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {}
         init();
         LOGGER.info("Query reconnected successfully");
     }
@@ -58,12 +61,18 @@ public class NewQueryImpl {
     public SourceQueryInfoResponse getQueryInfo() {
         try {
             SourceQueryInfoResponse sqir = null;
+            int attempt = 0;
             while (sqir == null) {
                 try {
                     sqir = queryClient.getInfo(address).get(TIMEOUT, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException ignore) {}
+                } catch (Exception e) {
+                    if (++attempt > 10) {
+                        throw e;
+                    }
+                }
                 if (sqir == null) {
                     LOGGER.warn("Failed to get Query info, trying again");
+                    Thread.sleep(1000);
                 }
             }
             return sqir;
@@ -77,12 +86,18 @@ public class NewQueryImpl {
     public SourceQueryRulesResponse getQueryRules() {
         try {
             SourceQueryRulesResponse sqir = null;
+            int attempt = 0;
             while (sqir == null) {
                 try {
                     sqir = queryClient.getRules(address).get(TIMEOUT, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException ignore) {}
+                } catch (Exception e) {
+                    if (++attempt > 10) {
+                        throw e;
+                    }
+                }
                 if (sqir == null) {
                     LOGGER.warn("Failed to get Query rules, trying again");
+                    Thread.sleep(1000);
                 }
             }
             return sqir;
