@@ -33,14 +33,14 @@ public class AdminCamTracker implements PossessedAdminCameraListener, Unpossesse
     //doesn't need to be made.
     
     @Override
-    public void onPossessedAdminCamera(PossessedAdminCameraEvent possessedAdminCameraEvent) {
+    public void onPossessedAdminCamera(PossessedAdminCameraEvent enteredInAdminCameraEvent) {
       //Execute code here.
       //You can use the PossessedAdminCameraEvent passed into this method for details of the event.
       //Each event has its own set of fields that can be accessed to figure out details of the event.
     }
 
     @Override
-    public void onUnpossessedAdminCamera(UnpossessedAdminCameraEvent unpossessedAdminCameraEvent) {
+    public void onUnpossessedAdminCamera(UnpossessedAdminCameraEvent leftFromAdminCameraEvent) {
       //More code execution here.
     }
 }

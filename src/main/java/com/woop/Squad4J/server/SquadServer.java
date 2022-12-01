@@ -13,20 +13,13 @@ import com.woop.Squad4J.event.logparser.*;
 import com.woop.Squad4J.event.rcon.*;
 import com.woop.Squad4J.model.*;
 import com.woop.Squad4J.rcon.Rcon;
-import com.woop.Squad4J.util.AdminListReader;
 import com.woop.Squad4J.util.ConfigLoader;
 import lombok.Getter;
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -356,11 +349,19 @@ public class SquadServer {
                 disconnectedPlayers = playerListUpdatedEvent.getDisconnectedPlayersList();
                 LOGGER.trace("Done updating SquadServer for PLAYERLIST_UPDATED");
                 break;
-            case POSSESSED_ADMIN_CAM:
+            case ENTERED_IN_ADMIN_CAM:
                 LOGGER.trace("Updating SquadServer for POSSESSED_ADMIN_CAM");
-                PossessedAdminCameraEvent possessedAdminCameraEvent = (PossessedAdminCameraEvent) ev;
-                getPlayerBySteamId(possessedAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.add(p));
+                EnteredInAdminCameraEvent enteredInAdminCameraEvent = (EnteredInAdminCameraEvent) ev;
+                getPlayerBySteamId(enteredInAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.add(p));
+                entityManager.addAdminActionInLog(enteredInAdminCameraEvent.getSteamId(), null, "EnteredInAdminCam", null);
                 LOGGER.trace("Done updating SquadServer for POSSESSED_ADMIN_CAM");
+                break;
+            case LEFT_FROM_ADMIN_CAM:
+                LOGGER.trace("Updating SquadServer for UNPOSSESSED_ADMIN_CAM");
+                LeftFromAdminCameraEvent leftFromAdminCameraEvent = (LeftFromAdminCameraEvent) ev;
+                getPlayerBySteamId(leftFromAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.remove(p));
+                entityManager.addAdminActionInLog(leftFromAdminCameraEvent.getSteamId(), null, "LeftFromAdminCam", null);
+                LOGGER.trace("Done updating SquadServer for UNPOSSESSED_ADMIN_CAM");
                 break;
             case SQUADLIST_UPDATED:
                 LOGGER.trace("Updating SquadServer for SQUADLIST_UPDATED");
@@ -368,12 +369,6 @@ public class SquadServer {
                 squads = squadAndTeamListsUpdatedEvent.getSquadList();
                 teams = squadAndTeamListsUpdatedEvent.getTeamsList();
                 LOGGER.trace("Done updating SquadServer for SQUADLIST_UPDATED");
-                break;
-            case UNPOSSESSED_ADMIN_CAM:
-                LOGGER.trace("Updating SquadServer for UNPOSSESSED_ADMIN_CAM");
-                UnpossessedAdminCameraEvent unpossessedAdminCameraEvent = (UnpossessedAdminCameraEvent) ev;
-                getPlayerBySteamId(unpossessedAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.remove(p));
-                LOGGER.trace("Done updating SquadServer for UNPOSSESSED_ADMIN_CAM");
                 break;
             default:
                 LOGGER.trace("SquadServer received non-supported event. Ignoring.");

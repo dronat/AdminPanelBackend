@@ -1,7 +1,6 @@
 package com.woop.Squad4J.server;
 
 import com.example.adminpanelbackend.SteamService;
-import com.example.adminpanelbackend.model.SteamUserModel;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.logparser.*;
@@ -56,8 +55,8 @@ public class LogParser {
         //logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogEasyAntiCheatServer: \\[[0-9:]+] \\[[A-z]+] \\[EAC Server] \\[Info] \\[RegisterClient] Client: (?:[A-z0-9]+) PlayerGUID: ([0-9]{17}) PlayerIP: [0-9]{17} OwnerGUID: [0-9]{17} PlayerName: (.+)"), EventType.STEAMID_CONNECTED);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogOnline: STEAM: AUTH HANDLER: Sending auth result to user (\\d{17}) with flag success\\? 1"), EventType.STEAMID_CONNECTED);
         logPatterns.put(Pattern.compile("\\[(ChatAll|ChatTeam|ChatSquad|ChatAdmin)] \\[SteamID:([0-9]{17})] (.+?) : (.*)"), EventType.CHAT_MESSAGE);
-        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera."), EventType.POSSESSED_ADMIN_CAM);
-        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera."), EventType.UNPOSSESSED_ADMIN_CAM);
+        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera."), EventType.ENTERED_IN_ADMIN_CAM);
+        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera."), EventType.LEFT_FROM_ADMIN_CAM);
         logPatterns.put(Pattern.compile("Remote admin has warned player (.*)\\. Message was \"(.*)\""), EventType.PLAYER_WARNED);
         logPatterns.put(Pattern.compile("Kicked player ([0-9]+)\\. \\[steamid=([0-9]{17})] (.*)"), EventType.PLAYER_KICKED);
         logPatterns.put(Pattern.compile("Banned player ([0-9]+)\\. \\[steamid=(.*?)\\] (.*) for interval (.*)"), EventType.PLAYER_BANNED);
