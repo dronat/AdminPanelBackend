@@ -1,6 +1,9 @@
 package com.woop.Squad4J.a2s;
 
+import com.ibasco.agql.core.transport.enums.ChannelPoolType;
+import com.ibasco.agql.core.util.GeneralOptions;
 import com.ibasco.agql.protocols.valve.source.query.SourceQueryClient;
+import com.ibasco.agql.protocols.valve.source.query.SourceQueryOptions;
 import com.ibasco.agql.protocols.valve.source.query.info.SourceQueryInfoResponse;
 import com.ibasco.agql.protocols.valve.source.query.players.SourceQueryPlayerResponse;
 import com.ibasco.agql.protocols.valve.source.query.rules.SourceQueryRulesResponse;
@@ -19,6 +22,11 @@ public class NewQueryImpl {
     private final int TIMEOUT;
     private SourceQueryClient queryClient;
     private InetSocketAddress address;
+    private final SourceQueryOptions options = SourceQueryOptions.builder()
+            .option(GeneralOptions.CONNECTION_POOLING, true)
+            .option(GeneralOptions.POOL_MAX_CONNECTIONS, 1)
+            .option(GeneralOptions.POOL_TYPE, ChannelPoolType.FIXED)
+            .build();
 
     public NewQueryImpl(String host, Integer port, int timout) {
         PORT = port;
@@ -30,7 +38,7 @@ public class NewQueryImpl {
     public NewQueryImpl init() {
         try {
             LOGGER.info("Connecting to Query");
-            queryClient = new SourceQueryClient();
+            queryClient = new SourceQueryClient(options);
             address = new InetSocketAddress(HOST, PORT);
             LOGGER.info("Query connected");
         } catch (Exception e) {
