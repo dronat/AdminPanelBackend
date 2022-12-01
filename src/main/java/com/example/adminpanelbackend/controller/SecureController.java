@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -53,7 +52,8 @@ public class SecureController {
     LayersHistoryService layersHistoryService;
     @Autowired
     PlayerBanService playerBanService;
-
+    @Autowired
+    PlayerMessageService playerMessageService;
     @Autowired
     AdminService adminService;
 
@@ -198,23 +198,12 @@ public class SecureController {
     }
 
     @PostMapping(path = "/get-players-by-contains-text")
-    public ResponseEntity<HashMap<String, Object>> getPlayersByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int maxSize, @RequestParam String text) {
+    public ResponseEntity<List<PlayerEntity>> getPlayersByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int maxSize, @RequestParam String text) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (maxSize > 10) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        HashMap<String, Object> resultMap = new HashMap<>();
-        try {
-            if (text.length() == 17) {
-                Long.parseLong(text);
-                resultMap.put("foundPlayers", playerEntityService.findAllBySteamIdContains(text, PageRequest.of(0, maxSize)).getContent());
-            } else {
-                resultMap.put("foundPlayers", playerEntityService.findAllByNameContainsIgnoreCase(text, PageRequest.of(0, maxSize)).getContent());
-            }
-        } catch (NumberFormatException e) {
-            resultMap.put("foundPlayers", playerEntityService.findAllByNameContainsIgnoreCase(text, PageRequest.of(0, maxSize)).getContent());
-        }
-        return ResponseEntity.ok(resultMap);
+        return ResponseEntity.ok(playerEntityService.findAllByContainsInNameAndSteamId(text, PageRequest.of(0, maxSize)).getContent());
     }
 
     @PostMapping(path = "/add-player-on-control")
@@ -452,15 +441,73 @@ public class SecureController {
         return ResponseEntity.ok(player.getPlayersNotesBySteamId());
     }
 
-    /*TODO*/
-    @PostMapping(path = "/get-player-messages")
-    public ResponseEntity<Collection<PlayerMessageEntity>> getPlayerMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
+    @PostMapping(path = "/get-messages-by-contains-text")
+    public ResponseEntity<HashMap<String, Object>> getMessagesByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String text, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        PlayerEntity player = entityManager.getPlayerBySteamId(playerSteamId);
-        if (player == null) {
-            return ResponseEntity.status(404).build();
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
         }
-        return ResponseEntity.ok(player.getPlayersMessagesBySteamId());
+
+        Page<PlayerMessageEntity> resultPage = playerMessageService.findAllByContainsInNameAndSteamId(text, PageRequest.of(page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber());
+            put("totalPages", resultPage.getTotalPages());
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
+        }};
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(playerMessageEntity -> {
+            PlayerEntity player = playerMessageEntity.getPlayersBySteamId();
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", playerMessageEntity.getId());
+                put("playerName", player.getName());
+                put("playerSteamId", player.getSteamId());
+                put("chatType", playerMessageEntity.getChatType());
+                put("message", playerMessageEntity.getMessage());
+                put("createTime", playerMessageEntity.getCreationTime());
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping(path = "/get-messages")
+    public ResponseEntity<HashMap<String, Object>> getMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+        Page<PlayerMessageEntity> resultPage = playerMessageService.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber());
+            put("totalPages", resultPage.getTotalPages());
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
+        }};
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(playerMessageEntity -> {
+            PlayerEntity player = playerMessageEntity.getPlayersBySteamId();
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", playerMessageEntity.getId());
+                put("playerName", player.getName());
+                put("playerSteamId", player.getSteamId());
+                put("chatType", playerMessageEntity.getChatType());
+                put("message", playerMessageEntity.getMessage());
+                put("createTime", playerMessageEntity.getCreationTime());
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
     }
 
     @PostMapping(path = "/get-admins")
@@ -482,12 +529,69 @@ public class SecureController {
     }
 
     @PostMapping(path = "/get-admin-actions")
-    public ResponseEntity<HashMap<String, Object>> getAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId, @RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<HashMap<String, Object>> getAdminActions(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
         Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber());
+            put("totalPages", resultPage.getTotalPages());
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() : null);
+        }};
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+
+        resultPage.getContent().forEach(adminActionLogEntity -> {
+            HashMap<String, Object> playerByAdminId = null;
+            PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
+            if (player != null) {
+                playerByAdminId = new HashMap<>() {{
+                    put("steamId", player.getSteamId());
+                    put("name", player.getName());
+                    put("createTime", player.getCreateTime());
+                    put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
+                    put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
+                    put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
+                    put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                }};
+            }
+            HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", adminActionLogEntity.getId());
+                put("action", adminActionLogEntity.getAction());
+                put("reason", adminActionLogEntity.getReason());
+                put("createTime", adminActionLogEntity.getCreateTime());
+                put("playerByAdminId", finalPlayerByAdminId);
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping(path = "/get-admin-actions-with-params")
+    public ResponseEntity<HashMap<String, Object>> getAdminActionsWithParams(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam String adminSteamId,
+            @RequestParam String playerSteamId,
+            @RequestParam String action,
+            @RequestParam long dateFrom,
+            @RequestParam long dateTo,
+            @RequestParam int page,
+            @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByContainsInNameAndSteamId(adminSteamId, playerSteamId, action, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = new HashMap<>() {{
             put("currentPage", resultPage.getNumber());
             put("totalPages", resultPage.getTotalPages());
