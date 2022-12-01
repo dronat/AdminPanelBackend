@@ -359,13 +359,12 @@ public class RconImpl {
         // Header is 3 4-bytes ints
         byte[] header = new byte[4 * 3];
 
-        // Read the 3 ints
-        if(in.read(header) == -1){
-            return null;
-        }
-
         try {
             synchronized (sync){
+                // Read the 3 ints
+                if(in.read(header) == -1){
+                    return null;
+                }
                 // Use a bytebuffer in little endian to read the first 3 ints
                 ByteBuffer buffer = ByteBuffer.wrap(header);
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
