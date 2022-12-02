@@ -14,4 +14,6 @@ public interface PlayerMessageService extends JpaRepository<PlayerMessageEntity,
             "OR a.message LIKE %:text%")
     Page<PlayerMessageEntity> findAllByContainsInNameAndSteamId(String text, Pageable pageable);
 
+    Page<PlayerMessageEntity> findAllByPlayersBySteamId(long steamId, Pageable pageable);
+
 }
