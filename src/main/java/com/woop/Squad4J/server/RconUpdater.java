@@ -78,7 +78,7 @@ public class RconUpdater {
         }
         //System.out.println(response);
         //System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
-        long a = System.currentTimeMillis();
+        //long a = System.currentTimeMillis();
         List<OnlinePlayer> onlinePlayers = new ArrayList<>();
         List<DisconnectedPlayer> disconnectedPlayers = new ArrayList<>();
         StringTokenizer tokenizer = new StringTokenizer(response, "\n");

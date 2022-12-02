@@ -1,7 +1,6 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.LazyCollection;
@@ -36,23 +35,23 @@ public class PlayerEntity implements Serializable {
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "playersBySteamId")
-    private Collection<PlayerBanEntity> playersBansBySteamId;
+    @OneToMany(mappedBy = "player")
+    private Collection<PlayerBanEntity> playerBans;
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "playersBySteamId")
-    private Collection<PlayerMessageEntity> playersMessagesBySteamId;
+    @OneToMany(mappedBy = "player")
+    private Collection<PlayerMessageEntity> playerMessages;
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "playersBySteamId")
-    private Collection<PlayerNoteEntity> playersNotesBySteamId;
+    @OneToMany(mappedBy = "player")
+    private Collection<PlayerNoteEntity> playerNotes;
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "playersBySteamId")
-    private Collection<PlayerKickEntity> playersKicksBySteamId;
+    @OneToMany(mappedBy = "player")
+    private Collection<PlayerKickEntity> playerKicks;
 
     @Override
     public boolean equals(Object o) {

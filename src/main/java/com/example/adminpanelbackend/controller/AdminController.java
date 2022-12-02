@@ -4,11 +4,8 @@ import com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
 import com.woop.Squad4J.a2s.Query;
-import com.woop.Squad4J.event.rcon.ChatMessageEvent;
-import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
 import com.woop.Squad4J.server.RconUpdater;
-import com.woop.Squad4J.server.SquadServer;
 import com.woop.Squad4J.server.tailer.FtpBanService;
 import com.woop.Squad4J.server.tailer.FtpLogTailer;
 import org.slf4j.Logger;
@@ -86,23 +83,23 @@ public class AdminController extends BaseSecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllBy(adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByAdmin(adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
 
         resultPage.getContent().forEach(adminActionLogEntity -> {
             HashMap<String, Object> playerByAdminId = null;
-            PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
+            PlayerEntity player = adminActionLogEntity.getPlayer();
             if (player != null) {
                 playerByAdminId = new HashMap<>() {{
                     put("steamId", player.getSteamId());
                     put("name", player.getName());
                     put("createTime", player.getCreateTime());
-                    put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
-                    put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
-                    put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
-                    put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                    put("playersBansBySteamId", player.getPlayerBans().size());
+                    put("playersMessagesBySteamId", player.getPlayerMessages().size());
+                    put("playersNotesBySteamId", player.getPlayerNotes().size());
+                    put("playersKicksBySteamId", player.getPlayerKicks().size());
                 }};
             }
             HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
@@ -127,7 +124,7 @@ public class AdminController extends BaseSecureController {
             HttpServletResponse response,
             @RequestParam String adminSteamId,
             @RequestParam String playerSteamId,
-            @RequestParam String action,
+            @RequestParam List<String> actions,
             @RequestParam long dateFrom,
             @RequestParam long dateTo,
             @RequestParam int page,
@@ -136,23 +133,23 @@ public class AdminController extends BaseSecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByContainsInNameAndSteamId(adminSteamId, playerSteamId, action, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByParams(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
 
         resultPage.getContent().forEach(adminActionLogEntity -> {
             HashMap<String, Object> playerByAdminId = null;
-            PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
+            PlayerEntity player = adminActionLogEntity.getPlayer();
             if (player != null) {
                 playerByAdminId = new HashMap<>() {{
                     put("steamId", player.getSteamId());
                     put("name", player.getName());
                     put("createTime", player.getCreateTime());
-                    put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
-                    put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
-                    put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
-                    put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                    put("playersBansBySteamId", player.getPlayerBans().size());
+                    put("playersMessagesBySteamId", player.getPlayerMessages().size());
+                    put("playersNotesBySteamId", player.getPlayerNotes().size());
+                    put("playersKicksBySteamId", player.getPlayerKicks().size());
                 }};
             }
             HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
@@ -182,16 +179,16 @@ public class AdminController extends BaseSecureController {
 
         resultPage.getContent().forEach(adminActionLogEntity -> {
             HashMap<String, Object> playerByAdminId = null;
-            PlayerEntity player = adminActionLogEntity.getPlayerByAdminId();
+            PlayerEntity player = adminActionLogEntity.getPlayer();
             if (player != null) {
                 playerByAdminId = new HashMap<>() {{
                     put("steamId", player.getSteamId());
                     put("name", player.getName());
                     put("createTime", player.getCreateTime());
-                    put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
-                    put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
-                    put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
-                    put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+                    put("playersBansBySteamId", player.getPlayerBans().size());
+                    put("playersMessagesBySteamId", player.getPlayerMessages().size());
+                    put("playersNotesBySteamId", player.getPlayerNotes().size());
+                    put("playersKicksBySteamId", player.getPlayerKicks().size());
                 }};
             }
             HashMap<String, Object> finalPlayerByAdminId = playerByAdminId;
@@ -200,7 +197,7 @@ public class AdminController extends BaseSecureController {
                 put("action", adminActionLogEntity.getAction());
                 put("reason", adminActionLogEntity.getReason());
                 put("createTime", adminActionLogEntity.getCreateTime());
-                put("adminsByAdminId", adminActionLogEntity.getAdminsByAdminId().getName());
+                put("adminsByAdminId", adminActionLogEntity.getAdmin().getName());
                 put("playerByAdminId", finalPlayerByAdminId);
             }};
             contentList.add(contentMap);

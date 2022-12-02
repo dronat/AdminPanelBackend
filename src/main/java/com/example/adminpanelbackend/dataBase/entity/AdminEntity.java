@@ -1,7 +1,6 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.LazyCollection;
@@ -59,7 +58,7 @@ public class AdminEntity implements Serializable {
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "adminsByAdminId")
+    @OneToMany(mappedBy = "admin")
     private Collection<AdminActionLogEntity> adminsActionLogsById;
 
     /*@OneToOne(mappedBy = "primary_id", , fetch = FetchType.EAGER)

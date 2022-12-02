@@ -1,7 +1,5 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -44,28 +42,28 @@ public class PlayerBanEntity implements Serializable {
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId", nullable = false)
-    private PlayerEntity playersBySteamId;
+    private PlayerEntity player;
 
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "adminSteamId", referencedColumnName = "steamId", nullable = false)
-    private AdminEntity adminsBySteamId;
+    private AdminEntity admin;
 
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "unbannedAdminId", referencedColumnName = "steamId", nullable = true)
-    private AdminEntity unbannedAdminBySteamId;
+    private AdminEntity unbannedAdmin;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PlayerBanEntity that = (PlayerBanEntity) o;
-        return Objects.equals(adminsBySteamId, that.adminsBySteamId) && Objects.equals(id, that.id) && Objects.equals(reason, that.reason) && Objects.equals(expirationTime, that.expirationTime) && Objects.equals(creationTime, that.creationTime);
+        return Objects.equals(admin, that.admin) && Objects.equals(id, that.id) && Objects.equals(reason, that.reason) && Objects.equals(expirationTime, that.expirationTime) && Objects.equals(creationTime, that.creationTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, adminsBySteamId, reason, expirationTime, creationTime);
+        return Objects.hash(id, admin, reason, expirationTime, creationTime);
     }
 }

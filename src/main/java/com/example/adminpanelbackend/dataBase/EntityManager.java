@@ -9,9 +9,6 @@ import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,8 +90,8 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m New admin action: admin '{}' made '{}' \u001B[0m", admin.getName(), action);
         persist(
                 new AdminActionLogEntity()
-                        .setAdminsByAdminId(admin)
-                        .setPlayerByAdminId(player)
+                        .setAdmin(admin)
+                        .setPlayer(player)
                         .setAction(action)
                         .setReason(reason)
                         .setCreateTime(new Timestamp(System.currentTimeMillis()))
@@ -169,8 +166,8 @@ public class EntityManager extends JpaManager implements JpaConnection {
         PlayerEntity player = getPlayerBySteamId(playerSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         PlayerBanEntity ban = new PlayerBanEntity()
-                .setPlayersBySteamId(player)
-                .setAdminsBySteamId(admin)
+                .setPlayer(player)
+                .setAdmin(admin)
                 .setReason(reason)
                 .setIsUnbannedManually(false)
                 .setExpirationTime(expireTime)
@@ -189,12 +186,12 @@ public class EntityManager extends JpaManager implements JpaConnection {
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         update(
                 ban.setIsUnbannedManually(true)
-                        .setUnbannedAdminBySteamId(admin)
+                        .setUnbannedAdmin(admin)
                         .setUnbannedTime(new Timestamp(System.currentTimeMillis()))
         );
         update(admin);
-        update(ban.getPlayersBySteamId());
-        addAdminActionInLog(admin.getSteamId(), ban.getPlayersBySteamId().getSteamId(), "Unban", null);
+        update(ban.getPlayer());
+        addAdminActionInLog(admin.getSteamId(), ban.getPlayer().getSteamId(), "Unban", null);
     }
 
     public synchronized List<PlayerBanEntity> getActiveBans() {
@@ -213,8 +210,8 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m New player note: player '{}' note: '{}' \u001B[0m", player.getName(), note);
         persist(
                 new PlayerNoteEntity()
-                        .setPlayersBySteamId(player)
-                        .setAdminsBySteamId(admin)
+                        .setPlayer(player)
+                        .setAdmin(admin)
                         .setNote(note)
                         .setCreationTime(new Timestamp(System.currentTimeMillis()))
         );
@@ -256,7 +253,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public synchronized void deletePlayerNote(int noteId) {
         PlayerNoteEntity playerNote = em.find(PlayerNoteEntity.class, noteId);
-        PlayerEntity player = playerNote.getPlayersBySteamId();
+        PlayerEntity player = playerNote.getPlayer();
         LOGGER.info("\u001B[46m \u001B[30m Deleted player note: player '{}' note: '{}' \u001B[0m", player.getName(), playerNote.getNote());
         remove(playerNote);
         refresh(player);
@@ -271,7 +268,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m New player message - player: '{}' chatType: '{}' message: '{}' \u001B[0m", player.getName(), chatType, message);
         persist(
                 new PlayerMessageEntity()
-                        .setPlayersBySteamId(player)
+                        .setPlayer(player)
                         .setChatType(chatType)
                         .setMessage(message)
                         .setCreationTime(new Timestamp(System.currentTimeMillis()))
@@ -299,8 +296,8 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m Player '{}' kicked by '{}' by reason '{}' \u001B[0m", player.getName(), admin.getName(), reason);
         persist(
                 new PlayerKickEntity()
-                        .setPlayersBySteamId(player)
-                        .setAdminsBySteamId(admin)
+                        .setPlayer(player)
+                        .setAdmin(admin)
                         .setReason(reason)
                         .setCreationTime(new Timestamp(System.currentTimeMillis()))
         );

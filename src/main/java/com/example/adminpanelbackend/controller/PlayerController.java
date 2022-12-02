@@ -3,9 +3,6 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.model.SteamUserModel;
-import com.woop.Squad4J.event.rcon.ChatMessageEvent;
-import com.woop.Squad4J.model.DisconnectedPlayer;
-import com.woop.Squad4J.model.OnlineInfo;
 import com.woop.Squad4J.model.OnlinePlayer;
 import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.SquadServer;
@@ -52,7 +49,7 @@ public class PlayerController extends BaseSecureController {
                     put("isAdmin", SquadServer.getAdmins().contains(steamId));
                     put("avatarFull", steamUser.getAvatarfull());
                     put("numOfActiveBans", player
-                            .getPlayersBansBySteamId()
+                            .getPlayerBans()
                             .stream()
                             .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
                             .count()
@@ -182,10 +179,10 @@ public class PlayerController extends BaseSecureController {
             put("steamId", player.getSteamId());
             put("name", player.getName());
             put("createTime", player.getCreateTime());
-            put("playersBansBySteamId", player.getPlayersBansBySteamId().size());
-            put("playersMessagesBySteamId", player.getPlayersMessagesBySteamId().size());
-            put("playersNotesBySteamId", player.getPlayersNotesBySteamId().size());
-            put("playersKicksBySteamId", player.getPlayersKicksBySteamId().size());
+            put("playersBansBySteamId", player.getPlayerBans().size());
+            put("playersMessagesBySteamId", player.getPlayerMessages().size());
+            put("playersNotesBySteamId", player.getPlayerNotes().size());
+            put("playersKicksBySteamId", player.getPlayerKicks().size());
         }}));
         map.put("content", contentList);
         return ResponseEntity.ok(map);
@@ -208,7 +205,7 @@ public class PlayerController extends BaseSecureController {
             put("isAdmin", SquadServer.getAdmins().contains(steamId));
             put("avatarFull", SteamService.getSteamUserInfo(steamId).getAvatarfull());
             put("numOfActiveBans", player
-                    .getPlayersBansBySteamId()
+                    .getPlayerBans()
                     .stream()
                     .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
                     .count()
@@ -233,8 +230,8 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(404).build();
         }
         return ResponseEntity.ok(new HashMap<>() {{
-            put("bans", player.getPlayersBansBySteamId());
-            put("kicks", player.getPlayersKicksBySteamId());
+            put("bans", player.getPlayerBans());
+            put("kicks", player.getPlayerKicks());
         }});
     }
 
@@ -245,13 +242,13 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
 
-        Page<PlayerBanEntity> resultPage = playerBanService.findAllByPlayersBySteamId(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<PlayerBanEntity> resultPage = playerBanService.findAllByPlayer(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<LinkedHashMap<String, Object>> contentList = new ArrayList<>();
 
         resultPage.getContent().forEach(ban -> {
-                    AdminEntity admin = ban.getAdminsBySteamId();
+                    AdminEntity admin = ban.getAdmin();
                     contentList.add(
                             new LinkedHashMap<>() {{
                                 put("id", ban.getId());
@@ -264,8 +261,8 @@ public class PlayerController extends BaseSecureController {
                                 put("unbannedManualBy",
                                         ban.getIsUnbannedManually() ?
                                                 new HashMap<>() {{
-                                                    put("adminName", ban.getUnbannedAdminBySteamId().getName());
-                                                    put("steamId", ban.getUnbannedAdminBySteamId().getSteamId().toString());
+                                                    put("adminName", ban.getUnbannedAdmin().getName());
+                                                    put("steamId", ban.getUnbannedAdmin().getSteamId().toString());
                                                 }}
                                                 : null
                                 );
@@ -297,20 +294,20 @@ public class PlayerController extends BaseSecureController {
                 new LinkedHashMap<>() {{
                     put("id", ban.getId());
                     put("bannedPlayer", new HashMap<>() {{
-                        put("playerName", ban.getPlayersBySteamId().getName());
-                        put("steamId", ban.getPlayersBySteamId().getSteamId().toString());
+                        put("playerName", ban.getPlayer().getName());
+                        put("steamId", ban.getPlayer().getSteamId().toString());
                     }});
                     put("bannedBy", new HashMap<>() {{
-                        put("adminName", ban.getAdminsBySteamId().getName());
-                        put("steamId", ban.getAdminsBySteamId().getSteamId().toString());
+                        put("adminName", ban.getAdmin().getName());
+                        put("steamId", ban.getAdmin().getSteamId().toString());
                     }});
                     put("reason", ban.getReason());
                     put("isUnbannedManual", ban.getIsUnbannedManually());
                     put("unbannedManualBy",
                             ban.getIsUnbannedManually() ?
                                     new HashMap<>() {{
-                                        put("adminName", ban.getUnbannedAdminBySteamId().getName());
-                                        put("steamId", ban.getUnbannedAdminBySteamId().getSteamId().toString());
+                                        put("adminName", ban.getUnbannedAdmin().getName());
+                                        put("steamId", ban.getUnbannedAdmin().getSteamId().toString());
                                     }}
                                     : null
                     );
@@ -330,13 +327,13 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
 
-        Page<PlayerKickEntity> resultPage = playerKickService.findAllByPlayersBySteamId(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<PlayerKickEntity> resultPage = playerKickService.findAllByPlayer(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<LinkedHashMap<String, Object>> contentList = new ArrayList<>();
 
         resultPage.getContent().forEach(kick -> {
-                    AdminEntity admin = kick.getAdminsBySteamId();
+                    AdminEntity admin = kick.getAdmin();
                     contentList.add(
                             new LinkedHashMap<>() {{
                                 put("id", kick.getId());
@@ -360,13 +357,13 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
 
-        Page<PlayerNoteEntity> resultPage = playerNoteService.findAllByPlayersBySteamId(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<PlayerNoteEntity> resultPage = playerNoteService.findAllByPlayer(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
 
         resultPage.getContent().forEach(playerMessageEntity -> {
-            AdminEntity admin = playerMessageEntity.getAdminsBySteamId();
+            AdminEntity admin = playerMessageEntity.getAdmin();
             HashMap<String, Object> contentMap = new HashMap<>() {{
                 put("id", playerMessageEntity.getId());
                 put("adminName", admin.getName());
@@ -387,7 +384,7 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
 
-        Page<PlayerMessageEntity> resultPage = playerMessageService.findAllByPlayersBySteamId(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<PlayerMessageEntity> resultPage = playerMessageService.findAllByPlayer(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
@@ -417,7 +414,7 @@ public class PlayerController extends BaseSecureController {
         List<HashMap<String, Object>> contentList = new ArrayList<>();
 
         resultPage.getContent().forEach(playerMessageEntity -> {
-            PlayerEntity player = playerMessageEntity.getPlayersBySteamId();
+            PlayerEntity player = playerMessageEntity.getPlayer();
             HashMap<String, Object> contentMap = new HashMap<>() {{
                 put("id", playerMessageEntity.getId());
                 put("playerName", player.getName());

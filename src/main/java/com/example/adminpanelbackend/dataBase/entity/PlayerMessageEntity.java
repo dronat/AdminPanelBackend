@@ -1,6 +1,5 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -35,7 +34,7 @@ public class PlayerMessageEntity implements Serializable {
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId", nullable = false)
-    private PlayerEntity playersBySteamId;
+    private PlayerEntity player;
 
     @Override
     public boolean equals(Object o) {

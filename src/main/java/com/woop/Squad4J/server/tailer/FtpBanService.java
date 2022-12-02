@@ -11,10 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.SocketException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,11 +42,11 @@ public class FtpBanService implements Runnable{
                 StringBuilder stringToWrite = new StringBuilder();
                 entityManager.getActiveBans().forEach(playerBanEntity ->
                         stringToWrite//\CoRe/ DolbaDigitale [SteamID 76561198054690038] Banned:76561199037059865:1649616436 //sl osk
-                                .append(playerBanEntity.getAdminsBySteamId().getName())
+                                .append(playerBanEntity.getAdmin().getName())
                                 .append(" [SteamID ")
-                                .append(playerBanEntity.getAdminsBySteamId().getSteamId())
+                                .append(playerBanEntity.getAdmin().getSteamId())
                                 .append("] Banned:")
-                                .append(playerBanEntity.getPlayersBySteamId().getSteamId())
+                                .append(playerBanEntity.getPlayer().getSteamId())
                                 .append(":0 //")
                                 .append(playerBanEntity.getReason())
                                 .append("\n")

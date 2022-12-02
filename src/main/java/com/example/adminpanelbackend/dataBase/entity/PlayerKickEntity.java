@@ -1,6 +1,5 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -31,23 +30,23 @@ public class PlayerKickEntity implements Serializable {
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId", nullable = false)
-    private PlayerEntity playersBySteamId;
+    private PlayerEntity player;
 
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "adminSteamId", referencedColumnName = "steamId", nullable = false)
-    private AdminEntity adminsBySteamId;
+    private AdminEntity admin;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PlayerKickEntity that = (PlayerKickEntity) o;
-        return Objects.equals(adminsBySteamId, that.adminsBySteamId)  && Objects.equals(id, that.id)  && Objects.equals(reason, that.reason) && Objects.equals(creationTime, that.creationTime);
+        return Objects.equals(admin, that.admin)  && Objects.equals(id, that.id)  && Objects.equals(reason, that.reason) && Objects.equals(creationTime, that.creationTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, adminsBySteamId, reason, creationTime);
+        return Objects.hash(id, admin, reason, creationTime);
     }
 }
