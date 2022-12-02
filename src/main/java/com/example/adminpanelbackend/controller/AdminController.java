@@ -3,16 +3,21 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
+import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
 import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlineInfo;
+import com.woop.Squad4J.server.RconUpdater;
 import com.woop.Squad4J.server.SquadServer;
+import com.woop.Squad4J.server.tailer.FtpBanService;
+import com.woop.Squad4J.server.tailer.FtpLogTailer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.web.bind.annotation.*;
@@ -202,5 +207,31 @@ public class AdminController extends BaseSecureController {
         });
         map.put("content", contentList);
         return ResponseEntity.ok(map);
+    }
+
+    @GetMapping(path = "/auth")
+    public ResponseEntity<Void> auth(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        return entityManager.getAdminBySteamID(userInfo.getSteamId()) == null ? ResponseEntity.ok(null) : ResponseEntity.status(401).build();
+    }
+
+    @GetMapping(path = "/user-logout")
+    public ResponseEntity<Void> userLogout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        httpSession.removeAttribute("userInfo");
+        httpSession.removeAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME);
+        httpSession.invalidate();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/get-backend-status")
+    public ResponseEntity<HashMap<String, Object>> getBackendStatus(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
+        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(new HashMap<>() {{
+            put("RconUpdater", RconUpdater.lastSuccessfullyWork);
+            put("QueryUpdater", Query.lastSuccessfullyWork);
+            put("FtpLogTailer", FtpLogTailer.lastSuccessfullyWork);
+            put("FtpBanService", FtpBanService.lastSuccessfullyWork);
+        }});
     }
 }
