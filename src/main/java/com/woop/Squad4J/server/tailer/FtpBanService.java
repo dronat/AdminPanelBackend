@@ -6,12 +6,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
-import org.apache.commons.net.ntp.TimeStamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.SocketException;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
@@ -30,7 +31,7 @@ public class FtpBanService implements Runnable{
     private final String FILE_NAME = "Bans_test.cfg";
     private final long DELAY_IN_MILLIS = 60000;
     private volatile boolean run;
-    public static TimeStamp lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
 
     @Override
     public void run() {
@@ -54,7 +55,7 @@ public class FtpBanService implements Runnable{
                 );
                 rewriteFile(ftpClient, stringToWrite.toString());
                 LOGGER.info("FTP bans file updated");
-                lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
+                lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
                 Thread.sleep(DELAY_IN_MILLIS);
             } catch (Exception e) {
                 LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);

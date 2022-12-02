@@ -432,7 +432,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
-    @PostMapping(path = "/get-messages")
+    /*@PostMapping(path = "/get-messages")
     public ResponseEntity<HashMap<String, Object>> getMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
@@ -457,5 +457,5 @@ public class PlayerController extends BaseSecureController {
         });
         map.put("content", contentList);
         return ResponseEntity.ok(map);
-    }
+    }*/
 }

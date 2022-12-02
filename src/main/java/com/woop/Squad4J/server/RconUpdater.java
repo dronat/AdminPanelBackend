@@ -11,10 +11,10 @@ import com.woop.Squad4J.model.OnlinePlayer;
 import com.woop.Squad4J.model.Squad;
 import com.woop.Squad4J.model.Team;
 import com.woop.Squad4J.rcon.Rcon;
-import org.apache.commons.net.ntp.TimeStamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +39,7 @@ public class RconUpdater {
     private static final Pattern squadPattern = Pattern.compile("ID: ([0-9]+) \\| Name: (.+) \\| Size: ([0-9]+) \\| Locked: (True|False) \\| Creator Name: (.+) \\| Creator Steam ID: ([0-9]{17})");
     private static final Pattern currentLayerPattern = Pattern.compile("Current level is (.+), layer is (.+)");
     private static final Pattern nextLayerPattern = Pattern.compile("Next level is (.+), layer is (.+)");
-    public static TimeStamp lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
 
     private RconUpdater(){
         throw new IllegalStateException("This class cannot be instantiated.");
@@ -59,7 +59,7 @@ public class RconUpdater {
      */
     public static void updateRcon() {
         if (updateSquadList() && updateLayerInfo() && updatePlayerList()) {
-            lastSuccessfullyWork = new TimeStamp(System.currentTimeMillis());
+            lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
         }
         //LOGGER.info("Rcon updated");
     }
