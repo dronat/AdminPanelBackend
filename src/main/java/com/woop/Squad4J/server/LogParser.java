@@ -100,6 +100,9 @@ public class LogParser {
                             ));
                             break;
                         case NEW_GAME:
+                            if (matcher.group(5).equalsIgnoreCase("TransitionMap")) {
+                                break;
+                            }
                             event.set(new NewGameEvent(
                                     formatter.parse(matcher.group(1)),
                                     type,
