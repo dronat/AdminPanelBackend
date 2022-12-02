@@ -33,12 +33,12 @@ public class AdminActionLogEntity implements Serializable {
 
     @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "adminSteamId", referencedColumnName = "steamId", nullable = false)
+    @JoinColumn(name = "admin", referencedColumnName = "steamId", nullable = false)
     private AdminEntity admin;
 
     @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId")
+    @JoinColumn(name = "player", referencedColumnName = "steamId")
     private PlayerEntity player;
 
     @Override

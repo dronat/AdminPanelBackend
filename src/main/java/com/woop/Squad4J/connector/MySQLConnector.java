@@ -121,8 +121,8 @@ public class MySQLConnector extends Connector {
             createDbLogRevives();
         }*/
         try {
-            statement.executeQuery("SELECT COUNT(*) FROM Spring_Session");
-            statement.executeQuery("SELECT COUNT(*) FROM spring_session_attributes");
+            statement.executeQuery("SELECT COUNT(*) FROM SPRING_SESSION");
+            statement.executeQuery("SELECT COUNT(*) FROM SPRING_SESSION_ATTRIBUTES");
         } catch (SQLException e) {
             createSpringSessions();
         }
@@ -322,7 +322,7 @@ public class MySQLConnector extends Connector {
 
     private static void createAdmin() throws SQLException {
         LOGGER.info("Creating table Admins");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS Admins(" +
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS admins(" +
                 "steamId BIGINT NOT NULL PRIMARY KEY," +
                 "name VARCHAR(16) NOT NULL," +
                 "steamSign VARCHAR(32) null," +
@@ -334,25 +334,25 @@ public class MySQLConnector extends Connector {
                 "createTime DATETIME DEFAULT NOW() NOT NULL," +
                 "modifiedTime DATETIME DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP NOT NULL," +
                 "CONSTRAINT steam_id_UNIQUE UNIQUE (steamId)," +
-                "CONSTRAINT adminSessionId FOREIGN KEY (session) REFERENCES spring_session (PRIMARY_ID));");
+                "CONSTRAINT adminSessionId FOREIGN KEY (session) REFERENCES SPRING_SESSION (PRIMARY_ID));");
     }
 
     public static void createAdminActionLog() throws SQLException {
         LOGGER.info("Creating table Admin_Action_Log");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS Admins_Action_Log (" +
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS admins_action_log (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                "adminSteamId BIGINT NOT NULL, " +
-                "playerSteamId BIGINT NULL," +
+                "admin BIGINT NOT NULL, " +
+                "player BIGINT NULL," +
                 "action VARCHAR(100) NOT NULL, " +
                 "reason VARCHAR(255) NULL, " +
                 "createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
-                "CONSTRAINT logAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId)," +
-                "CONSTRAINT logPlayerId FOREIGN KEY (playerSteamId) REFERENCES players (steamId));");
+                "CONSTRAINT logAdminId FOREIGN KEY (admin) REFERENCES admins (steamId)," +
+                "CONSTRAINT logPlayerId FOREIGN KEY (player) REFERENCES players (steamId));");
     }
 
     private static void createPlayers() throws SQLException {
         LOGGER.info("Creating table Players");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS Players (" +
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS players (" +
                 "steamId BIGINT PRIMARY KEY," +
                 "name VARCHAR(255)," +
                 "onControl BOOL DEFAULT FALSE NOT NULL," +
@@ -363,52 +363,52 @@ public class MySQLConnector extends Connector {
         LOGGER.info("Creating table Players_Bans");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_bans (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "playerSteamId BIGINT NOT NULL," +
-                "adminSteamId BIGINT NOT NULL," +
+                "player BIGINT NOT NULL," +
+                "admin BIGINT NOT NULL," +
                 "reason VARCHAR(255) NULL," +
                 "isUnbannedManually BOOL DEFAULT false NOT NULL, " +
-                "unbannedAdminId BIGINT NULL," +
+                "unbannedAdmin BIGINT NULL," +
                 "unbannedTime DATETIME NULL," +
                 "expirationTime DATETIME NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
-                "CONSTRAINT bansSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
-                "CONSTRAINT bansAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId)," +
-                "CONSTRAINT unbanAdminId FOREIGN KEY (unbannedAdminId) REFERENCES admins(steamId));");
+                "CONSTRAINT bansSteamId FOREIGN KEY (player) REFERENCES players (steamId)," +
+                "CONSTRAINT bansAdminId FOREIGN KEY (admin) REFERENCES admins (steamId)," +
+                "CONSTRAINT unbanAdminId FOREIGN KEY (unbannedAdmin) REFERENCES admins(steamId));");
     }
 
     private static void createPlayersNotes() throws SQLException {
         LOGGER.info("Creating table Players_Notes");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_notes (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "playerSteamId BIGINT NOT NULL," +
-                "adminSteamId BIGINT NOT NULL," +
+                "player BIGINT NOT NULL," +
+                "admin BIGINT NOT NULL," +
                 "note VARCHAR(255) NOT NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
-                "CONSTRAINT notesSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
-                "CONSTRAINT notesAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
+                "CONSTRAINT notesSteamId FOREIGN KEY (player) REFERENCES players (steamId)," +
+                "CONSTRAINT notesAdminId FOREIGN KEY (admin) REFERENCES admins (steamId));");
     }
 
     private static void createPlayersMessages() throws SQLException {
         LOGGER.info("Creating table Players_Messages");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_messages (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "playerSteamId BIGINT NOT NULL," +
+                "player BIGINT NOT NULL," +
                 "chatType VARCHAR(16) NOT NULL," +
                 "message VARCHAR(255) NOT NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
-                "CONSTRAINT messagesSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId));");
+                "CONSTRAINT messagesSteamId FOREIGN KEY (player) REFERENCES players (steamId));");
     }
 
     private static void createPlayersKicks() throws SQLException {
         LOGGER.info("Creating table Players_Kicks");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_kicks (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
-                "playerSteamId BIGINT NOT NULL," +
-                "adminSteamId BIGINT NOT NULL," +
+                "player BIGINT NOT NULL," +
+                "admin BIGINT NOT NULL," +
                 "reason VARCHAR(255) NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
-                "CONSTRAINT kicksSteamId FOREIGN KEY (playerSteamId) REFERENCES players (steamId)," +
-                "CONSTRAINT kicksAdminId FOREIGN KEY (adminSteamId) REFERENCES admins (steamId));");
+                "CONSTRAINT kicksSteamId FOREIGN KEY (player) REFERENCES players (steamId)," +
+                "CONSTRAINT kicksAdminId FOREIGN KEY (admin) REFERENCES admins (steamId));");
     }
 
     private static void createLayersHistory() throws SQLException {

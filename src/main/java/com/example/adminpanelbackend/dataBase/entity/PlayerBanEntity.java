@@ -41,17 +41,17 @@ public class PlayerBanEntity implements Serializable {
 
     @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId", nullable = false)
+    @JoinColumn(name = "player", referencedColumnName = "steamId", nullable = false)
     private PlayerEntity player;
 
     @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "adminSteamId", referencedColumnName = "steamId", nullable = false)
+    @JoinColumn(name = "admin", referencedColumnName = "steamId", nullable = false)
     private AdminEntity admin;
 
     @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "unbannedAdminId", referencedColumnName = "steamId", nullable = true)
+    @JoinColumn(name = "unbannedAdmin", referencedColumnName = "steamId", nullable = true)
     private AdminEntity unbannedAdmin;
 
     @Override

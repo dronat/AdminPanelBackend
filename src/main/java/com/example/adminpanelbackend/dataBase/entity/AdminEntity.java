@@ -59,7 +59,7 @@ public class AdminEntity implements Serializable {
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "admin")
-    private Collection<AdminActionLogEntity> adminsActionLogsById;
+    private Collection<AdminActionLogEntity> adminActionLogs;
 
     /*@OneToOne(mappedBy = "primary_id", , fetch = FetchType.EAGER)
     private SpringSessionEntity springSessionById;*/

@@ -33,7 +33,7 @@ public class PlayerMessageEntity implements Serializable {
 
     @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "playerSteamId", referencedColumnName = "steamId", nullable = false)
+    @JoinColumn(name = "player", referencedColumnName = "steamId", nullable = false)
     private PlayerEntity player;
 
     @Override
