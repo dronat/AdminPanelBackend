@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface PlayerNoteService extends JpaRepository<PlayerNoteEntity, Integer> {
     @Query(value = "SELECT a FROM PlayerNoteEntity a WHERE a.player.steamId = :playerSteamId")
-    Page<PlayerNoteEntity> findAllByPlayer(long steamId, Pageable pageable);
+    Page<PlayerNoteEntity> findAllByPlayer(long playerSteamId, Pageable pageable);
 
 }

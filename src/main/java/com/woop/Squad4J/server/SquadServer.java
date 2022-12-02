@@ -153,6 +153,11 @@ public class SquadServer {
             RconUpdater.updateRcon();
             RconUpdater.updateLayerInfo();
 
+            while (onlinePlayers == null) {
+                Thread.sleep(1000);
+                LOGGER.warn("Cant init onlinePlayers, trying again");
+                RconUpdater.updateSquadList();
+            }
             getOnlinePlayers().forEach(onlinePlayer -> {
                 if (!entityManager.isPlayerExist(onlinePlayer.getSteamId())) {
                     entityManager.addPlayer(onlinePlayer.getSteamId(), onlinePlayer.getName());
@@ -173,6 +178,8 @@ public class SquadServer {
             RconUpdater.init();
         } catch (JsonPathException jsexp) {
             LOGGER.error("Error reading admin list configuration.", jsexp);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         LOGGER.trace("Parsed {} unique admins", adminSteamIds.size());
