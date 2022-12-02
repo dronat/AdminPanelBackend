@@ -405,8 +405,9 @@ public class RconImpl {
                 return new RconPacket(new Date(), length, requestId, type, payload);
             }
         }
-        catch(BufferUnderflowException | EOFException e) {
+        catch(Exception e) {
             LOGGER.error("Error reading packet", e);
+            reconnect();
         }
         return null;
     }
