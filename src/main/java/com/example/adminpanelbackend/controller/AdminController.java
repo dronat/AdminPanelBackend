@@ -141,6 +141,7 @@ public class AdminController extends BaseSecureController {
         resultPage.getContent().forEach(adminActionLogEntity -> {
             HashMap<String, Object> playerByAdminId = null;
             PlayerEntity player = adminActionLogEntity.getPlayer();
+            AdminEntity admin = adminActionLogEntity.getAdmin();
             if (player != null) {
                 playerByAdminId = new HashMap<>() {{
                     put("steamId", player.getSteamId());
@@ -157,6 +158,8 @@ public class AdminController extends BaseSecureController {
                 put("id", adminActionLogEntity.getId());
                 put("action", adminActionLogEntity.getAction());
                 put("reason", adminActionLogEntity.getReason());
+                put("adminName", admin.getName());
+                put("adminSteamId", admin.getSteamId());
                 put("createTime", adminActionLogEntity.getCreateTime());
                 put("playerByAdminId", finalPlayerByAdminId);
             }};
