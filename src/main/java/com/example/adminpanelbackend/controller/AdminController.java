@@ -122,8 +122,8 @@ public class AdminController extends BaseSecureController {
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam String adminSteamId,
-            @RequestParam String playerSteamId,
+            @RequestParam long adminSteamId,
+            @RequestParam long playerSteamId,
             @RequestParam List<String> actions,
             @RequestParam long dateFrom,
             @RequestParam long dateTo,
@@ -133,7 +133,7 @@ public class AdminController extends BaseSecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByParams(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByParams(String.valueOf(adminSteamId), String.valueOf(playerSteamId), actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
