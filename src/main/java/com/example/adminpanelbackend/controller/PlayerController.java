@@ -418,7 +418,7 @@ public class PlayerController extends BaseSecureController {
             HashMap<String, Object> contentMap = new HashMap<>() {{
                 put("id", playerMessageEntity.getId());
                 put("playerName", player.getName());
-                put("playerSteamId", player.getSteamId());
+                put("playerSteamId", player.getSteamId().toString());
                 put("chatType", playerMessageEntity.getChatType());
                 put("message", playerMessageEntity.getMessage());
                 put("createTime", playerMessageEntity.getCreationTime());
