@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 public interface AdminActionLogsService extends JpaRepository<AdminActionLogEntity, Integer> {
+    @Query(value = "SELECT a FROM AdminActionLogEntity a WHERE a.admin.steamId = :adminSteamId")
     Page<AdminActionLogEntity> findAllByAdmin(long adminSteamId, Pageable pageable);
 
     @Query(value = "SELECT a FROM AdminActionLogEntity a WHERE CAST(a.admin.steamId as string) LIKE %:adminSteamId% " +

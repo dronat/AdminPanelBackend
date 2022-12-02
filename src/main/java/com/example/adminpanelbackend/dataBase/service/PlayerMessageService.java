@@ -12,6 +12,7 @@ public interface PlayerMessageService extends JpaRepository<PlayerMessageEntity,
             "OR a.message LIKE %:text%")
     Page<PlayerMessageEntity> findAllByContainsInNameAndSteamId(String text, Pageable pageable);
 
+    @Query(value = "SELECT a FROM PlayerMessageEntity a WHERE a.player.steamId = :playerSteamId")
     Page<PlayerMessageEntity> findAllByPlayer(long steamId, Pageable pageable);
 
 }

@@ -16,7 +16,7 @@ public interface PlayerBanService extends JpaRepository<PlayerBanEntity, Integer
     @NotNull
     Page<PlayerBanEntity> findAll(@NotNull Pageable pageable);
 
-    @NotNull
+    @Query(value = "SELECT a FROM PlayerBanEntity a WHERE a.player.steamId = :playerSteamId")
     Page<PlayerBanEntity> findAllByPlayer(long playerSteamId, @NotNull Pageable pageable);
 
 }
