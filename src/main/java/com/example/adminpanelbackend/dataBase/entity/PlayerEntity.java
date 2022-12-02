@@ -10,6 +10,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -36,33 +37,33 @@ public class PlayerEntity implements Serializable {
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "player")
-    private Collection<PlayerBanEntity> playerBans;
+    private List<PlayerBanEntity> playerBans;
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "player")
-    private Collection<PlayerMessageEntity> playerMessages;
+    private List<PlayerMessageEntity> playerMessages;
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "player")
-    private Collection<PlayerNoteEntity> playerNotes;
+    private List<PlayerNoteEntity> playerNotes;
 
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "player")
-    private Collection<PlayerKickEntity> playerKicks;
+    private List<PlayerKickEntity> playerKicks;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PlayerEntity that = (PlayerEntity) o;
-        return Objects.equals(steamId, that.steamId) && Objects.equals(name, that.name) && Objects.equals(createTime, that.createTime);
+        return Objects.equals(steamId, that.steamId) && Objects.equals(name, that.name) && Objects.equals(onControl, that.onControl) && Objects.equals(createTime, that.createTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(steamId, name, createTime);
+        return Objects.hash(steamId, name, onControl, createTime);
     }
 }

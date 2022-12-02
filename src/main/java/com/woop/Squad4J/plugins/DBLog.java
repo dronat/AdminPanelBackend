@@ -14,18 +14,18 @@ import java.util.Date;
 import java.util.Map;
 
 @NoArgsConstructor
-public class DBLog implements A2SUpdatedListener, NewGameListener, PlayerDiedListener, PlayerRevivedListener,
-        PlayerWoundedListener, RoundWinnerListener, ServerTickRateListener, SteamidConnectedListener {
+public class DBLog /*implements A2SUpdatedListener, NewGameListener, PlayerDiedListener, PlayerRevivedListener,
+        PlayerWoundedListener, RoundWinnerListener, ServerTickRateListener, SteamidConnectedListener*/ {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DBLog.class);
     //EntityManager entityManager = new EntityManager();
 
-    @Override
+    /*@Override
     public void onA2SUpdated(A2SUpdatedEvent a2SUpdatedEvent) {
         //TODO: Remove try-catch after debugging
         try{
-            /*A2SInfoResponse info = a2SUpdatedEvent.getResponse().getInfo();
-            A2SRulesResponse rules = a2SUpdatedEvent.getResponse().getRules();*/
+            *//*A2SInfoResponse info = a2SUpdatedEvent.getResponse().getInfo();
+            A2SRulesResponse rules = a2SUpdatedEvent.getResponse().getRules();*//*
             SourceServer info = a2SUpdatedEvent.getResponse().getInfo().getResult();
             Map<String, String> rules = a2SUpdatedEvent.getResponse().getRules().getResult();
 
@@ -94,5 +94,5 @@ public class DBLog implements A2SUpdatedListener, NewGameListener, PlayerDiedLis
     @Override
     public void onSteamIdConnected(SteamIdConnectedEvent steamidConnectedEvent) {
         //TODO: Implement
-    }
+    }*/
 }

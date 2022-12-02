@@ -211,27 +211,16 @@ public class AdminController extends BaseSecureController {
 
     @GetMapping(path = "/auth")
     public ResponseEntity<Void> auth(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return entityManager.getAdminBySteamID(userInfo.getSteamId()) == null ? ResponseEntity.ok(null) : ResponseEntity.status(401).build();
     }
 
     @GetMapping(path = "/user-logout")
     public ResponseEntity<Void> userLogout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         httpSession.removeAttribute("userInfo");
         httpSession.removeAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME);
         httpSession.invalidate();
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping(path = "/get-backend-status")
-    public ResponseEntity<HashMap<String, Object>> getBackendStatus(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(new HashMap<>() {{
-            put("RconUpdater", RconUpdater.lastSuccessfullyWork);
-            put("QueryUpdater", Query.lastSuccessfullyWork);
-            put("FtpLogTailer", FtpLogTailer.lastSuccessfullyWork);
-            put("FtpBanService", FtpBanService.lastSuccessfullyWork);
-        }});
     }
 }

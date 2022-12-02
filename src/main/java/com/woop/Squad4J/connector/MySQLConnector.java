@@ -166,6 +166,16 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             createLayersHistory();
         }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM rule_groups");
+        } catch (SQLException e) {
+            createRuleGroups();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM rules");
+        } catch (SQLException e) {
+            createRules();
+        }
     }
 
     /*private static void createDbLogServers() throws SQLException {
@@ -419,6 +429,24 @@ public class MySQLConnector extends Connector {
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)");
     }
 
+    private static void createRuleGroups() throws SQLException {
+        LOGGER.info("Creating table rule_groups");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS rule_groups (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "position INT NOT NULL, " +
+                "name VARCHAR(1000) NOT NULL)");
+    }
+
+    private static void createRules() throws SQLException {
+        LOGGER.info("Creating table rule");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS rules (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "position INT NOT NULL, " +
+                "name VARCHAR(1000) NOT NULL, " +
+                "ruleGroup int NOT NULL, " +
+                "CONSTRAINT rulesGroupId FOREIGN KEY (ruleGroup) REFERENCES rule_groups (id) ON DELETE CASCADE);");
+    }
+
     public static void createSpringSessions() throws SQLException {
         LOGGER.info("Creating table Spring_session and spring_session_attributes");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS SPRING_SESSION ( " +
@@ -459,7 +487,7 @@ public class MySQLConnector extends Connector {
         }
     }*/
 
-    public static Integer getCurrentMatchId() {
+    /*public static Integer getCurrentMatchId() {
         try {
             String query = String.format("SELECT `id`, `layer` FROM DBLog_Matches WHERE `server` = %s AND `endTime` IS NULL ORDER BY `id` DESC LIMIT 1;", serverID);
             if (statement == null) {
@@ -582,5 +610,5 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             LOGGER.error("SQL exception while check admin by steamID.", e);
         }
-    }
+    }*/
 }

@@ -12,5 +12,7 @@
         <class>com.example.adminpanelbackend.dataBase.entity.PlayerMessageEntity</class>
         <class>com.example.adminpanelbackend.dataBase.entity.PlayerNoteEntity</class>
         <class>com.example.adminpanelbackend.dataBase.entity.LayerHistoryEntity</class>
+        <class>com.example.adminpanelbackend.dataBase.entity.RuleGroupEntity</class>
+        <class>com.example.adminpanelbackend.dataBase.entity.RuleEntity</class>
     </persistence-unit>
 </persistence>

@@ -36,27 +36,27 @@ public class SquadServerController extends BaseSecureController {
 
     @GetMapping(path = "/get-online-players")
     public ResponseEntity<OnlineInfo> getOnline(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getOnlineTeamsWithSquadsAndPlayers());
     }
 
 
     @GetMapping(path = "/get-chat-messages")
     public ResponseEntity<Collection<ChatMessageEvent>> getChatMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getChatMessages());
     }
 
 
     @GetMapping(path = "/get-disconnected-players")
     public ResponseEntity<Collection<DisconnectedPlayer>> getDisconnectedPlayers(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getDisconnectedPlayers());
     }
 
     @GetMapping(path = "/get-server-info")
     public ResponseEntity<HashMap<String, Object>> getServerInfo(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
-        LOGGER.debug("Received secured GET request on '{}' with userInfo in cookie '{}'", request.getRequestURL(), userInfo);
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getServerInfo());
     }
 

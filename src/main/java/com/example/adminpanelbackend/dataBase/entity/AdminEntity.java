@@ -10,6 +10,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -59,7 +60,7 @@ public class AdminEntity implements Serializable {
     @JsonBackReference
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "admin")
-    private Collection<AdminActionLogEntity> adminActionLogs;
+    private List<AdminActionLogEntity> adminActionLogs;
 
     /*@OneToOne(mappedBy = "primary_id", , fetch = FetchType.EAGER)
     private SpringSessionEntity springSessionById;*/
