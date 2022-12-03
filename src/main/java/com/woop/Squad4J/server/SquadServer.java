@@ -44,12 +44,12 @@ public class SquadServer {
 
     private static List<Long> playersOnControl;
     private static List<Long> admins;
+    private static List<Long> adminsInGame;
+    private static Collection<OnlinePlayer> adminsInAdminCam;
     private static Collection<OnlinePlayer> onlinePlayers;
     private static Collection<DisconnectedPlayer> disconnectedPlayers;
     private static Collection<Squad> squads;
     private static Collection<Team> teams;
-    private static List<String> adminSteamIds = new ArrayList<>();
-    private static Collection<OnlinePlayer> adminsInAdminCam;
     private static Collection<ChatMessageEvent> chatMessages = new LinkedList<>();
 
     @Getter
@@ -149,14 +149,12 @@ public class SquadServer {
             //Update A2S and RCON information first so Squad server has attributes for them in memory
             playersOnControl = entityManager.getPlayersOnControl();
             admins = entityManager.getActiveAdminsSteamId();
-            A2SUpdater.updateA2S();
             RconUpdater.updateRcon();
-            RconUpdater.updateLayerInfo();
+            A2SUpdater.updateA2S();
 
-            while (onlinePlayers == null) {
-                Thread.sleep(1000);
-                LOGGER.warn("Cant init onlinePlayers, trying again");
-                RconUpdater.updateSquadList();
+            if (onlinePlayers == null) {
+                LOGGER.error("Cant init onlinePlayers");
+                System.exit(1);
             }
             getOnlinePlayers().forEach(onlinePlayer -> {
                 if (!entityManager.isPlayerExist(onlinePlayer.getSteamId())) {
@@ -178,11 +176,9 @@ public class SquadServer {
             RconUpdater.init();
         } catch (JsonPathException jsexp) {
             LOGGER.error("Error reading admin list configuration.", jsexp);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
 
-        LOGGER.trace("Parsed {} unique admins", adminSteamIds.size());
+        //LOGGER.trace("Parsed {} unique admins", adminSteamIds.size());
 
         initialized = true;
     }
@@ -224,11 +220,12 @@ public class SquadServer {
                 gameVersion = info.getGameVersion();
 
                 if (currentLayer == null || currentMap == null) {
-                    RconUpdater.updateLayerInfo();
+                    LOGGER.error("Can't get current layer from Rcon on init");
+                    System.exit(1);
                 }
 
-                teamOneName = rules.get("TeamOne_s").replace(currentLayer.replace(" ", "_"), "").replace("_","").trim();
-                teamTwoName = rules.get("TeamTwo_s").replace(currentLayer.replace(" ", "_"), "").replace("_","").trim();
+                teamOneName = rules.get("TeamOne_s").replace(currentLayer.replace(" ", "_"), "").replace("_", "").trim();
+                teamTwoName = rules.get("TeamTwo_s").replace(currentLayer.replace(" ", "_"), "").replace("_", "").trim();
 
                 LOGGER.trace("Done updating SquadServer A2S info");
 
@@ -262,6 +259,9 @@ public class SquadServer {
                 LOGGER.trace("Updating SquadServer for PLAYER_DISCONNECTED");
                 PlayerDisconnectedEvent playerDisconnectedEvent = (PlayerDisconnectedEvent) ev;
                 nameSteamIds.inverse().remove(playerDisconnectedEvent.getSteamId());
+                if (admins.contains(playerDisconnectedEvent.getSteamId())) {
+                    adminsInGame.remove(playerDisconnectedEvent.getSteamId());
+                }
                 //TODO: Update admins if player disconnected has steam id in adminSteamIds
                 LOGGER.trace("Done updating SquadServer for PLAYER_DISCONNECTED");
                 break;
@@ -272,8 +272,11 @@ public class SquadServer {
                 LOGGER.trace("Done updating SquadServer for ROUDN_WINNER");
                 break;
             case STEAMID_CONNECTED:
-                Runnable runnable = () -> {
-                    SteamIdConnectedEvent steamidConnectedEvent = (SteamIdConnectedEvent) ev;
+                SteamIdConnectedEvent steamidConnectedEvent = (SteamIdConnectedEvent) ev;
+                if (admins.contains(steamidConnectedEvent.getSteamId())) {
+                    adminsInGame.add(steamidConnectedEvent.getSteamId());
+                }
+                Runnable sceRunnable = () -> {
                     int i = 0;
                     while (i < 20) {
                         try {
@@ -313,12 +316,20 @@ public class SquadServer {
                     }
                     LOGGER.warn("Cant get info from rcon after 10 retrying by player " + steamidConnectedEvent.getSteamId());
                 };
-                new Thread(runnable).start();
+                new Thread(sceRunnable).start();
                 break;
             //Rcon
             case CHAT_MESSAGE:
                 ChatMessageEvent cme = (ChatMessageEvent) ev;
                 chatMessages.add(cme);
+                if (cme.getMessage().toLowerCase().contains("!report")) {
+                    String msg = " Репорт от " + cme.getPlayerName() + ": " + cme.getMessage().toLowerCase().replace("!report", "").trim();;
+                    new Thread(() ->
+                            adminsInGame.forEach(adminSteamId ->
+                                Rcon.command("AdminWarn " + adminSteamId + msg)
+                            )
+                    ).start();
+                }
                 entityManager.addPlayerMessage(cme.getSteamId(), cme.getChatType(), cme.getMessage());
                 LOGGER.trace("'{}' send new message '{}' in chat '{}'", cme.getPlayerName(), cme.getMessage(), cme.getChatType());
                 break;
@@ -390,33 +401,33 @@ public class SquadServer {
 
         getOnlinePlayers().forEach(onlinePlayer -> {
             if (onlinePlayer.getTeamId() != null && !onlineInfo.getTeams().isEmpty()) {
-                    if (onlinePlayer.getSquadID() == null) {
+                if (onlinePlayer.getSquadID() == null) {
+                    onlineInfo
+                            .getTeamById(onlinePlayer.getTeamId())
+                            .addPlayerWithoutSquad(SerializationUtils.clone(onlinePlayer));
+                } else {
+                    if (onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()) == null) {
                         onlineInfo
                                 .getTeamById(onlinePlayer.getTeamId())
-                                .addPlayerWithoutSquad(SerializationUtils.clone(onlinePlayer));
-                    } else {
-                        if (onlineInfo.getTeamById(onlinePlayer.getTeamId()).getSquadById(onlinePlayer.getSquadID()) == null) {
-                            onlineInfo
-                                    .getTeamById(onlinePlayer.getTeamId())
-                                    .addSquad(
-                                            new Squad(
-                                                    onlinePlayer.getTeamId(),
-                                                    onlinePlayer.getSquadID(),
-                                                    null,
-                                                    null,
-                                                    null,
-                                                    null,
-                                                    null)
-                                    );
-                        }
-                        onlineInfo
-                                .getTeamById(onlinePlayer.getTeamId())
-                                .getSquadById(onlinePlayer.getSquadID())
-                                .addPlayer(SerializationUtils.clone(onlinePlayer));
+                                .addSquad(
+                                        new Squad(
+                                                onlinePlayer.getTeamId(),
+                                                onlinePlayer.getSquadID(),
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null)
+                                );
                     }
+                    onlineInfo
+                            .getTeamById(onlinePlayer.getTeamId())
+                            .getSquadById(onlinePlayer.getSquadID())
+                            .addPlayer(SerializationUtils.clone(onlinePlayer));
+                }
             }
         });
-        if (!onlineInfo.getTeams().isEmpty() ) {
+        if (!onlineInfo.getTeams().isEmpty()) {
             //onlineInfo.getTeamById(1).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
             //onlineInfo.getTeamById(2).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
             try {
@@ -429,7 +440,8 @@ public class SquadServer {
                                 .getRole()
                                 .substring(0, onlineInfo.getTeamById(1).getSquads().get(0).getPlayers().get(0).getRole().indexOf("_"))
                 );
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 onlineInfo.getTeamById(2).setTeamNameShort(
                         onlineInfo.getTeamById(2)
@@ -440,7 +452,8 @@ public class SquadServer {
                                 .getRole()
                                 .substring(0, onlineInfo.getTeamById(2).getSquads().get(0).getPlayers().get(0).getRole().indexOf("_"))
                 );
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return onlineInfo;
     }
@@ -492,6 +505,7 @@ public class SquadServer {
     public static Collection<OnlinePlayer> getAdminsInAdminCam() {
         return Collections.unmodifiableCollection(adminsInAdminCam);
     }
+
     public static Collection<ChatMessageEvent> getChatMessages() {
         return Collections.unmodifiableCollection(chatMessages);
     }
@@ -531,6 +545,7 @@ public class SquadServer {
             }
         });
     }
+
     public static Collection<Long> getAdmins() {
         return Collections.unmodifiableCollection(admins);
     }
