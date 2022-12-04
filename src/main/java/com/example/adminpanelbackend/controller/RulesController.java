@@ -4,6 +4,7 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.RuleGroupEntity;
 import com.example.adminpanelbackend.dataBase.service.RuleGroupService;
+import com.example.adminpanelbackend.model.RuleGroupModel;
 import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.server.RconUpdater;
 import com.woop.Squad4J.server.tailer.FtpBanService;
@@ -27,7 +28,7 @@ import java.util.List;
 @CrossOrigin
 public class RulesController extends BaseSecureController{
     private static final Logger LOGGER = LoggerFactory.getLogger(RulesController.class);
-    
+
     @Autowired
     RuleGroupService ruleGroupService;
 
@@ -39,7 +40,7 @@ public class RulesController extends BaseSecureController{
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(ruleGroupService.findAll());
-        
+
     }
 
     @PostMapping(path = "/set-rules")
@@ -48,14 +49,14 @@ public class RulesController extends BaseSecureController{
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestBody LinkedList<RuleGroupEntity> ruleGroups) {
+            @RequestBody RuleGroupModel groupModel) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         System.out.println();
-        ruleGroups.forEach(ruleGroup -> {
+        groupModel.getRoleGroup().forEach(ruleGroup -> {
             ruleGroup.getRules().forEach(rule -> rule.setRuleGroup(ruleGroup));
         });
         ruleGroupService.deleteAll();
-        ruleGroupService.saveAllAndFlush(ruleGroups);
+        ruleGroupService.saveAllAndFlush(groupModel.getRoleGroup());
         return ResponseEntity.ok().build();
     }
 }
