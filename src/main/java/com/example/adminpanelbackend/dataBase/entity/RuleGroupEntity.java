@@ -9,11 +9,7 @@ import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 @Accessors(chain = true)

@@ -1,9 +1,9 @@
 package com.woop.Squad4J.server.tailer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.woop.Squad4J.server.LogParser;
 import org.apache.commons.io.input.TailerListenerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LogTailer extends TailerListenerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogTailer.class);

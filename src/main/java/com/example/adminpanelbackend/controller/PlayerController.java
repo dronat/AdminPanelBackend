@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.entity.*;
 import com.example.adminpanelbackend.model.SteamUserModel;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.util.*;
 
+import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController()
@@ -29,6 +31,8 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class PlayerController extends BaseSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerController.class);
 
+
+    @Role(role = BASE)
     @PostMapping(path = "/add-player")
     public ResponseEntity<HashMap<String, Object>> addPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -58,6 +62,8 @@ public class PlayerController extends BaseSecureController {
         );
     }
 
+
+    @Role(role = BASE)
     @PostMapping(path = "/add-player-on-control")
     public ResponseEntity<Void> addPlayerOnControl(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -66,6 +72,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/remove-player-from-control")
     public ResponseEntity<Void> removePlayerFromControl(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -74,6 +81,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/ban-player")
     public ResponseEntity<Void> banPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String banLength, @RequestParam Long banLengthInTimeStamp, @RequestParam String banReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -85,6 +93,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/unban-player")
     public ResponseEntity<Void> unbanPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int banId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -93,6 +102,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/kick-player")
     public ResponseEntity<Void> kickPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String kickReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -105,6 +115,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/add-player-note")
     public ResponseEntity<Void> addPlayerNote(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String note) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -112,6 +123,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/delete-player-note")
     public ResponseEntity<Void> deletePlayerNote(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam int noteId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -121,6 +133,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/warn-player")
     public ResponseEntity<Void> warnPlayer(@SessionAttribute AdminEntity userInfo,
                                            HttpSession httpSession,
@@ -137,6 +150,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/warn-squad")
     public ResponseEntity<Void> warnSquad(@SessionAttribute AdminEntity userInfo,
                                           HttpSession httpSession,
@@ -164,13 +178,14 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-players")
     public ResponseEntity<HashMap<String, Object>> getPlayers(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<PlayerEntity> resultPage = playerEntityService.findAll(PageRequest.of(page, size));
+        Page<PlayerEntity> resultPage = playerService.findAll(PageRequest.of(page, size));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
@@ -188,10 +203,11 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-player")
     public ResponseEntity<HashMap<String, Object>> getPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        PlayerEntity player = playerEntityService.findPlayerEntityBySteamId(steamId);
+        PlayerEntity player = playerService.findPlayerEntityBySteamId(steamId);
         if (player == null) {
             return ResponseEntity.status(404).build();
         }
@@ -213,19 +229,21 @@ public class PlayerController extends BaseSecureController {
         }});
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-players-by-contains-text")
     public ResponseEntity<List<PlayerEntity>> getPlayersByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int maxSize, @RequestParam String text) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (maxSize > 10) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        return ResponseEntity.ok(playerEntityService.findAllByContainsInNameAndSteamId(text, PageRequest.of(0, maxSize)).getContent());
+        return ResponseEntity.ok(playerService.findAllByContainsInNameAndSteamId(text, PageRequest.of(0, maxSize)).getContent());
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-player-punishment-history")
     public ResponseEntity<HashMap<String, Object>> getPlayerPunismentHistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        PlayerEntity player = playerEntityService.findPlayerEntityBySteamId(playerSteamId);
+        PlayerEntity player = playerService.findPlayerEntityBySteamId(playerSteamId);
         if (player == null) {
             return ResponseEntity.status(404).build();
         }
@@ -235,6 +253,7 @@ public class PlayerController extends BaseSecureController {
         }});
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-player-bans")
     public ResponseEntity<HashMap<String, Object>> getPlayerBans(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -276,6 +295,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-bans")
     public ResponseEntity<HashMap<String, Object>> getBans(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam boolean showOnlyActiveBans, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -320,6 +340,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-player-kicks")
     public ResponseEntity<HashMap<String, Object>> getPlayerKicks(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -350,6 +371,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-player-notes")
     public ResponseEntity<HashMap<String, Object>> getPlayerNotes(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -377,6 +399,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-player-messages")
     public ResponseEntity<HashMap<String, Object>> getPlayerMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -401,6 +424,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-messages-by-contains-text")
     public ResponseEntity<HashMap<String, Object>> getMessagesByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String text, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);

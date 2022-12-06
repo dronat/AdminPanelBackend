@@ -14,5 +14,8 @@
         <class>com.example.adminpanelbackend.dataBase.entity.LayerHistoryEntity</class>
         <class>com.example.adminpanelbackend.dataBase.entity.RuleGroupEntity</class>
         <class>com.example.adminpanelbackend.dataBase.entity.RuleEntity</class>
+        <class>com.example.adminpanelbackend.dataBase.entity.RoleGroupEntity</class>
+        <class>com.example.adminpanelbackend.dataBase.entity.RoleEntity</class>
+        <class>com.example.adminpanelbackend.dataBase.entity.RolesEntity</class>
     </persistence-unit>
 </persistence>

@@ -1,13 +1,10 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
-import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.model.OnlineInfo;
-import com.woop.Squad4J.server.RconUpdater;
-import com.woop.Squad4J.server.tailer.FtpBanService;
-import com.woop.Squad4J.server.tailer.FtpLogTailer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -23,24 +20,47 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static com.example.adminpanelbackend.RoleEnum.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-@RestController()
+@RestController
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 @CrossOrigin
 public class AdminController extends BaseSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
+    @Role(role = BASE)
+    @GetMapping(path = "/get-me")
+    public ResponseEntity<AdminEntity> getMe(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        return ResponseEntity.ok(userInfo);
+    }
+
+
+    @Role(role = ADMINS_MANAGEMENT)
     @PostMapping(path = "/add-admin")
-    public ResponseEntity<Void> addAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
+    public ResponseEntity<Void> addAdmin(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         entityManager.addAdmin(adminSteamId);
         entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "AddAdmin", String.valueOf(adminSteamId));
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = ADMINS_MANAGEMENT)
     @PostMapping(path = "/deactivate-admin")
     public ResponseEntity<OnlineInfo> deactivateAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -59,6 +79,7 @@ public class AdminController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = ADMINS_MANAGEMENT)
     @PostMapping(path = "/get-admins")
     public ResponseEntity<List<HashMap<String, Object>>> getAdmins(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -67,7 +88,7 @@ public class AdminController extends BaseSecureController {
             put("steamId", admin.getSteamId());
             put("name", admin.getName());
             put("steamSign", admin.getSteamSign());
-            put("role", admin.getRole());
+            put("role", admin.getRoleGroup());
             put("avatar", admin.getAvatar());
             put("avatarMedium", admin.getAvatarMedium());
             put("avatarFull", admin.getAvatarFull());
@@ -77,6 +98,8 @@ public class AdminController extends BaseSecureController {
         return ResponseEntity.ok(list);
     }
 
+
+    @Role(role = ADMIN_LOG)
     @PostMapping(path = "/get-admin-actions")
     public ResponseEntity<HashMap<String, Object>> getAdminActions(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -116,6 +139,7 @@ public class AdminController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = ADMIN_LOG)
     @PostMapping(path = "/get-admin-actions-with-params")
     public ResponseEntity<HashMap<String, Object>> getAdminActionsWithParams(
             @SessionAttribute AdminEntity userInfo,
@@ -169,6 +193,7 @@ public class AdminController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = ADMIN_LOG)
     @PostMapping(path = "/get-admins-actions")
     public ResponseEntity<HashMap<String, Object>> getAdminActions(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -209,12 +234,16 @@ public class AdminController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+
+    @Role(role = BASE)
     @GetMapping(path = "/auth")
     public ResponseEntity<Void> auth(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return entityManager.getAdminBySteamID(userInfo.getSteamId()) == null ? ResponseEntity.ok(null) : ResponseEntity.status(401).build();
     }
 
+
+    @Role(role = BASE)
     @GetMapping(path = "/user-logout")
     public ResponseEntity<Void> userLogout(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);

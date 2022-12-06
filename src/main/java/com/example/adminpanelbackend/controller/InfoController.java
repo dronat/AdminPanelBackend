@@ -1,6 +1,7 @@
 package com.example.adminpanelbackend.controller;
 
 
+import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.server.RconUpdater;
@@ -20,12 +21,16 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 
+import static com.example.adminpanelbackend.RoleEnum.BASE;
+
 @RestController()
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 @CrossOrigin
 public class InfoController extends BaseSecureController{
     private static final Logger LOGGER = LoggerFactory.getLogger(InfoController.class);
 
+
+    @Role(role = BASE)
     @GetMapping(path = "/get-backend-status")
     public ResponseEntity<HashMap<String, Object>> getBackendStatus(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);

@@ -7,9 +7,12 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-
-import java.util.*;
-import java.util.regex.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AdminListReader {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminListReader.class);

@@ -6,7 +6,6 @@ import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
-import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -61,7 +58,7 @@ public class NotSecureController {
 
         SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
         AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
-        if (adminEntity == null || adminEntity.getRole() == 0) {
+        if (adminEntity == null || adminEntity.getRoleGroup() == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

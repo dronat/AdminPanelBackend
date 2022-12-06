@@ -1,17 +1,8 @@
 package com.woop.Squad4J.plugins;
 
-import com.ibasco.agql.protocols.valve.source.query.info.SourceServer;
-import com.woop.Squad4J.connector.MySQLConnector;
-import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
-import com.woop.Squad4J.event.logparser.*;
-import com.woop.Squad4J.listener.a2s.A2SUpdatedListener;
-import com.woop.Squad4J.listener.logparser.*;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Date;
-import java.util.Map;
 
 @NoArgsConstructor
 public class DBLog /*implements A2SUpdatedListener, NewGameListener, PlayerDiedListener, PlayerRevivedListener,

@@ -1,7 +1,6 @@
 package com.example.adminpanelbackend;
 
 import com.example.adminpanelbackend.model.SteamUserModel;
-import com.woop.Squad4J.server.LogParser;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,8 @@
 package com.woop.Squad4J.event.rcon;
 
-import com.woop.Squad4J.listener.rcon.LayerInfoUpdatedListener;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
+import com.woop.Squad4J.listener.rcon.LayerInfoUpdatedListener;
 import com.woop.Squad4J.server.RconUpdater;
 import lombok.Getter;
 import lombok.ToString;

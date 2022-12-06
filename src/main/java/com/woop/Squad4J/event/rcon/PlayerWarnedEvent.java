@@ -1,8 +1,8 @@
 package com.woop.Squad4J.event.rcon;
 
-import com.woop.Squad4J.listener.rcon.PlayerWarnedListener;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
+import com.woop.Squad4J.listener.rcon.PlayerWarnedListener;
 import lombok.Getter;
 import lombok.ToString;
 

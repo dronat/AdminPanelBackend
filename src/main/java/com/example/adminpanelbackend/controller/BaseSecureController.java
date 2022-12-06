@@ -1,28 +1,17 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.service.*;
-import com.woop.Squad4J.a2s.Query;
-import com.woop.Squad4J.server.RconUpdater;
-import com.woop.Squad4J.server.tailer.FtpBanService;
-import com.woop.Squad4J.server.tailer.FtpLogTailer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.SessionAttribute;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 
 @RestController()
@@ -33,11 +22,9 @@ public class BaseSecureController {
 
     EntityManager entityManager = new EntityManager();
     @Autowired
-    PlayerEntityService playerEntityService;
-
+    PlayerService playerService;
     @Autowired
     AdminActionLogsService adminActionLogsService;
-
     @Autowired
     LayersHistoryService layersHistoryService;
     @Autowired
@@ -50,9 +37,17 @@ public class BaseSecureController {
     PlayerNoteService playerNoteService;
     @Autowired
     AdminService adminService;
-
+    @Autowired
+    RoleGroupService roleGroupService;
+    @Autowired
+    RoleService roleService;
+    @Autowired
+    RolesService rolesService;
+    @Autowired
+    RuleGroupService ruleGroupService;
     @Autowired
     FindByIndexNameSessionRepository<? extends Session> sessions;
+
 
     protected <T> HashMap<String, Object> getMapForPagination(Page<T> page) {
         return new HashMap<>() {{

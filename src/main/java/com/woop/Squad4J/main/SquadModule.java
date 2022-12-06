@@ -1,10 +1,9 @@
 package com.woop.Squad4J.main;
 
+import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.connector.MySQLConnector;
-import com.woop.Squad4J.event.Event;
-import com.woop.Squad4J.event.EventType;
-import com.woop.Squad4J.event.logparser.ServerTickRateEvent;
+import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.EventEmitter;
 import com.woop.Squad4J.server.SquadServer;
 import com.woop.Squad4J.server.tailer.FtpBanService;
@@ -12,9 +11,6 @@ import com.woop.Squad4J.server.tailer.TailerService;
 import com.woop.Squad4J.util.logger.LoggerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.woop.Squad4J.rcon.Rcon;
-
-import java.util.Date;
 
 /**
  *    _____                       _ _  _       _
@@ -67,7 +63,6 @@ public class SquadModule {
         //LOGGER.debug("Emitting {}", testEvent);
 
         //EventEmitter.emit(testEvent);
-
         printLogo();
     }
 

@@ -9,7 +9,6 @@ import org.hibernate.annotations.LazyCollectionOption;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,10 +31,6 @@ public class AdminEntity implements Serializable {
     @Basic
     @Column(name = "steamSign", nullable = true, length = 32)
     private String steamSign;
-
-    @Basic
-    @Column(name = "role", nullable = false)
-    private Integer role;
 
     @Basic
     @Column(name = "avatar", nullable = true, length = 255)
@@ -62,19 +57,21 @@ public class AdminEntity implements Serializable {
     @OneToMany(mappedBy = "admin")
     private List<AdminActionLogEntity> adminActionLogs;
 
-    /*@OneToOne(mappedBy = "primary_id", , fetch = FetchType.EAGER)
-    private SpringSessionEntity springSessionById;*/
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToOne
+    @JoinColumn(name = "role", referencedColumnName = "id")
+    private RoleGroupEntity roleGroup;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AdminEntity that = (AdminEntity) o;
-        return Objects.equals(name, that.name) && Objects.equals(steamId, that.steamId) && Objects.equals(steamSign, that.steamSign) && Objects.equals(role, that.role) && Objects.equals(avatar, that.avatar) && Objects.equals(avatarMedium, that.avatarMedium) && Objects.equals(avatarFull, that.avatarFull) && Objects.equals(createTime, that.createTime) && Objects.equals(modifiedTime, that.modifiedTime);
+        return Objects.equals(name, that.name) && Objects.equals(steamId, that.steamId) && Objects.equals(steamSign, that.steamSign) && Objects.equals(roleGroup, that.roleGroup) && Objects.equals(avatar, that.avatar) && Objects.equals(avatarMedium, that.avatarMedium) && Objects.equals(avatarFull, that.avatarFull) && Objects.equals(createTime, that.createTime) && Objects.equals(modifiedTime, that.modifiedTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, steamId, steamSign, role, avatar, avatarMedium, avatarFull, createTime, modifiedTime);
+        return Objects.hash(name, steamId, steamSign, roleGroup, avatar, avatarMedium, avatarFull, createTime, modifiedTime);
     }
 }

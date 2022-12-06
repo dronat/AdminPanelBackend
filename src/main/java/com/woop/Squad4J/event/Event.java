@@ -1,6 +1,9 @@
 package com.woop.Squad4J.event;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import javax.annotation.Nullable;
 import java.util.Date;

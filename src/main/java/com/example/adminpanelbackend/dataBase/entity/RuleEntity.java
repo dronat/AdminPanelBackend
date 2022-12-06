@@ -1,15 +1,11 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.Objects;
 
 @Data

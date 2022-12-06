@@ -1,10 +1,10 @@
 package com.woop.Squad4J.event.rcon;
 
+import com.woop.Squad4J.event.Event;
+import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.listener.rcon.PlayerListUpdatedListener;
 import com.woop.Squad4J.model.DisconnectedPlayer;
 import com.woop.Squad4J.model.OnlinePlayer;
-import com.woop.Squad4J.event.Event;
-import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.server.RconUpdater;
 import lombok.Getter;
 import lombok.ToString;

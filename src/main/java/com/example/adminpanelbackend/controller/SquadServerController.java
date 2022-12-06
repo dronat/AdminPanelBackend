@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.LayerHistoryEntity;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController()
@@ -34,6 +36,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class SquadServerController extends BaseSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(SquadServerController.class);
 
+    @Role(role = BASE)
     @GetMapping(path = "/get-online-players")
     public ResponseEntity<OnlineInfo> getOnline(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -41,6 +44,7 @@ public class SquadServerController extends BaseSecureController {
     }
 
 
+    @Role(role = BASE)
     @GetMapping(path = "/get-chat-messages")
     public ResponseEntity<Collection<ChatMessageEvent>> getChatMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -48,18 +52,21 @@ public class SquadServerController extends BaseSecureController {
     }
 
 
+    @Role(role = BASE)
     @GetMapping(path = "/get-disconnected-players")
     public ResponseEntity<Collection<DisconnectedPlayer>> getDisconnectedPlayers(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getDisconnectedPlayers());
     }
 
+    @Role(role = BASE)
     @GetMapping(path = "/get-server-info")
     public ResponseEntity<HashMap<String, Object>> getServerInfo(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(SquadServer.getServerInfo());
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/send-broadcast")
     public ResponseEntity<Void> broadcastMessage(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String broadcastMessage) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -71,6 +78,7 @@ public class SquadServerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/player-team-change")
     public ResponseEntity<Void> playerTeamChange(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -83,6 +91,7 @@ public class SquadServerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/remove-player-from-squad")
     public ResponseEntity<Void> removePlayerFromSquad(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -95,6 +104,7 @@ public class SquadServerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/get-layers-history")
     public ResponseEntity<HashMap<String, Object>> getLayershistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -118,6 +128,7 @@ public class SquadServerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/disband-squad")
     public ResponseEntity<Void> disbandSquad(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String teamId, @RequestParam String squadId, @RequestParam String squadName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -130,6 +141,7 @@ public class SquadServerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/change-current-layer")
     public ResponseEntity<Collection<AdminActionLogEntity>> changeCurrentLayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String layerName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -139,6 +151,7 @@ public class SquadServerController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
+    @Role(role = BASE)
     @PostMapping(path = "/change-next-layer")
     public ResponseEntity<Collection<AdminActionLogEntity>> changeNextLayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String layerName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);

@@ -1,8 +1,8 @@
 package com.woop.Squad4J.event.logparser;
 
-import com.woop.Squad4J.listener.logparser.ServerTickRateListener;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
+import com.woop.Squad4J.listener.logparser.ServerTickRateListener;
 import lombok.Getter;
 import lombok.ToString;
 

@@ -1,9 +1,9 @@
 package com.woop.Squad4J.a2s.response;
 
+import com.woop.Squad4J.util.BufferHelper;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
-import com.woop.Squad4J.util.BufferHelper;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;

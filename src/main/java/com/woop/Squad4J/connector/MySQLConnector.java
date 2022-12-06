@@ -1,16 +1,11 @@
 package com.woop.Squad4J.connector;
 
-import com.woop.Squad4J.a2s.Query;
-import com.woop.Squad4J.a2s.response.A2SInfoResponse;
-import com.woop.Squad4J.server.LayerClassnameFormatter;
-import com.woop.Squad4J.server.SquadServer;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author Robert Engle
@@ -176,6 +171,21 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             createRules();
         }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM role");
+        } catch (SQLException e) {
+            createRole();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM role_group");
+        } catch (SQLException e) {
+            createRoleGroup();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM roles");
+        } catch (SQLException e) {
+            createRoles();
+        }
     }
 
     /*private static void createDbLogServers() throws SQLException {
@@ -336,7 +346,7 @@ public class MySQLConnector extends Connector {
                 "steamId BIGINT NOT NULL PRIMARY KEY," +
                 "name VARCHAR(16) NOT NULL," +
                 "steamSign VARCHAR(32) null," +
-                "role INT NOT NULL," +
+                "role INT," +
                 "avatar VARCHAR(255) null," +
                 "avatarMedium VARCHAR(255) null," +
                 "avatarFull VARCHAR(255) null," +
@@ -445,6 +455,31 @@ public class MySQLConnector extends Connector {
                 "name VARCHAR(1000) NOT NULL, " +
                 "ruleGroup int NOT NULL, " +
                 "CONSTRAINT rulesGroupId FOREIGN KEY (ruleGroup) REFERENCES rule_groups (id) ON DELETE CASCADE);");
+    }
+
+    private static void createRole() throws SQLException {
+        LOGGER.info("Creating table role");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS role (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "description VARCHAR(1000) NOT NULL, " +
+                "name VARCHAR(255) NOT NULL);");
+    }
+
+    private static void createRoleGroup() throws SQLException {
+        LOGGER.info("Creating table role_group");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS role_group (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "name VARCHAR(255) NOT NULL);");
+    }
+
+    private static void createRoles() throws SQLException {
+        LOGGER.info("Creating table roles");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS roles (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "roleGroup INT NOT NULL, " +
+                "role INT NOT NULL," +
+                "CONSTRAINT role_fk FOREIGN KEY (role) REFERENCES role (id) ON DELETE CASCADE, " +
+                "CONSTRAINT role_group_fk FOREIGN KEY (roleGroup) REFERENCES role_group (id) ON DELETE CASCADE);");
     }
 
     public static void createSpringSessions() throws SQLException {

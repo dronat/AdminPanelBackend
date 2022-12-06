@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.dataBase;
 
+import com.example.adminpanelbackend.RoleEnum;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.core.JpaConnection;
 import com.example.adminpanelbackend.dataBase.core.JpaManager;
@@ -19,20 +20,34 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public EntityManager() {
         super(EMF_THREAD_LOCAL.getEntityManager());
-    }
+        List<RoleEnum> roleEnums = List.of(RoleEnum.values());
+        List<String> roleEntities = em.createQuery("SELECT a FROM RoleEntity a", RoleEntity.class)
+                .getResultList()
+                .stream()
+                .map(RoleEntity::getName)
+                .toList();
+        roleEnums.forEach(roleEnum -> {
+            if (!roleEntities.contains(roleEnum.name)) {
+                persist(
+                        new RoleEntity()
+                                .setName(roleEnum.name)
+                                .setDescription(roleEnum.description)
+                );
+            }
+        });
 
+    }
 
     public synchronized void addAdmin(long adminSteamId) {
         LOGGER.info("\u001B[46m \u001B[30m Added new admin with adminSteamId: {} \u001B[0m", adminSteamId);
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         if (admin != null) {
-            update(admin.setRole(1).setModifiedTime(new Timestamp(System.currentTimeMillis())));
+            update(admin.setModifiedTime(new Timestamp(System.currentTimeMillis())));
         } else {
             persist(
                     new AdminEntity()
                             .setSteamId(adminSteamId)
                             .setName("notLoggedIn")
-                            .setRole(1)
                             .setCreateTime(new Timestamp(System.currentTimeMillis()))
                             .setModifiedTime(new Timestamp(System.currentTimeMillis()))
             );
@@ -42,7 +57,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public synchronized void deactivateAdmin(long adminSteamId) {
         LOGGER.info("\u001B[46m \u001B[30m Delete admin with adminSteamId: {} \u001B[0m", adminSteamId);
-        update(getAdminBySteamID(adminSteamId).setRole(0).setModifiedTime(new Timestamp(System.currentTimeMillis())));
+        update(getAdminBySteamID(adminSteamId).setRoleGroup(null).setModifiedTime(new Timestamp(System.currentTimeMillis())));
         SquadServer.removeAdmin(adminSteamId);
     }
 
@@ -62,9 +77,15 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
+    public synchronized AdminEntity tryGetAdminBySteamID(long adminSteamId) {
+            return em.createQuery("SELECT a FROM AdminEntity a WHERE a.steamId=:steamId", AdminEntity.class)
+                    .setParameter("steamId", adminSteamId)
+                    .getSingleResult();
+    }
+
     public synchronized List<Long> getActiveAdminsSteamId() {
         try {
-            return em.createQuery("SELECT a FROM AdminEntity a WHERE a.role > 0", AdminEntity.class)
+            return em.createQuery("SELECT a FROM AdminEntity a WHERE a.roleGroup IS NOT NULL", AdminEntity.class)
                     .getResultList()
                     .stream()
                     .map(AdminEntity::getSteamId)
