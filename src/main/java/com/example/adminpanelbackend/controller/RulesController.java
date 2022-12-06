@@ -4,6 +4,7 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.RuleGroupEntity;
+import com.example.adminpanelbackend.model.RuleGroupModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -43,14 +44,14 @@ public class RulesController extends BaseSecureController{
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestBody LinkedList<RuleGroupEntity> ruleGroups) {
+            @RequestBody RuleGroupModel groupModel) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         System.out.println();
-        ruleGroups.forEach(ruleGroup -> {
+        groupModel.getRoleGroup().forEach(ruleGroup -> {
             ruleGroup.getRules().forEach(rule -> rule.setRuleGroup(ruleGroup));
         });
         ruleGroupService.deleteAll();
-        ruleGroupService.saveAllAndFlush(ruleGroups);
+        ruleGroupService.saveAllAndFlush(groupModel.getRoleGroup());
         return ResponseEntity.ok().build();
     }
 }
