@@ -4,6 +4,7 @@ import com.example.adminpanelbackend.SteamOpenID;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
+import com.example.adminpanelbackend.dataBase.entity.RoleGroupEntity;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
 import org.slf4j.Logger;
@@ -46,10 +47,10 @@ public class NotSecureController {
     }
 
     @PostMapping(path = "/verify-steam")
-    public ResponseEntity<String> verifySteam(HttpSession httpSession,
-                                              HttpServletRequest request,
-                                              HttpServletResponse response,
-                                              @RequestBody VerifySteamModel verifySteamModel) {
+    public ResponseEntity<RoleGroupEntity> verifySteam(HttpSession httpSession,
+                                                       HttpServletRequest request,
+                                                       HttpServletResponse response,
+                                                       @RequestBody VerifySteamModel verifySteamModel) {
         LOGGER.debug("Received unsecured POST request on '{}' with body '{}'", request.getRequestURL(), verifySteamModel);
         String steamId = steamOpenID.verify(verifySteamModel);
         if (steamId == null) {
@@ -70,7 +71,7 @@ public class NotSecureController {
         entityManager.update(adminEntity);
         httpSession.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, String.valueOf(adminEntity.getSteamId()));
         httpSession.setAttribute("userInfo", adminEntity);
-        return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
+        return ResponseEntity.ok(adminEntity.getRoleGroup());
     }
 
     /*@GetMapping(path = "/verify-steam-return")
