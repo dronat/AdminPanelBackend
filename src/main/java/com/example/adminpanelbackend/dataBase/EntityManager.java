@@ -17,9 +17,13 @@ import java.util.stream.Collectors;
 public class EntityManager extends JpaManager implements JpaConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityManager.class);
+    private static volatile boolean initialized = false;
 
     public EntityManager() {
         super(EMF_THREAD_LOCAL.getEntityManager());
+    }
+
+    public synchronized void initRole() {
         List<RoleEnum> roleEnums = List.of(RoleEnum.values());
         List<String> roleEntities = em.createQuery("SELECT a FROM RoleEntity a", RoleEntity.class)
                 .getResultList()
@@ -35,7 +39,6 @@ public class EntityManager extends JpaManager implements JpaConnection {
                 );
             }
         });
-
     }
 
     public synchronized void addAdmin(long adminSteamId) {

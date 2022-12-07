@@ -17,6 +17,9 @@ public class CustomInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
         try {
+            if (request.getMethod().equals("OPTIONS") && request.getRequestURL().toString().endsWith("/verify-steam")) {
+                return true;
+            }
             if (((HandlerMethod) handler).getMethod().getDeclaringClass().equals(NotSecureController.class)) {
                 return true;
             }

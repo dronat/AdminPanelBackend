@@ -104,7 +104,7 @@ public class SquadServer {
     public static void init() {
         if (initialized)
             throw new IllegalStateException("This class is already initialized.");
-
+        entityManager.initRole();
         id = ConfigLoader.get("server.id", Integer.class);
         String sourceRef = null;
         //TODO: Improve admin reading to take union all permissions for UNIQUE ADMINS across all files. Currently, this logic actually sucks
