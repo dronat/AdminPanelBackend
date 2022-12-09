@@ -55,6 +55,9 @@ public class AdminController extends BaseSecureController {
             HttpServletResponse response,
             @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (entityManager.isAdminExist(adminSteamId)) {
+            return ResponseEntity.status(409).build();
+        }
         entityManager.addAdmin(adminSteamId);
         entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "AddAdmin", String.valueOf(adminSteamId));
         return ResponseEntity.ok().build();
@@ -64,9 +67,6 @@ public class AdminController extends BaseSecureController {
     @PostMapping(path = "/deactivate-admin")
     public ResponseEntity<OnlineInfo> deactivateAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        if (userInfo.getSteamId() != 76561198069397368L) {
-            return ResponseEntity.status(403).build();
-        }
         entityManager.deactivateAdmin(adminSteamId);
         entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DeactivateAdmin", String.valueOf(adminSteamId));
         Map<String, ? extends Session> resultSessions = sessions.findByPrincipalName(String.valueOf(adminSteamId));

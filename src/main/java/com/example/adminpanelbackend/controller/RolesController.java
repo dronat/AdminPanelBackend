@@ -90,12 +90,15 @@ public class RolesController extends BaseSecureController {
     @Role(role = ROLES_MANAGEMENT)
     @PostMapping(path = "/add-role-in-role-group")
     public ResponseEntity<Void> addRoleInRoleGroup(
-            @RequestParam RolesEntity rolesEntity,
+            @RequestBody RolesEntity rolesEntity,
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (rolesService.findByRoleAndRoleGroup(rolesEntity.getRole().getId(), rolesEntity.getRoleGroup().getId()) == null) {
+            return ResponseEntity.badRequest().build();
+        }
         rolesService.saveAndFlush(rolesEntity);
         return ResponseEntity.ok().build();
     }

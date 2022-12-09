@@ -13,6 +13,7 @@ import java.io.Serializable;
 @Table(name = "roles", schema = "squad")
 public class RolesEntity implements Serializable {
 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id", nullable = false)
     private Integer id;

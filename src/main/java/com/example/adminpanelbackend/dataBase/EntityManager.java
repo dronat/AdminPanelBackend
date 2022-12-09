@@ -43,18 +43,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
 
     public synchronized void addAdmin(long adminSteamId) {
         LOGGER.info("\u001B[46m \u001B[30m Added new admin with adminSteamId: {} \u001B[0m", adminSteamId);
-        AdminEntity admin = getAdminBySteamID(adminSteamId);
-        if (admin != null) {
-            update(admin.setModifiedTime(new Timestamp(System.currentTimeMillis())));
-        } else {
-            persist(
-                    new AdminEntity()
-                            .setSteamId(adminSteamId)
-                            .setName("notLoggedIn")
-                            .setCreateTime(new Timestamp(System.currentTimeMillis()))
-                            .setModifiedTime(new Timestamp(System.currentTimeMillis()))
-            );
-        }
+        persist(
+                new AdminEntity()
+                        .setSteamId(adminSteamId)
+                        .setName("notLoggedIn")
+                        .setCreateTime(new Timestamp(System.currentTimeMillis()))
+                        .setModifiedTime(new Timestamp(System.currentTimeMillis()))
+        );
         SquadServer.addAdmin(adminSteamId);
     }
 
@@ -81,9 +76,9 @@ public class EntityManager extends JpaManager implements JpaConnection {
     }
 
     public synchronized AdminEntity tryGetAdminBySteamID(long adminSteamId) {
-            return em.createQuery("SELECT a FROM AdminEntity a WHERE a.steamId=:steamId", AdminEntity.class)
-                    .setParameter("steamId", adminSteamId)
-                    .getSingleResult();
+        return em.createQuery("SELECT a FROM AdminEntity a WHERE a.steamId=:steamId", AdminEntity.class)
+                .setParameter("steamId", adminSteamId)
+                .getSingleResult();
     }
 
     public synchronized List<Long> getActiveAdminsSteamId() {
@@ -131,6 +126,23 @@ public class EntityManager extends JpaManager implements JpaConnection {
                     .isEmpty();
         } catch (Exception e) {
             LOGGER.warn("Exception while trying execute sql query isPlayerExist");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            return isPlayerExist(steamId);
+        }
+    }
+
+    public synchronized boolean isAdminExist(long steamId) {
+        try {
+            return !em.createQuery("SELECT a FROM AdminEntity a WHERE a.steamId=:steamId", AdminEntity.class)
+                    .setParameter("steamId", steamId)
+                    .getResultList()
+                    .isEmpty();
+        } catch (Exception e) {
+            LOGGER.warn("Exception while trying execute sql query isAdminExist");
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {

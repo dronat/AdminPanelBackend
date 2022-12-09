@@ -146,8 +146,15 @@ public class FtpLogTailer implements Runnable {
         try {
             LOGGER.info("Closing FTP");
             if (ftpClient != null && ftpClient.isConnected()) {
-                ftpClient.abort();
-                ftpClient.disconnect();
+                try {
+                    ftpClient.abort();
+                } catch (Exception ignored) {
+                }
+                try {
+                    ftpClient.disconnect();
+                } catch (Exception e) {
+                    throw e;
+                }
             }
             LOGGER.info("FTP closed");
         } catch (Exception e) {
