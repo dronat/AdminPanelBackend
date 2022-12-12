@@ -13,12 +13,13 @@ import java.io.Serializable;
 @Table(name = "roles", schema = "squad")
 public class RolesEntity implements Serializable {
 
+    @JsonBackReference
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @JsonBackReference
+    @JsonBackReference("roles")
     @ManyToOne
     @JoinColumn(name = "roleGroup", referencedColumnName = "id", nullable = false)
     private RoleGroupEntity roleGroup;

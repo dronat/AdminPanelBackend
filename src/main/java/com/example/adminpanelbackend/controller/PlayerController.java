@@ -34,15 +34,14 @@ public class PlayerController extends BaseSecureController {
 
     @Role(role = BASE)
     @PostMapping(path = "/add-player")
-    public ResponseEntity<HashMap<String, Object>> addPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long steamId) {
+    public ResponseEntity<HashMap<String, Object>> addPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String steamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        PlayerEntity player = entityManager.getPlayerBySteamId(steamId);
+        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
+        PlayerEntity player = entityManager.getPlayerBySteamId(Long.parseLong(steamId));
         if (player == null) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
-        entityManager.addPlayer(steamId, steamUser.getPersonaname());
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), steamId, "AddNewPlayer", null);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), Long.valueOf(steamId), "AddNewPlayer", null);
         OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers().stream().filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId())).findFirst().orElse(null);
         return ResponseEntity.ok(
                 new HashMap<>() {{
@@ -50,14 +49,8 @@ public class PlayerController extends BaseSecureController {
                     put("steamId", player.getSteamId());
                     put("isOnline", onlinePlayer);
                     put("isOnControl", player.getOnControl());
-                    put("isAdmin", SquadServer.getAdmins().contains(steamId));
+                    put("isAdmin", SquadServer.getAdmins().contains(Long.parseLong(steamId)));
                     put("avatarFull", steamUser.getAvatarfull());
-                    put("numOfActiveBans", player
-                            .getPlayerBans()
-                            .stream()
-                            .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
-                            .count()
-                    );
                 }}
         );
     }

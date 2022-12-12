@@ -9,5 +9,5 @@ import java.util.LinkedList;
 @Data
 @Accessors(chain = true)
 public class RuleGroupModel {
-    private LinkedList<RuleGroupEntity> roleGroup;
+    private LinkedList<RuleGroupEntity> ruleGroup;
 }

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.example.adminpanelbackend.RoleEnum.BASE;
@@ -46,12 +45,11 @@ public class RulesController extends BaseSecureController{
             HttpServletResponse response,
             @RequestBody RuleGroupModel groupModel) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        System.out.println();
-        groupModel.getRoleGroup().forEach(ruleGroup -> {
+        groupModel.getRuleGroup().forEach(ruleGroup -> {
             ruleGroup.getRules().forEach(rule -> rule.setRuleGroup(ruleGroup));
         });
         ruleGroupService.deleteAll();
-        ruleGroupService.saveAllAndFlush(groupModel.getRoleGroup());
+        ruleGroupService.saveAllAndFlush(groupModel.getRuleGroup());
         return ResponseEntity.ok().build();
     }
 }

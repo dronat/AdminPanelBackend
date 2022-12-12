@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static com.example.adminpanelbackend.RoleEnum.ROLES_MANAGEMENT;
@@ -96,7 +97,7 @@ public class RolesController extends BaseSecureController {
             HttpServletRequest request,
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        if (rolesService.findByRoleAndRoleGroup(rolesEntity.getRole().getId(), rolesEntity.getRoleGroup().getId()) == null) {
+        if (rolesService.findByRoleAndRoleGroup(rolesEntity.getRole().getId(), rolesEntity.getRoleGroup().getId()) != null) {
             return ResponseEntity.badRequest().build();
         }
         rolesService.saveAndFlush(rolesEntity);
@@ -106,7 +107,7 @@ public class RolesController extends BaseSecureController {
     @Role(role = ROLES_MANAGEMENT)
     @PostMapping(path = "/add-role-group")
     public ResponseEntity<Void> addRoleGroup(
-            @RequestParam RoleGroupEntity rolesEntity,
+            @RequestBody RoleGroupEntity rolesEntity,
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
@@ -133,15 +134,24 @@ public class RolesController extends BaseSecureController {
     @PostMapping(path = "/remove-role-from-role-group")
     public ResponseEntity<Void> removeRoleFromRoleGroup(
             @RequestParam int roleId,
+            @RequestParam int roleGroupId,
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        Optional<RoleGroupEntity> roleGroup = roleGroupService.findById(roleId);
+        Optional<RoleGroupEntity> roleGroup = roleGroupService.findById(roleGroupId);
         if (roleGroup.isPresent()) {
-            roleGroup.get().getRoles().removeIf(role -> role.getRole().getId().equals(roleId));
-            roleGroupService.saveAndFlush(roleGroup.get());
+            AtomicInteger id = new AtomicInteger();
+            roleGroup.get().getRoles().forEach(role -> {
+                if (role.getRole().getId().equals(roleId)) {
+                    id.set(role.getId());
+                }
+            });
+            if (id.get() == 0) {
+                return ResponseEntity.badRequest().build();
+            }
+            rolesService.deleteById(id.get());
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

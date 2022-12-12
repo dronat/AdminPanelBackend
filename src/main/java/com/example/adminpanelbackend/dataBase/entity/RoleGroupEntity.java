@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.dataBase.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.LazyCollection;
@@ -24,6 +25,7 @@ public class RoleGroupEntity implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @JsonManagedReference("roles")
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany(mappedBy = "roleGroup")
     private List<RolesEntity> roles;
