@@ -531,6 +531,41 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
+    @Role(role = ADMIN_LOG)
+    @PostMapping(path = "/get-admin-actions-with-player")
+    public ResponseEntity<HashMap<String, Object>> getAdminActionsWithPlayer(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam long playerSteamId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllActionsWithPlayerByAdmin(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = getMapForPagination(resultPage);
+
+        List<HashMap<String, Object>> contentList = new ArrayList<>();
+        resultPage.getContent().forEach(adminActionLogEntity -> {
+            AdminEntity admin = adminActionLogEntity.getAdmin();
+            HashMap<String, Object> contentMap = new HashMap<>() {{
+                put("id", adminActionLogEntity.getId());
+                put("action", adminActionLogEntity.getAction());
+                put("reason", adminActionLogEntity.getReason());
+                put("adminName", admin.getName());
+                put("adminSteamId", admin.getSteamId());
+                put("createTime", adminActionLogEntity.getCreateTime());
+            }};
+            contentList.add(contentMap);
+        });
+        map.put("content", contentList);
+        return ResponseEntity.ok(map);
+    }
+
     @Role(role = BASE)
     @PostMapping(path = "/get-messages-by-contains-text")
     public ResponseEntity<HashMap<String, Object>> getMessagesByContainsText(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String text, @RequestParam int page, @RequestParam int size) {
