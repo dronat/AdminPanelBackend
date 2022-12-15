@@ -5,10 +5,12 @@ import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.dataBase.EntityManager;
 import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
 import com.example.adminpanelbackend.dataBase.entity.RoleGroupEntity;
+import com.example.adminpanelbackend.dataBase.service.AdminService;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
@@ -28,6 +30,8 @@ public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);
     private final SteamOpenID steamOpenID = new SteamOpenID();
     EntityManager entityManager = new EntityManager();
+    @Autowired
+    AdminService adminService;
 
     @PostMapping(path = "/get-steam-link")
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
@@ -58,8 +62,8 @@ public class NotSecureController {
         }
 
         SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
-        AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
-        if (adminEntity == null || adminEntity.getRoleGroup() == null) {
+        AdminEntity adminEntity = adminService.findById(Long.parseLong(steamId)).get();
+        if (adminEntity.getRoleGroup() == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

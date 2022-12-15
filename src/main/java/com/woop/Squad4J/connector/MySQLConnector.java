@@ -186,6 +186,11 @@ public class MySQLConnector extends Connector {
         } catch (SQLException e) {
             createRoles();
         }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM discord_messages_id");
+        } catch (SQLException e) {
+            createDiscordMessagesId();
+        }
     }
 
     /*private static void createDbLogServers() throws SQLException {
@@ -470,6 +475,14 @@ public class MySQLConnector extends Connector {
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS role_group (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
                 "name VARCHAR(255) NOT NULL);");
+    }
+
+    private static void createDiscordMessagesId() throws SQLException {
+        LOGGER.info("Creating table discord_messages_id");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS discord_messages_id (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "message_id VARCHAR(255) NOT NULL, " +
+                "title VARCHAR(255) NOT NULL);");
     }
 
     private static void createRoles() throws SQLException {

@@ -36,12 +36,14 @@ public class PlayerController extends BaseSecureController {
     @PostMapping(path = "/add-player")
     public ResponseEntity<HashMap<String, Object>> addPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String steamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
-        PlayerEntity player = entityManager.getPlayerBySteamId(Long.parseLong(steamId));
-        if (player == null) {
+        long steamIdLong = Long.parseLong(steamId);
+        if (entityManager.isPlayerExist(steamIdLong)) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), Long.valueOf(steamId), "AddNewPlayer", null);
+        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
+        entityManager.addPlayer(steamIdLong, steamUser.getPersonaname());
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), steamIdLong, "AddNewPlayer", null);
+        PlayerEntity player = entityManager.getPlayerBySteamId(steamIdLong);
         OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers().stream().filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId())).findFirst().orElse(null);
         return ResponseEntity.ok(
                 new HashMap<>() {{
@@ -49,7 +51,7 @@ public class PlayerController extends BaseSecureController {
                     put("steamId", player.getSteamId());
                     put("isOnline", onlinePlayer);
                     put("isOnControl", player.getOnControl());
-                    put("isAdmin", SquadServer.getAdmins().contains(Long.parseLong(steamId)));
+                    put("isAdmin", SquadServer.getAdmins().contains(steamIdLong));
                     put("avatarFull", steamUser.getAvatarfull());
                 }}
         );
@@ -76,12 +78,22 @@ public class PlayerController extends BaseSecureController {
 
     @Role(role = BASE)
     @PostMapping(path = "/ban-player")
-    public ResponseEntity<Void> banPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String banLength, @RequestParam Long banLengthInTimeStamp, @RequestParam String banReason) {
+    public ResponseEntity<Void> banPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String banLength, @RequestParam String banReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        Timestamp expirationTime = new Timestamp(System.currentTimeMillis() + banLengthInTimeStamp);
-        banReason += " До " + expirationTime;
+        if (playerSteamId == 76561198017819600L) {
+            return ResponseEntity.badRequest().build();
+        }
+        Timestamp banLengthInTimeStamp = null;
+        switch (banLength) {
+            case "1d" -> banLengthInTimeStamp = new Timestamp(System.currentTimeMillis() + 86400000L);
+            case "3d" -> banLengthInTimeStamp = new Timestamp(System.currentTimeMillis() + 259200000L);
+            case "7d" -> banLengthInTimeStamp = new Timestamp(System.currentTimeMillis() + 604800000L);
+            case "14d" -> banLengthInTimeStamp = new Timestamp(System.currentTimeMillis() + 1209600000L);
+            case "30d" -> banLengthInTimeStamp = new Timestamp(System.currentTimeMillis() + 2592000000L);
+        }
+        banReason += banLengthInTimeStamp == null ? " / Перманентный  бан" : " / До " + banLengthInTimeStamp;
         Rcon.command("AdminBan " + playerSteamId + " " + banLength + " " + banReason);
-        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLength.equalsIgnoreCase("0") ? null : expirationTime, banReason);
+        entityManager.addPlayerBan(playerSteamId, userInfo.getSteamId(), banLengthInTimeStamp, banReason);
         LOGGER.info("Admin '{}' has banned player '{}' by reason '{}' for length '{}'", userInfo.getName(), playerSteamId, banReason, banLength);
         return ResponseEntity.ok().build();
     }
@@ -99,6 +111,9 @@ public class PlayerController extends BaseSecureController {
     @PostMapping(path = "/kick-player")
     public ResponseEntity<Void> kickPlayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam String kickReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (playerSteamId == 76561198017819600L) {
+            return ResponseEntity.badRequest().build();
+        }
         String rconResponse = Rcon.command("AdminKick " + playerSteamId + " " + kickReason);
         if (rconResponse == null || !rconResponse.contains("Kicked player")) {
             return ResponseEntity.status(BAD_REQUEST).build();
@@ -135,6 +150,9 @@ public class PlayerController extends BaseSecureController {
                                            @RequestParam long playerSteamId,
                                            @RequestParam String warnReason) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (playerSteamId == 76561198017819600L) {
+            return ResponseEntity.badRequest().build();
+        }
         String rconResponse = Rcon.command(String.format("AdminWarn %s %s ", playerSteamId, warnReason));
         if (rconResponse == null || !rconResponse.contains("Remote admin has warned player")) {
             return ResponseEntity.status(BAD_REQUEST).build();
@@ -288,7 +306,7 @@ public class PlayerController extends BaseSecureController {
         return ResponseEntity.ok(map);
     }
 
-    @Role(role = BASE)
+    /*@Role(role = BASE)
     @PostMapping(path = "/get-bans")
     public ResponseEntity<HashMap<String, Object>> getBans(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam boolean showOnlyActiveBans, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
@@ -331,6 +349,66 @@ public class PlayerController extends BaseSecureController {
         );
         map.put("content", contentList);
         return ResponseEntity.ok(map);
+    }*/
+
+    @Role(role = BASE)
+    @PostMapping(path = "/get-active-bans-by-params")
+    public ResponseEntity<HashMap<String, Object>> getActiveBansByParams(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam String adminSteamId,
+            @RequestParam String playerSteamId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+
+        Page<PlayerBanEntity> resultPage = playerBanService.findActiveBansByParams(playerSteamId, adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        return ResponseEntity.ok(getMapForBans(resultPage));
+    }
+
+    @Role(role = BASE)
+    @PostMapping(path = "/get-permanent-bans-by-params")
+    public ResponseEntity<HashMap<String, Object>> getPermanentBansByParams(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam String adminSteamId,
+            @RequestParam String playerSteamId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+
+        Page<PlayerBanEntity> resultPage = playerBanService.findPermanentBansByParams(playerSteamId, adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        return ResponseEntity.ok(getMapForBans(resultPage));
+    }
+
+    @Role(role = BASE)
+    @PostMapping(path = "/get-not-active-bans-by-params")
+    public ResponseEntity<HashMap<String, Object>> getNotActiveBansByParams(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam String adminSteamId,
+            @RequestParam String playerSteamId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+
+        Page<PlayerBanEntity> resultPage = playerBanService.findNotActiveBansByParams(playerSteamId, adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        return ResponseEntity.ok(getMapForBans(resultPage));
     }
 
     @Role(role = BASE)
@@ -394,14 +472,29 @@ public class PlayerController extends BaseSecureController {
 
     @Role(role = BASE)
     @PostMapping(path = "/get-player-messages")
-    public ResponseEntity<HashMap<String, Object>> getPlayerMessages(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long playerSteamId, @RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<HashMap<String, Object>> getPlayerMessages(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam long playerSteamId,
+            @RequestParam int page,
+            @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
 
-        Page<PlayerMessageEntity> resultPage = playerMessageService.findAllByPlayer(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
-        HashMap<String, Object> map = getMapForPagination(resultPage);
+        Page<PlayerMessageEntity> resultPage = playerMessageService.findAllByPlayer(playerSteamId, PageRequest.of(--page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber() + 1);
+            put("totalPages", resultPage.getTotalPages() + 1);
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() + 1 : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() + 1 : null);
+        }};
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
 

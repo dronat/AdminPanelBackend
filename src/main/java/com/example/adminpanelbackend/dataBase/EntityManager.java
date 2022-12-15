@@ -9,6 +9,7 @@ import com.example.adminpanelbackend.model.SteamUserModel;
 import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -231,7 +232,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
     }
 
     public synchronized List<PlayerBanEntity> getActiveBans() {
-        return em.createQuery("SELECT a FROM PlayerBanEntity a WHERE a.isUnbannedManually = false AND a.expirationTime > :currentTime", PlayerBanEntity.class)
+        return em.createQuery("SELECT a FROM PlayerBanEntity a WHERE a.isUnbannedManually = FALSE AND (a.expirationTime IS NULL OR a.expirationTime > :currentTime)", PlayerBanEntity.class)
+                .setParameter("currentTime", new Timestamp(System.currentTimeMillis()))
+                .getResultList();
+    }
+
+    public synchronized List<PlayerBanEntity> getActiveNonPermanentBans() {
+        return em.createQuery("SELECT a FROM PlayerBanEntity a WHERE a.isUnbannedManually = FALSE AND a.expirationTime IS NOT NULL AND a.expirationTime > :currentTime", PlayerBanEntity.class)
                 .setParameter("currentTime", new Timestamp(System.currentTimeMillis()))
                 .getResultList();
     }
@@ -346,5 +353,29 @@ public class EntityManager extends JpaManager implements JpaConnection {
                         .setLayer(layer)
                         .setCreationTime(new Timestamp(System.currentTimeMillis()))
         );
+    }
+
+    public synchronized List<DiscordMessageIdEntity> getAllDiscordMessagesId() {
+        return em.createQuery("SELECT a FROM DiscordMessageIdEntity a", DiscordMessageIdEntity.class)
+                .getResultList();
+    }
+
+    public synchronized void deleteAllRowsFromDiscordMessagesId() {
+        em.getTransaction().begin();
+        em.createQuery("DELETE FROM DiscordMessageIdEntity").executeUpdate();
+        em.getTransaction().commit();
+    }
+
+    @Transactional
+    public synchronized void deleteRowByMessageId(String messageId) {
+        em.getTransaction().begin();
+        em.createQuery("DELETE FROM DiscordMessageIdEntity WHERE messageId = :messageId")
+                .setParameter("messageId", messageId)
+                .executeUpdate();
+        em.getTransaction().commit();
+    }
+
+    public synchronized void addDiscordMessageId(String id, String title) {
+        persist(new DiscordMessageIdEntity().setMessageId(id).setTitle(title));
     }
 }

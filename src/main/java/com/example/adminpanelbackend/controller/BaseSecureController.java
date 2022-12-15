@@ -1,6 +1,7 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.dataBase.EntityManager;
+import com.example.adminpanelbackend.dataBase.entity.PlayerBanEntity;
 import com.example.adminpanelbackend.dataBase.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,10 @@ import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHtt
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 @RestController()
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
@@ -59,5 +63,39 @@ public class BaseSecureController {
             put("hasPrevious", page.hasPrevious());
             put("previousPage", page.hasPrevious() ? page.previousPageable().getPageNumber() : null);
         }};
+    }
+
+    protected HashMap<String, Object> getMapForBans(Page<PlayerBanEntity> page) {
+        HashMap<String, Object> map = getMapForPagination(page);
+        List<LinkedHashMap<String, Object>> contentList = new ArrayList<>();
+
+        page.getContent().forEach(ban -> contentList.add(
+                new LinkedHashMap<>() {{
+                    put("id", ban.getId());
+                    put("bannedPlayer", new HashMap<>() {{
+                        put("playerName", ban.getPlayer().getName());
+                        put("steamId", ban.getPlayer().getSteamId().toString());
+                    }});
+                    put("bannedBy", new HashMap<>() {{
+                        put("adminName", ban.getAdmin().getName());
+                        put("steamId", ban.getAdmin().getSteamId().toString());
+                    }});
+                    put("reason", ban.getReason());
+                    put("isUnbannedManual", ban.getIsUnbannedManually());
+                    put("unbannedManualBy",
+                            ban.getIsUnbannedManually() ?
+                                    new HashMap<>() {{
+                                        put("adminName", ban.getUnbannedAdmin().getName());
+                                        put("steamId", ban.getUnbannedAdmin().getSteamId().toString());
+                                    }}
+                                    : null
+                    );
+                    put("manualUnbannedTime", ban.getUnbannedTime());
+                    put("expirationTime", ban.getExpirationTime());
+                    put("creationTime", ban.getCreationTime());
+                }})
+        );
+        map.put("content", contentList);
+        return map;
     }
 }

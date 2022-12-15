@@ -1,6 +1,9 @@
 package com.woop.Squad4J.server.tailer;
 
 import com.example.adminpanelbackend.dataBase.EntityManager;
+import com.example.adminpanelbackend.dataBase.entity.PlayerBanEntity;
+import com.example.adminpanelbackend.discord.Discord;
+import com.example.adminpanelbackend.discord.DiscordMessageDTO;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
@@ -12,13 +15,15 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
-public class FtpBanService implements Runnable{
+public class FtpBanService implements Runnable {
     private final Logger LOGGER = LoggerFactory.getLogger(FtpBanService.class);
     private final String HOST = ConfigLoader.get("server.host", String.class);
     private final int PORT = ConfigLoader.get("server.ftp.port", Integer.class);
@@ -30,12 +35,14 @@ public class FtpBanService implements Runnable{
     private final long DELAY_IN_MILLIS = 60000;
     private volatile boolean run;
     public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+    private final Discord discord = new Discord();
 
     @Override
     public void run() {
         run = true;
         EntityManager entityManager = new EntityManager();
         FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
+        discord.init();
 
         while (run) {
             try {
@@ -54,6 +61,41 @@ public class FtpBanService implements Runnable{
                 rewriteFile(ftpClient, stringToWrite.toString());
                 LOGGER.info("FTP bans file updated");
                 lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+
+                List<PlayerBanEntity> activeNonPermanentBans = entityManager.getActiveNonPermanentBans();
+                if (activeNonPermanentBans == null || activeNonPermanentBans.isEmpty()) {
+                    discord.sendNoActiveBans();
+                } else {
+                    DiscordMessageDTO discordMessage = new DiscordMessageDTO();
+                    activeNonPermanentBans.forEach(playerBanEntity ->
+                        discordMessage.addEmbded(
+                                new DiscordMessageDTO.Embed()
+                                        .setTitle(playerBanEntity.getPlayer().getName() + " (" + playerBanEntity.getPlayer().getSteamId() + ")")
+                                        .setColor(15548997)
+                                        .setFields(
+                                                List.of(
+                                                        new DiscordMessageDTO.Field()
+                                                                .setName("Причина бана")
+                                                                .setValue(playerBanEntity.getReason()),
+                                                        new DiscordMessageDTO.InlineField()
+                                                                .setInline(true)
+                                                                .setName("Дата бана")
+                                                                .setValue(getBanCreationTime(playerBanEntity.getCreationTime())),
+                                                        new DiscordMessageDTO.InlineField()
+                                                                .setInline(true)
+                                                                .setName("Истечет")
+                                                                .setValue(getBanExpirationTime(playerBanEntity.getExpirationTime())),
+                                                        new DiscordMessageDTO.InlineField()
+                                                                .setInline(true)
+                                                                .setName("Админ")
+                                                                .setValue(playerBanEntity.getAdmin().getName())
+                                                )
+                                        )
+                        )
+                    );
+                    discord.actualizeBanMessage(discordMessage);
+                }
+
                 Thread.sleep(DELAY_IN_MILLIS);
             } catch (Exception e) {
                 LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);
@@ -62,6 +104,18 @@ public class FtpBanService implements Runnable{
         }
         closeFTPConnect(ftpClient);
         LOGGER.info("FTP connection closed");
+    }
+
+    private String getBanCreationTime(Timestamp timestamp) {
+        Date date = new Date(timestamp.getTime());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+        return sdf.format(date);
+    }
+
+    private String getBanExpirationTime(Timestamp timestamp) {
+        Date date = new Date(timestamp.getTime());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy в HH:mm");
+        return sdf.format(date);
     }
 
     public void stop() {
