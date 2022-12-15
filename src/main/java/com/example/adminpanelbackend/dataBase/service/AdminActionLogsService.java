@@ -20,4 +20,7 @@ public interface AdminActionLogsService extends JpaRepository<AdminActionLogEnti
             "AND a.createTime <= :dateTo")
     Page<AdminActionLogEntity> findAllByParams(String adminSteamId, String playerSteamId, List<String> actions, Timestamp dateFrom, Timestamp dateTo, Pageable pageable);
 
+    @Query(value = "SELECT a FROM AdminActionLogEntity a WHERE a.player.steamId = :playerSteamId")
+    Page<AdminActionLogEntity> findAllActionsWithPlayerByAdmin(long playerSteamId);
+
 }

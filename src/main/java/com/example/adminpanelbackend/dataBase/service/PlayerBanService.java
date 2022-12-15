@@ -19,6 +19,11 @@ public interface PlayerBanService extends JpaRepository<PlayerBanEntity, Integer
     @Query(value = "SELECT a FROM PlayerBanEntity a WHERE a.player.steamId = :playerSteamId")
     Page<PlayerBanEntity> findAllByPlayer(long playerSteamId, @NotNull Pageable pageable);
 
+    @Query(value = "SELECT a FROM PlayerBanEntity a WHERE " +
+            "CAST(a.player.steamId as string) LIKE %:playerSteamId% " +
+            "AND CAST(a.admin.steamId as string) LIKE %:adminSteamId% ")
+    Page<PlayerBanEntity> findAllBansByParams(String playerSteamId, String adminSteamId, @NotNull Pageable pageable);
+
     @Query(value = "SELECT a FROM PlayerBanEntity a WHERE a.isUnbannedManually = FALSE " +
             "AND a.expirationTime IS NOT NULL " +
             "AND a.expirationTime > CURRENT_TIMESTAMP " +

@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.util.*;
 
+import static com.example.adminpanelbackend.RoleEnum.ADMIN_LOG;
 import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -350,6 +351,26 @@ public class PlayerController extends BaseSecureController {
         map.put("content", contentList);
         return ResponseEntity.ok(map);
     }*/
+
+    @Role(role = BASE)
+    @PostMapping(path = "/get-all-bans-by-params")
+    public ResponseEntity<HashMap<String, Object>> getAllBansByParams(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam String adminSteamId,
+            @RequestParam String playerSteamId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (size > 100) {
+            return ResponseEntity.status(BAD_REQUEST).build();
+        }
+
+        Page<PlayerBanEntity> resultPage = playerBanService.findAllBansByParams(playerSteamId, adminSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
+        return ResponseEntity.ok(getMapForBans(resultPage));
+    }
 
     @Role(role = BASE)
     @PostMapping(path = "/get-active-bans-by-params")
