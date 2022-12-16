@@ -19,7 +19,7 @@ public class LoggerUtil {
         if(initialized)
             throw new IllegalStateException("This class is already initialized.");
 
-        //Get root logger
+        /*//Get root logger
         ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
 
         String loggerLevel = ConfigLoader.get("$.logging.level", String.class).toLowerCase();
@@ -42,7 +42,7 @@ public class LoggerUtil {
                 break;
             default:
                 root.setLevel(Level.INFO);
-        }
+        }*/
 
         initialized = true;
     }
