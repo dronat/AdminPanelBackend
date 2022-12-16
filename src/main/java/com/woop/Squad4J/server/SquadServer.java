@@ -44,7 +44,7 @@ public class SquadServer {
 
     private static List<Long> playersOnControl;
     private static List<Long> admins;
-    private static List<Long> adminsInGame;
+    private static List<Long> adminsInGame = new ArrayList<>();
     private static Collection<OnlinePlayer> adminsInAdminCam;
     private static Collection<OnlinePlayer> onlinePlayers;
     private static Collection<DisconnectedPlayer> disconnectedPlayers;
