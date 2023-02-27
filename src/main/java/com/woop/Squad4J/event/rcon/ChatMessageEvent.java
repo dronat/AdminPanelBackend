@@ -12,9 +12,8 @@ import java.util.Date;
 /**
  * Describes an event where a chat message is sent by a player.
  *
- * @see ChatMessageListener
- *
  * @author Robert Engle
+ * @see ChatMessageListener
  */
 @Getter
 @ToString
@@ -29,21 +28,22 @@ public class ChatMessageEvent extends Event {
     /**
      * Constructs a {@link ChatMessageEvent}.
      *
-     * @param date a {@link Date} corresponding to when this event occurred
-     * @param type the corresponding {@link EventType} for this event
-     * @param chatType the chat type of the event. Will be one of: <code>ChatAll</code>, <code>ChatTeam</code>,
-     *                 <code>ChatSquad</code>, or <code>ChatAdmin</code>
-     * @param steamId the steam64id of the player sending the chat message
+     * @param date       a {@link Date} corresponding to when this event occurred
+     * @param type       the corresponding {@link EventType} for this event
+     * @param chatType   the chat type of the event. Will be one of: <code>ChatAll</code>, <code>ChatTeam</code>,
+     *                   <code>ChatSquad</code>, or <code>ChatAdmin</code>
+     * @param steamId    the steam64id of the player sending the chat message
      * @param playerName the name of the player sending the chat message
-     * @param message the content of the message sent
+     * @param message    the content of the message sent
      */
-    public ChatMessageEvent(Date date, EventType type, String chatType, long steamId, String playerName, String message){
+    public ChatMessageEvent(Date date, EventType type, String chatType, long steamId, String playerName, String message) {
         super(date, type);
         this.chatType = chatType;
         this.steamId = steamId;
         this.playerName = playerName;
         this.message = message;
         time = new Timestamp(System.currentTimeMillis());
-        completeString = String.format(time + " [%s] %s: %s", chatType, playerName, message);;
+        completeString = String.format(time + " [%s] %s: %s", chatType, playerName, message);
+        ;
     }
 }

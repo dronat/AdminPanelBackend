@@ -2,7 +2,7 @@ package com.example.adminpanelbackend;
 
 public enum RoleEnum {
     ROLES_MANAGEMENT("Roles Management", "Добавление/удаление/редактирование/просмотр ролей"),
-    ADMINS_MANAGEMENT("Admins Management", "Добавление/удаление/редактирование/просмотр админов"),
+    ADMINS_MANAGEMENT("Admins Management", "Добавление/удаление/редактирование/просмотр админов, а так же загрузка файла с картами в бд"),
     ROTATION_MANAGEMENT("Rotation Management", "Добавление/удаление/редактирование/просмотр ротации"),
     RULES_MANAGEMENT("Rules Management", "Добавление/удаление/редактирование/просмотр правил"),
     ADMIN_LOG("Admin log access", "Просмотр лога действий администратора"),
@@ -13,7 +13,7 @@ public enum RoleEnum {
     public final String name;
     public final String description;
 
-    RoleEnum(String name, String description){
+    RoleEnum(String name, String description) {
         this.name = name;
         this.description = description;
     }

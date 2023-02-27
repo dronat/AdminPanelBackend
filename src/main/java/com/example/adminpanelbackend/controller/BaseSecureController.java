@@ -1,8 +1,9 @@
 package com.example.adminpanelbackend.controller;
 
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.PlayerBanEntity;
-import com.example.adminpanelbackend.dataBase.service.*;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.PlayerBanEntity;
+import com.example.adminpanelbackend.db.service.*;
+import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,8 @@ import java.util.List;
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 @CrossOrigin
 public class BaseSecureController {
+    public static final int SERVER_ID = ConfigLoader.get("server.id", Integer.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSecureController.class);
-
     EntityManager entityManager = new EntityManager();
     @Autowired
     PlayerService playerService;
@@ -49,6 +50,14 @@ public class BaseSecureController {
     RolesService rolesService;
     @Autowired
     RuleGroupService ruleGroupService;
+    @Autowired
+    MapService mapService;
+    @Autowired
+    VehicleService vehicleService;
+    @Autowired
+    RotationService rotationService;
+    @Autowired
+    ServersService serversService;
     @Autowired
     FindByIndexNameSessionRepository<? extends Session> sessions;
 

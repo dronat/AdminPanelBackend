@@ -4,7 +4,7 @@ import java.util.concurrent.*;
 
 /**
  * Class to provide global access to thread pool executors.
- *
+ * <p>
  * Some implementation from:
  * <a href="https://github.com/Javacord/Javacord/blob/master/javacord-core/src/main/java/org/javacord/core/util/concurrent/ThreadPoolImpl.java">Javacord ThreadPoolImpl</a>
  */
@@ -20,7 +20,7 @@ public class GlobalThreadPool {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(
             CORE_POOL_SIZE, new NamedThreadFactory("Squad4J - Central ScheduledExecutorService"));
 
-    private GlobalThreadPool(){
+    private GlobalThreadPool() {
         throw new IllegalStateException("Utility classes cannot be instantiated.");
     }
 

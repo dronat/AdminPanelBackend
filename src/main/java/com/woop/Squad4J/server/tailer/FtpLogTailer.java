@@ -17,8 +17,8 @@ import java.util.List;
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
 public class FtpLogTailer implements Runnable {
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
     private final Logger LOGGER = LoggerFactory.getLogger(FtpLogTailer.class);
-
     private final TailerListener TAILER_LISTENER;
     private final String HOST;
     private final int PORT;
@@ -31,7 +31,6 @@ public class FtpLogTailer implements Runnable {
     private long lastByteRead = 0;
     private String lastRowRead;
     private volatile boolean run;
-    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
 
     public FtpLogTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
@@ -86,7 +85,7 @@ public class FtpLogTailer implements Runnable {
         try {
             ftpClient.connect(addr, port);
         } catch (Exception e) {
-            LOGGER.error("Exception while connecting to FTP " + addr + port, e);
+            LOGGER.error("Exception while connecting to FTP " + addr + ":" + port, e);
             throw new RuntimeException(e);
         }
 

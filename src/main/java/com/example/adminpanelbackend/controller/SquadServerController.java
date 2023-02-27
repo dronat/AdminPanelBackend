@@ -1,12 +1,12 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.Role;
-import com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
-import com.example.adminpanelbackend.dataBase.entity.LayerHistoryEntity;
+import com.example.adminpanelbackend.db.entity.AdminActionLogEntity;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.LayerHistoryEntity;
+import com.woop.Squad4J.dto.rcon.DisconnectedPlayer;
+import com.woop.Squad4J.dto.rcon.OnlineInfo;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
-import com.woop.Squad4J.model.DisconnectedPlayer;
-import com.woop.Squad4J.model.OnlineInfo;
 import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.RconUpdater;
 import com.woop.Squad4J.server.SquadServer;
@@ -106,7 +106,7 @@ public class SquadServerController extends BaseSecureController {
 
     @Role(role = BASE)
     @PostMapping(path = "/get-layers-history")
-    public ResponseEntity<HashMap<String, Object>> getLayershistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<HashMap<String, Object>> getLayersHistory(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam int page, @RequestParam int size) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();

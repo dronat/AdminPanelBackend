@@ -1,6 +1,6 @@
 package com.example.adminpanelbackend.model;
 
-import com.example.adminpanelbackend.dataBase.entity.RuleGroupEntity;
+import com.example.adminpanelbackend.db.entity.RuleGroupEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

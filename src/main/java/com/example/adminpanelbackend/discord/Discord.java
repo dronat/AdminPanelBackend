@@ -1,7 +1,7 @@
 package com.example.adminpanelbackend.discord;
 
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.DiscordMessageIdEntity;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.DiscordMessageIdEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.woop.Squad4J.util.ConfigLoader;
@@ -21,11 +21,10 @@ public class Discord {
     private final String url = ConfigLoader.get("server.discordUrl", String.class);
     private final RestTemplate restTemplate = new RestTemplate();
     private final String noBansJson = "{\"content\": null,\"embeds\": [{\"title\": \"Активные баны отсутствуют\",\"color\": 15548997}],\"attachments\": []}";
+    private final ObjectMapper serializer = new ObjectMapper();
     private boolean init = false;
     private HashMap<String, String> sentMessages;
     private EntityManager entityManager;
-    private final ObjectMapper serializer = new ObjectMapper();
-
 
     public void init() {
         if (init) {
@@ -38,6 +37,7 @@ public class Discord {
             result.forEach(discordMessage -> sentMessages.put(discordMessage.getMessageId(), discordMessage.getTitle()));
         }
         init = true;
+        LOGGER.info("Discord module was initialized");
     }
 
     public void actualizeBanMessage(DiscordMessageDTO dto) {
@@ -65,6 +65,7 @@ public class Discord {
                 it.remove();
             }
         }
+        LOGGER.info("Discord messages were updated");
     }
 
     private void sendNewMessage(String jsonBody, String title) {
@@ -114,7 +115,7 @@ public class Discord {
             }
             ResponseEntity<DiscordMessageResponse> response = restTemplate.postForEntity(url + "?wait=true", getHttpEntityWithJsonBody(noBansJson), DiscordMessageResponse.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                LOGGER.info("Discord message sent");
+                LOGGER.info("Discord message with empty bans was sent");
             } else {
                 LOGGER.error("Can't init discord module");
                 throw new RuntimeException("Discord response status not 2xx");

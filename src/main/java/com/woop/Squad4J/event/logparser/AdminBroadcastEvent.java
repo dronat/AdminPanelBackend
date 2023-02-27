@@ -12,9 +12,8 @@ import java.util.Date;
  * Describes an event where an admin broadcasts a message. An {@link AdminBroadcastEvent} contains the message
  * and the name of the broadcast sender.
  *
- * @see AdminBroadcastListener
- *
  * @author Robert Engle
+ * @see AdminBroadcastListener
  */
 @Getter
 @ToString
@@ -25,13 +24,13 @@ public class AdminBroadcastEvent extends Event {
     /**
      * Constructs an {@link AdminBroadcastEvent}.
      *
-     * @param date the {@link Date} representing when the event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date    the {@link Date} representing when the event occurred
+     * @param type    the corresponding {@link EventType} for this event
      * @param chainID the chain ID of this event
      * @param message the message that was broadcasted
-     * @param from the name of the admin who broadcasted the message
+     * @param from    the name of the admin who broadcasted the message
      */
-    public AdminBroadcastEvent(Date date, EventType type, Integer chainID, String message, String from){
+    public AdminBroadcastEvent(Date date, EventType type, Integer chainID, String message, String from) {
         super(date, type, chainID);
         this.message = message;
         this.from = from;

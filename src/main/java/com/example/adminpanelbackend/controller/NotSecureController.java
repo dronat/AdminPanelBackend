@@ -2,10 +2,10 @@ package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.SteamOpenID;
 import com.example.adminpanelbackend.SteamService;
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
-import com.example.adminpanelbackend.dataBase.entity.RoleGroupEntity;
-import com.example.adminpanelbackend.dataBase.service.AdminService;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.RoleGroupEntity;
+import com.example.adminpanelbackend.db.service.AdminService;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
 import org.slf4j.Logger;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Arrays;
 import java.util.HashMap;
 
 @RestController()
@@ -80,18 +79,18 @@ public class NotSecureController {
 
     /*@GetMapping(path = "/verify-steam-return")
     public ResponseEntity<Void> verifySteame(@RequestParam("openid.return_to") String return_to,
-                                                                @RequestParam("openid.identity") String identity,
-                                                                @RequestParam("openid.op_endpoint") String op_endpoint,
-                                                                @RequestParam("openid.assoc_handle") String assoc_handle,
-                                                                @RequestParam("openid.mode") String mode,
-                                                                @RequestParam("openid.signed") String signed,
-                                                                @RequestParam("openid.sig") String sig,
-                                                                @RequestParam("openid.claimed_id") String claimed_id,
-                                                                @RequestParam("openid.response_nonce") String response_nonce,
-                                                                @RequestParam("openid.ns") String ns,
-                                                                HttpSession httpSession,
-                                                                HttpServletRequest request,
-                                                                HttpServletResponse response) {
+                                             @RequestParam("openid.identity") String identity,
+                                             @RequestParam("openid.op_endpoint") String op_endpoint,
+                                             @RequestParam("openid.assoc_handle") String assoc_handle,
+                                             @RequestParam("openid.mode") String mode,
+                                             @RequestParam("openid.signed") String signed,
+                                             @RequestParam("openid.sig") String sig,
+                                             @RequestParam("openid.claimed_id") String claimed_id,
+                                             @RequestParam("openid.response_nonce") String response_nonce,
+                                             @RequestParam("openid.ns") String ns,
+                                             HttpSession httpSession,
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
         LOGGER.debug("Received unsecured GET request on '" + request.getRequestURL() + "'");
         VerifySteamModel verifySteamModel = new VerifySteamModel()
                 .setCallbackURL(return_to)

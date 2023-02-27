@@ -11,9 +11,8 @@ import java.util.Date;
 /**
  * Describes an event where an admin unpossesses the admin cam.
  *
- * @see LeftFromAdminCameraListener
- *
  * @author Robert Engle
+ * @see LeftFromAdminCameraListener
  */
 @Getter
 @ToString
@@ -24,12 +23,12 @@ public class LeftFromAdminCameraEvent extends Event {
     /**
      * Constructs a {@link LeftFromAdminCameraEvent}.
      *
-     * @param date a {@link Date} corresponding to when this event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date    a {@link Date} corresponding to when this event occurred
+     * @param type    the corresponding {@link EventType} for this event
      * @param steamId the steam64id of the admin who exited admin cam
-     * @param name the name of the admin who exited admin cam
+     * @param name    the name of the admin who exited admin cam
      */
-    public LeftFromAdminCameraEvent(Date date, EventType type, long steamId, String name){
+    public LeftFromAdminCameraEvent(Date date, EventType type, long steamId, String name) {
         super(date, type);
         this.steamId = steamId;
         this.name = name;

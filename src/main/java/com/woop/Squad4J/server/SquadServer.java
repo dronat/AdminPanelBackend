@@ -1,17 +1,19 @@
 package com.woop.Squad4J.server;
 
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.MapEntity;
+import com.example.adminpanelbackend.db.entity.PlayerEntity;
+import com.example.adminpanelbackend.db.entity.ServersEntity;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.ibasco.agql.protocols.valve.source.query.info.SourceServer;
 import com.jayway.jsonpath.JsonPathException;
+import com.woop.Squad4J.dto.rcon.*;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
 import com.woop.Squad4J.event.logparser.*;
 import com.woop.Squad4J.event.rcon.*;
-import com.woop.Squad4J.model.*;
 import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.util.ConfigLoader;
 import lombok.Getter;
@@ -32,16 +34,10 @@ import java.util.stream.Collectors;
  */
 public class SquadServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SquadServer.class);
-
-    private static boolean initialized = false;
-
     private static final EntityManager entityManager = new EntityManager();
-
-    @Getter
-    private static Integer id;
-
+    private static final int SERVER_ID = ConfigLoader.get("server.id", Integer.class);
     private static final BiMap<String, Long> nameSteamIds = HashBiMap.create();
-
+    private static boolean initialized = false;
     private static List<Long> playersOnControl;
     private static List<Long> admins;
     private static List<Long> adminsInGame = new ArrayList<>();
@@ -52,8 +48,11 @@ public class SquadServer {
     private static Collection<Team> teams;
     private static Collection<ChatMessageEvent> chatMessages = new LinkedList<>();
 
+    private static MapEntity currentMapEntity;
     @Getter
     private static String currentLayer;
+    @Getter
+    private static String lastKnownLayer;
     @Getter
     private static String teamOneName;
     @Getter
@@ -105,7 +104,7 @@ public class SquadServer {
         if (initialized)
             throw new IllegalStateException("This class is already initialized.");
         entityManager.initRole();
-        id = ConfigLoader.get("server.id", Integer.class);
+
         String sourceRef = null;
         //TODO: Improve admin reading to take union all permissions for UNIQUE ADMINS across all files. Currently, this logic actually sucks
         try {
@@ -147,6 +146,27 @@ public class SquadServer {
             }*/
 
             //Update A2S and RCON information first so Squad server has attributes for them in memory
+            ServersEntity serverEntity = entityManager.getServerById(SERVER_ID);
+            if (serverEntity == null) {
+                entityManager.update(
+                        new ServersEntity()
+                                .setId(SERVER_ID)
+                                .setShortName(ConfigLoader.get("server.name", String.class))
+                );
+            } else {
+                entityManager.update(serverEntity.setShortName(ConfigLoader.get("server.name", String.class)));
+            }
+            Runnable runnable = () -> {
+                ServersEntity tmpServerEntity = entityManager.getServerById(SERVER_ID);
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                entityManager.update(Objects.requireNonNull(tmpServerEntity).setFullName(serverName));
+            };
+            new Thread(runnable).start();
+
             playersOnControl = entityManager.getPlayersOnControl();
             admins = entityManager.getActiveAdminsSteamId();
             RconUpdater.updateRcon();
@@ -174,6 +194,10 @@ public class SquadServer {
             //Initialize service to update A2S and RCON information every 30 seconds.
             A2SUpdater.init();
             RconUpdater.init();
+            currentMapEntity = entityManager.getMapByOneOfNames(currentLayer);
+            lastKnownLayer = currentLayer;
+
+
         } catch (JsonPathException jsexp) {
             LOGGER.error("Error reading admin list configuration.", jsexp);
         }
@@ -236,7 +260,6 @@ public class SquadServer {
                 NewGameEvent newGameEvent = (NewGameEvent) ev;
                 entityManager.addLayer(newGameEvent.getLayerName());
                 maxTickRate = newGameEvent.getMaxTickRate();
-                currentLayer = newGameEvent.getLayerName();
                 A2SUpdater.updateA2S();
                 RconUpdater.updateRcon();
                 if (currentLayer.toLowerCase().contains("raas")) {
@@ -323,10 +346,11 @@ public class SquadServer {
                 ChatMessageEvent cme = (ChatMessageEvent) ev;
                 chatMessages.add(cme);
                 if (cme.getMessage().toLowerCase().contains("!report")) {
-                    String msg = " Репорт от " + cme.getPlayerName() + ": " + cme.getMessage().toLowerCase().replace("!report", "").trim();;
+                    String msg = " Репорт от " + cme.getPlayerName() + ": " + cme.getMessage().toLowerCase().replace("!report", "").trim();
+                    ;
                     new Thread(() ->
                             adminsInGame.forEach(adminSteamId ->
-                                Rcon.command("AdminWarn " + adminSteamId + msg)
+                                    Rcon.command("AdminWarn " + adminSteamId + msg)
                             )
                     ).start();
                 }
@@ -337,6 +361,21 @@ public class SquadServer {
                 LOGGER.trace("Updating SquadServer for LAYERINFO_UPDATED");
                 currentMap = ((LayerInfoUpdatedEvent) ev).getCurrentMap();
                 currentLayer = ((LayerInfoUpdatedEvent) ev).getCurrentLayer();
+                if (!currentLayer.equals(lastKnownLayer)) {
+                    currentMapEntity = entityManager.getMapByOneOfNames(currentLayer);
+                    entityManager.update(currentMapEntity.setNumOfGames(currentMapEntity.getNumOfGames() + 1));
+                    lastKnownLayer = currentLayer;
+                    if (RotationListener.isRotationHaveMaps()) {
+                        String map = RotationListener.incrementNextMapAndGet();
+                        LOGGER.info("Setting next map by rotation: " + map);
+                        String response = Rcon.command("AdminSetNextLayer " + map);
+                        if (response == null || response.isEmpty()) {
+                            LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
+                            LOGGER.error("RCON RESPONSE: " + response);
+                        }
+                        LOGGER.info("Next map '" + map + "' was set");
+                    }
+                }
                 nextMap = ((LayerInfoUpdatedEvent) ev).getNextMap();
                 nextLayer = ((LayerInfoUpdatedEvent) ev).getNextLayer();
                 LOGGER.trace("Done updating SquadServer for LAYERINFO_UPDATED");

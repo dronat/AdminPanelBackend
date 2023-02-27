@@ -11,7 +11,6 @@ import java.io.File;
 
 public class TailerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TailerService.class);
-    private static boolean initialized = false;
     private static final String FTP_HOST = ConfigLoader.get("server.host", String.class);
     private static final int FTP_PORT = ConfigLoader.get("server.ftp.port", Integer.class);
     private static final String FTP_USER = ConfigLoader.get("server.ftp.user", String.class);
@@ -19,6 +18,7 @@ public class TailerService {
     private static final String FTP_LOG_ABSOLUTE_PATH = ConfigLoader.get("server.logAbsolutePath", String.class);
     private static final String FTP_ENCODING = "ISO-8859-1";
     private static final String FILE_NAME = "SquadGame.log";
+    private static boolean initialized = false;
 
     private TailerService() {
         throw new IllegalStateException("This class cannot be instantiated.");

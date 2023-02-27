@@ -10,7 +10,7 @@ import org.springframework.boot.context.ApplicationPidFileWriter;
 
 import java.util.HashMap;
 
-@SpringBootApplication(exclude = { UserDetailsServiceAutoConfiguration.class })
+@SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
 public class AdminPanelBackendApplication {
 
     public static void main(String[] args) {

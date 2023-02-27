@@ -19,13 +19,13 @@ public class NewQueryImpl {
     private final String HOST;
     private final Integer PORT;
     private final int TIMEOUT;
-    private SourceQueryClient queryClient;
-    private InetSocketAddress address;
     private final SourceQueryOptions options = SourceQueryOptions.builder()
             .option(GeneralOptions.CONNECTION_POOLING, true)
             .option(GeneralOptions.POOL_MAX_CONNECTIONS, 1)
             .option(GeneralOptions.POOL_TYPE, ChannelPoolType.FIXED)
             .build();
+    private SourceQueryClient queryClient;
+    private InetSocketAddress address;
 
     public NewQueryImpl(String host, Integer port, int timout) {
         PORT = port;
@@ -60,7 +60,8 @@ public class NewQueryImpl {
         disconnect();
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException ignored) {}
+        } catch (InterruptedException ignored) {
+        }
         init();
         LOGGER.info("Query reconnected successfully");
     }

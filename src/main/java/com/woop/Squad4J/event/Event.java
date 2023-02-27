@@ -11,10 +11,10 @@ import java.util.Optional;
 
 /**
  * @author Robert Engle
- *
- *
+ * <p>
+ * <p>
  * An abstract class defining an event that can occur.
- *
+ * <p>
  * Events that occur from the log parser have a date/time, type, and chain ID. Events that occur from anywhere else
  * do not have a chain ID.
  */
@@ -31,11 +31,11 @@ public abstract class Event {
     /**
      * Constructor for events that occur from the log parser, where a chain ID is present.
      *
-     * @param date the date and time the event occurred
-     * @param type the type of event, outlined by {@link EventType}
+     * @param date    the date and time the event occurred
+     * @param type    the type of event, outlined by {@link EventType}
      * @param chainID the chain ID of the event
      */
-    protected Event(Date date, EventType type, @Nullable Integer chainID){
+    protected Event(Date date, EventType type, @Nullable Integer chainID) {
         this.time = date;
         this.type = type;
         this.chainID = chainID;
@@ -47,7 +47,7 @@ public abstract class Event {
      * @param date the date and time the event occurred
      * @param type the type of event, outlined by {@link EventType}
      */
-    protected Event(Date date, EventType type){
+    protected Event(Date date, EventType type) {
         this.time = date;
         this.type = type;
         this.chainID = null;

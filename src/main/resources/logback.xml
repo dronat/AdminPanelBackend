@@ -1,6 +1,7 @@
 <configuration>
     !-- custom coloring conversion -->
-    <conversionRule conversionWord="highlightex" converterClass="com.woop.Squad4J.util.logger.HighlightingCompositeConverterEx" />
+    <conversionRule conversionWord="highlightex"
+                    converterClass="com.woop.Squad4J.util.logger.HighlightingCompositeConverterEx"/>
 
     <appender name="STDOUT_info" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>true</withJansi>
@@ -40,9 +41,9 @@
 
 
     <root level="info">
-        <appender-ref ref="FILEOUT_warnings" />
-        <appender-ref ref="STDOUT_info" />
-        <appender-ref ref="FILEOUT_info" />
+        <appender-ref ref="FILEOUT_warnings"/>
+        <appender-ref ref="STDOUT_info"/>
+        <appender-ref ref="FILEOUT_info"/>
     </root>
 
 </configuration>

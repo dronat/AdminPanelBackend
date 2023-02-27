@@ -11,19 +11,18 @@ import java.sql.Timestamp;
 
 /**
  * @author Robert Engle
- *
+ * <p>
  * Singleton wrapper for QueryImpl
  */
 public class Query {
     private static final Logger LOGGER = LoggerFactory.getLogger(Query.class);
-
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
     //private static QueryImpl queryImpl;
     private static NewQueryImpl newQueryImpl;
     private static boolean initialized = false;
-    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
 
 
-    private Query(){
+    private Query() {
         throw new UnsupportedOperationException("You cannot instantiate this class.");
     }
     
@@ -44,9 +43,9 @@ public class Query {
         initialized = true;
     }*/
 
-    public static void init(){
+    public static void init() {
         //Dont allow re-initialization
-        if(initialized)
+        if (initialized)
             throw new IllegalStateException(Query.class.getSimpleName() + " has already been initialized.");
 
         LOGGER.info("Starting query service.");
@@ -63,7 +62,7 @@ public class Query {
         return new A2SCombinedResponse(info, rules);
     }*/
 
-    public static A2SCombinedResponse queryBoth(){
+    public static A2SCombinedResponse queryBoth() {
         SourceQueryInfoResponse info = newQueryImpl.getQueryInfo();
         SourceQueryRulesResponse rules = newQueryImpl.getQueryRules();
         LOGGER.info("Query updated");

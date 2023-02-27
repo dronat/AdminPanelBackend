@@ -17,12 +17,12 @@ public class A2SUpdater {
 
     private static boolean initialized = false;
 
-    private A2SUpdater(){
+    private A2SUpdater() {
         throw new IllegalStateException("This class cannot be instantiated.");
     }
 
-    public static void init(){
-        if(initialized)
+    public static void init() {
+        if (initialized)
             throw new IllegalStateException(A2SUpdater.class.getSimpleName() + " has already been initialized.");
 
         GlobalThreadPool.getScheduler().scheduleWithFixedDelay(A2SUpdater::updateA2S, 5, 2, TimeUnit.SECONDS);
@@ -32,7 +32,7 @@ public class A2SUpdater {
         LOGGER.info("Query service initialized.");
     }
 
-    protected static void updateA2S(){
+    protected static void updateA2S() {
         LOGGER.trace("Retrieving A2S info");
         A2SCombinedResponse response = Query.queryBoth();
 

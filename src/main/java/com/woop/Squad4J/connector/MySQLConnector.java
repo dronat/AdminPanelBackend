@@ -12,12 +12,10 @@ import java.text.SimpleDateFormat;
  */
 public class MySQLConnector extends Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(MySQLConnector.class);
-
-    private static Connection conn;
-    private static Statement statement;
-
     private static final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
     private static final Integer serverID = ConfigLoader.get("server.id", Integer.class);
+    private static Connection conn;
+    private static Statement statement;
 
     private MySQLConnector() {
         super("mysql");
@@ -122,6 +120,11 @@ public class MySQLConnector extends Connector {
             createSpringSessions();
         }
         try {
+            statement.executeQuery("SELECT COUNT(*) FROM servers");
+        } catch (SQLException e) {
+            createServers();
+        }
+        try {
             statement.executeQuery("SELECT COUNT(*) FROM admins");
         } catch (SQLException e) {
             createAdmin();
@@ -190,6 +193,31 @@ public class MySQLConnector extends Connector {
             statement.executeQuery("SELECT COUNT(*) FROM discord_messages_id");
         } catch (SQLException e) {
             createDiscordMessagesId();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM map_team");
+        } catch (SQLException e) {
+            createMapTeam();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM map");
+        } catch (SQLException e) {
+            createMap();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM map_team_vehicle");
+        } catch (SQLException e) {
+            createMapTeamVehicle();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM map_team_vehicles");
+        } catch (SQLException e) {
+            createMapTeamVehicles();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM rotation");
+        } catch (SQLException e) {
+            createRotation();
         }
     }
 
@@ -366,11 +394,13 @@ public class MySQLConnector extends Connector {
         LOGGER.info("Creating table Admin_Action_Log");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS admins_action_log (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "serverId INT NOT NULL, " +
                 "admin BIGINT NOT NULL, " +
                 "player BIGINT NULL," +
                 "action VARCHAR(100) NOT NULL, " +
                 "reason VARCHAR(255) NULL, " +
                 "createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
+                "CONSTRAINT logServerId FOREIGN KEY (serverId) REFERENCES servers (id)," +
                 "CONSTRAINT logAdminId FOREIGN KEY (admin) REFERENCES admins (steamId)," +
                 "CONSTRAINT logPlayerId FOREIGN KEY (player) REFERENCES players (steamId));");
     }
@@ -417,10 +447,12 @@ public class MySQLConnector extends Connector {
         LOGGER.info("Creating table Players_Messages");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS players_messages (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "serverId INT NOT NULL," +
                 "player BIGINT NOT NULL," +
                 "chatType VARCHAR(16) NOT NULL," +
                 "message VARCHAR(255) NOT NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
+                "CONSTRAINT messagesServerId FOREIGN KEY (serverId) REFERENCES servers (id)," +
                 "CONSTRAINT messagesSteamId FOREIGN KEY (player) REFERENCES players (steamId));");
     }
 
@@ -440,8 +472,11 @@ public class MySQLConnector extends Connector {
         LOGGER.info("Creating table layers_history");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS layers_history (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY," +
+                "serverId INT NOT NULL," +
                 "layer VARCHAR(255) NOT NULL," +
-                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)");
+                "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
+                "CONSTRAINT layersHistoryServerId FOREIGN KEY (serverId) REFERENCES servers (id) ON DELETE CASCADE," +
+                "CONSTRAINT layers_history_map_rawName_fk FOREIGN KEY (layer) REFERENCES map (rawName) ON DELETE CASCADE)");
     }
 
     private static void createRuleGroups() throws SQLException {
@@ -493,6 +528,74 @@ public class MySQLConnector extends Connector {
                 "role INT NOT NULL," +
                 "CONSTRAINT role_fk FOREIGN KEY (role) REFERENCES role (id) ON DELETE CASCADE, " +
                 "CONSTRAINT role_group_fk FOREIGN KEY (roleGroup) REFERENCES role_group (id) ON DELETE CASCADE);");
+    }
+
+    private static void createServers() throws SQLException {
+        LOGGER.info("Creating table servers");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS roles (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "fullName VARCHAR(255) NULL, " +
+                "shortName VARCHAR(255) NOT NULL);");
+    }
+
+    private static void createMapTeam() throws SQLException {
+        LOGGER.info("Creating table map_team");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS map_team (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "faction VARCHAR(255) NOT NULL, " +
+                "teamSetupName VARCHAR(255) NOT NULL, " +
+                "tickets VARCHAR(255) NOT NULL);");
+    }
+
+    private static void createMap() throws SQLException {
+        LOGGER.info("Creating table map");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS map_team (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "name VARCHAR(255) NOT NULL, " +
+                "rawName VARCHAR(255) NOT NULL, " +
+                "levelName VARCHAR(255) NOT NULL, " +
+                "lighting VARCHAR(255) NOT NULL, " +
+                "teamOne INT NOT NULL, " +
+                "teamTwo INT NOT NULL, " +
+                "mapName VARCHAR(255) NOT NULL, " +
+                "gameMove VARCHAR(255) NOT NULL, " +
+                "layerVersion VARCHAR(255) NOT NULL, " +
+                "mapSize VARCHAR(255) NOT NULL, " +
+                "numOfGames INT NOT NULL DEFAULT 0," +
+                "CONSTRAINT map_team_one_fk FOREIGN KEY (teamOne) REFERENCES map_team (id) ON DELETE CASCADE," +
+                "CONSTRAINT map_team_two_fk FOREIGN KEY (teamTwo) REFERENCES map_team (id) ON DELETE CASCADE);");
+        statement.executeUpdate("CREATE INDEX map_rawName_index ON map (rawName)");
+    }
+
+    private static void createMapTeamVehicle() throws SQLException {
+        LOGGER.info("Creating table map_team_vehicle");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS map_team_vehicle (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "type VARCHAR(255) NOT NULL, " +
+                "count INT NOT NULL, " +
+                "delay INT NOT NULL, " +
+                "respawnTime INT NOT NULL, " +
+                "rawType VARCHAR(255) NOT NULL, " +
+                "icon VARCHAR(255) NOT NULL, " +
+                "spawnerSize VARCHAR(255) NOT NULL);");
+    }
+
+    private static void createMapTeamVehicles() throws SQLException {
+        LOGGER.info("Creating table map_team_vehicles");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS map_team_vehicles (" +
+                "team INT PRIMARY KEY, " +
+                "vehicle INT PRIMARY KEY," +
+                "CONSTRAINT map_team_fk FOREIGN KEY (team) REFERENCES map_team (id) ON DELETE CASCADE," +
+                "CONSTRAINT map_vehicle_fk FOREIGN KEY (vehicle) REFERENCES map_team_vehicle (id) ON DELETE CASCADE);");
+    }
+
+    private static void createRotation() throws SQLException {
+        LOGGER.info("Creating table rotation");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS rotation (" +
+                "team INT PRIMARY KEY, " +
+                "vehicle INT PRIMARY KEY," +
+                "CONSTRAINT map_team_fk FOREIGN KEY (team) REFERENCES map_team (id) ON DELETE CASCADE," +
+                "CONSTRAINT map_vehicle_fk FOREIGN KEY (vehicle) REFERENCES map_team_vehicle (id) ON DELETE CASCADE);");
     }
 
     public static void createSpringSessions() throws SQLException {

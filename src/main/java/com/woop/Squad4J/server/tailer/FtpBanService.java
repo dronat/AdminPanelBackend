@@ -1,7 +1,7 @@
 package com.woop.Squad4J.server.tailer;
 
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.PlayerBanEntity;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.PlayerBanEntity;
 import com.example.adminpanelbackend.discord.Discord;
 import com.example.adminpanelbackend.discord.DiscordMessageDTO;
 import com.woop.Squad4J.util.ConfigLoader;
@@ -24,6 +24,7 @@ import java.util.List;
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
 public class FtpBanService implements Runnable {
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
     private final Logger LOGGER = LoggerFactory.getLogger(FtpBanService.class);
     private final String HOST = ConfigLoader.get("server.host", String.class);
     private final int PORT = ConfigLoader.get("server.ftp.port", Integer.class);
@@ -33,9 +34,8 @@ public class FtpBanService implements Runnable {
     private final String ENCODING = "UTF-8";
     private final String FILE_NAME = "Bans_test.cfg";
     private final long DELAY_IN_MILLIS = 60000;
-    private volatile boolean run;
-    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
     private final Discord discord = new Discord();
+    private volatile boolean run;
 
     @Override
     public void run() {
@@ -68,30 +68,30 @@ public class FtpBanService implements Runnable {
                 } else {
                     DiscordMessageDTO discordMessage = new DiscordMessageDTO();
                     activeNonPermanentBans.forEach(playerBanEntity ->
-                        discordMessage.addEmbded(
-                                new DiscordMessageDTO.Embed()
-                                        .setTitle(playerBanEntity.getPlayer().getName() + " (" + playerBanEntity.getPlayer().getSteamId() + ")")
-                                        .setColor(15548997)
-                                        .setFields(
-                                                List.of(
-                                                        new DiscordMessageDTO.Field()
-                                                                .setName("Причина бана")
-                                                                .setValue(playerBanEntity.getReason()),
-                                                        new DiscordMessageDTO.InlineField()
-                                                                .setInline(true)
-                                                                .setName("Дата бана")
-                                                                .setValue(getBanCreationTime(playerBanEntity.getCreationTime())),
-                                                        new DiscordMessageDTO.InlineField()
-                                                                .setInline(true)
-                                                                .setName("Истечет")
-                                                                .setValue(getBanExpirationTime(playerBanEntity.getExpirationTime())),
-                                                        new DiscordMessageDTO.InlineField()
-                                                                .setInline(true)
-                                                                .setName("Админ")
-                                                                .setValue(playerBanEntity.getAdmin().getName())
-                                                )
-                                        )
-                        )
+                            discordMessage.addEmbded(
+                                    new DiscordMessageDTO.Embed()
+                                            .setTitle(playerBanEntity.getPlayer().getName() + " (" + playerBanEntity.getPlayer().getSteamId() + ")")
+                                            .setColor(15548997)
+                                            .setFields(
+                                                    List.of(
+                                                            new DiscordMessageDTO.Field()
+                                                                    .setName("Причина бана")
+                                                                    .setValue(playerBanEntity.getReason()),
+                                                            new DiscordMessageDTO.InlineField()
+                                                                    .setInline(true)
+                                                                    .setName("Дата бана")
+                                                                    .setValue(getBanCreationTime(playerBanEntity.getCreationTime())),
+                                                            new DiscordMessageDTO.InlineField()
+                                                                    .setInline(true)
+                                                                    .setName("Истечет")
+                                                                    .setValue(getBanExpirationTime(playerBanEntity.getExpirationTime())),
+                                                            new DiscordMessageDTO.InlineField()
+                                                                    .setInline(true)
+                                                                    .setName("Админ")
+                                                                    .setValue(playerBanEntity.getAdmin().getName())
+                                                    )
+                                            )
+                            )
                     );
                     discord.actualizeBanMessage(discordMessage);
                 }

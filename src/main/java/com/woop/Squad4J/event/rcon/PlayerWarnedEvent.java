@@ -11,9 +11,8 @@ import java.util.Date;
 /**
  * Describes an event where a player is warned.
  *
- * @see PlayerWarnedListener
- *
  * @author Robert Engle
+ * @see PlayerWarnedListener
  */
 @Getter
 @ToString
@@ -24,12 +23,12 @@ public class PlayerWarnedEvent extends Event {
     /**
      * Constructs a {@link PlayerWarnedEvent}
      *
-     * @param date a {@link Date} corresponding to when this event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date       a {@link Date} corresponding to when this event occurred
+     * @param type       the corresponding {@link EventType} for this event
      * @param playerName the name of the player that was warned
-     * @param message the message content of the warning
+     * @param message    the message content of the warning
      */
-    public PlayerWarnedEvent(Date date, EventType type, String playerName, String message){
+    public PlayerWarnedEvent(Date date, EventType type, String playerName, String message) {
         super(date, type);
         this.playerName = playerName;
         this.message = message;

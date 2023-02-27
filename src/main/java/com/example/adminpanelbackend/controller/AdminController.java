@@ -1,10 +1,10 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.Role;
-import com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
-import com.example.adminpanelbackend.dataBase.entity.PlayerEntity;
-import com.woop.Squad4J.model.OnlineInfo;
+import com.example.adminpanelbackend.db.entity.AdminActionLogEntity;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.PlayerEntity;
+import com.woop.Squad4J.dto.rcon.OnlineInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;

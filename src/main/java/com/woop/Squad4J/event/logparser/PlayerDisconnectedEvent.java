@@ -11,9 +11,8 @@ import java.util.Date;
 /**
  * Describes an event where a player disconnects from the server.
  *
- * @see PlayerDisconnectedListener
- *
  * @author Robert Engle
+ * @see PlayerDisconnectedListener
  */
 @Getter
 @ToString
@@ -23,12 +22,12 @@ public class PlayerDisconnectedEvent extends Event {
     /**
      * Constructs a {@link PlayerDisconnectedEvent}.
      *
-     * @param date a {@link Date} representing when the event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date    a {@link Date} representing when the event occurred
+     * @param type    the corresponding {@link EventType} for this event
      * @param chainID the chain ID of this event
      * @param steamId the Steam64ID of the player who disconnected
      */
-    public PlayerDisconnectedEvent(Date date, EventType type, Integer chainID, long steamId){
+    public PlayerDisconnectedEvent(Date date, EventType type, Integer chainID, long steamId) {
         super(date, type, chainID);
         this.steamId = steamId;
     }

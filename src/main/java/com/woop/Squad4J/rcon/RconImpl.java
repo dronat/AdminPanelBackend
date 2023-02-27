@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * Class which interfaces with the RCON server, constructing and sending RCON packets as necessary.
  *
  * <a href=https://github.com/roengle/SimpleRcon>SimpleRcon implementation</a>
- *
+ * <p>
  * Source RCON Protocol:
  * <a href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Source RCON Protocol Documentation</a>
  *
@@ -34,35 +34,28 @@ import java.util.function.Consumer;
 
 //TODO: Improve implementation for slower connections
 public class RconImpl {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RconImpl.class);
-
-    private final String host;
-    private final Integer port;
-    private final byte[] password;
-
-    private final Object sync = new Object();
-    private final Random rand = new Random();
-
-    private Socket socket;
-
-    private int requestId;
-
-    private volatile Queue<RconPacket> commandResponsePackets = new LinkedList<>();
-
-    private final List<Consumer<RconPacket>> onPacketConsumers = new ArrayList<>();
-
     public static final int SERVERDATA_RESPONSE_VALUE = 0;
     //This one isn't technically defined in Source RCON Protocol, but is used for some games such as Squad
     public static final int SERVERDATA_BROADCAST = 1;
     public static final int SERVERDATA_EXECCOMMAND = 2;
     public static final int SERVERDATA_AUTH_RESPONSE = 2;
     public static final int SERVERDATA_AUTH = 3;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RconImpl.class);
+    private final String host;
+    private final Integer port;
+    private final byte[] password;
+    private final Object sync = new Object();
+    private final Random rand = new Random();
+    private final List<Consumer<RconPacket>> onPacketConsumers = new ArrayList<>();
+    private Socket socket;
+    private int requestId;
+    private volatile Queue<RconPacket> commandResponsePackets = new LinkedList<>();
 
     /**
      * Constructs a {@link RconImpl} object with the given connection properties.
      *
-     * @param host the host address of the RCON server. Can be a FQDN or IP address
-     * @param port the port the RCON server monitors. Default for squad is 21114
+     * @param host     the host address of the RCON server. Can be a FQDN or IP address
+     * @param port     the port the RCON server monitors. Default for squad is 21114
      * @param password a {@link String} of the password
      */
     protected RconImpl(String host, Integer port, String password) throws AuthenticationException {
@@ -72,8 +65,8 @@ public class RconImpl {
     /**
      * Helper method that's used to construct a {@link RconImpl} object with the given connection properties.
      *
-     * @param host the host address of the RCON server. Can be a FQDN or IP address
-     * @param port the port the RCON server monitors. Default for squad is 21114
+     * @param host     the host address of the RCON server. Can be a FQDN or IP address
+     * @param port     the port the RCON server monitors. Default for squad is 21114
      * @param password a byte array representing the password to logon to the RCON server with.
      */
     private RconImpl(String host, Integer port, byte[] password) throws AuthenticationException {
@@ -82,28 +75,28 @@ public class RconImpl {
         this.password = password;
         connect(this.host, this.port, this.password);
         new Thread(() -> {
-            try{
+            try {
                 onRconPacket(rconPacket -> {
-                    if(rconPacket.getType() == SERVERDATA_RESPONSE_VALUE
-                            && !rconPacket.getPayloadAsString().equals("")){
+                    if (rconPacket.getType() == SERVERDATA_RESPONSE_VALUE
+                            && !rconPacket.getPayloadAsString().equals("")) {
                         commandResponsePackets.add(rconPacket);
                     }
                 });
 
                 boolean multiPacketLikely = false;
 
-                while(true){
-                    while(multiPacketLikely || socketHasData()){
+                while (true) {
+                    while (multiPacketLikely || socketHasData()) {
                         multiPacketLikely = false;
                         RconPacket pak = read(socket.getInputStream());
-                        if(pak == null){
+                        if (pak == null) {
                             break;
                         }
-                        if(pak.getSize() > 4098) {
+                        if (pak.getSize() > 4098) {
                             multiPacketLikely = true;
                             LOGGER.trace("RCON response most likely has multi-packet response.");
                         }
-                        for(Consumer<RconPacket> func : onPacketConsumers){
+                        for (Consumer<RconPacket> func : onPacketConsumers) {
                             func.accept(pak);
                         }
                         pak = null;
@@ -115,28 +108,39 @@ public class RconImpl {
         }, "rcon").start();
     }
 
+    /* Helper methods */
+    private static int getPacketLength(int bodyLength) {
+        // 4 bytes for length + x bytes for body length
+        return 4 + bodyLength;
+    }
+
+    private static int getBodyLength(int payloadLength) {
+        // 4 bytes for requestId, 4 bytes for type, x bytes for payload, 2 bytes for two null bytes
+        return 4 + 4 + payloadLength + 2;
+    }
+
     /**
      * Function that takes in a {@link Consumer} to consume every time a RCON packet is received. The consumer
      * takes in the supplied {@link RconPacket}
      *
      * @param func the {@link Consumer} to be consumed for each {@link RconPacket} retrieved.
      */
-    protected void onRconPacket(Consumer<RconPacket> func){
+    protected void onRconPacket(Consumer<RconPacket> func) {
         onPacketConsumers.add(func);
     }
 
     /**
      * Sends a given command to the RCON server and returns the response if one is sent.
-     *
+     * <p>
      * May wait for response to be sent be finishing execution.
-     *
+     * <p>
      * If command returns output longer than the maximum RCON packet size, method stiches together outputs
      * that are sent through mulitple packets.
      *
      * @param command the command to output
      * @return the output of the command sent if the RCON server returns one
      */
-    protected synchronized String command(String command){
+    protected synchronized String command(String command) {
 
         final AtomicReference<String> response = new AtomicReference<>();
         response.set("");
@@ -144,7 +148,7 @@ public class RconImpl {
         //New request ID
         requestId = rand.nextInt();
         //Make sure request ID isn't 0 or -1
-        while(requestId == 0 || requestId == -1){
+        while (requestId == 0 || requestId == -1) {
             requestId = rand.nextInt();
         }
         //Keep local requestId incase it's changed by another thread
@@ -153,7 +157,7 @@ public class RconImpl {
         CompletableFuture<Void> future = command(command.getBytes(StandardCharsets.UTF_8));
         try {
             future.get(1, TimeUnit.SECONDS);
-        } catch (InterruptedException|ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             LOGGER.error(e.getMessage());
         } catch (TimeoutException e) {
             LOGGER.debug("Command {} timed out. This is expected if the command isn't supposed to respond.", command);
@@ -163,7 +167,7 @@ public class RconImpl {
 
         //Iterate through each command response packet received, and look for those in response to the current command
         commandResponsePackets.forEach(pak -> {
-            if(pak.getRequestId() == thisRequestId){
+            if (pak.getRequestId() == thisRequestId) {
                 //If so, append the packet's payload to the output string
                 response.set(response.get().concat(pak.getPayloadAsString()));
                 //Mark this packet for removal from the list so it doesn't grow too large
@@ -181,7 +185,7 @@ public class RconImpl {
      * @param payload a byte array of the payload for the command
      * @return a {@link CompletableFuture<Void>} representing the state of execution for the command
      */
-    private synchronized CompletableFuture<Void> command(byte[] payload){
+    private synchronized CompletableFuture<Void> command(byte[] payload) {
         send(SERVERDATA_EXECCOMMAND, payload);
         return CompletableFuture.runAsync(this::waitUntilNoData);
     }
@@ -191,12 +195,12 @@ public class RconImpl {
      *
      * @throws IOException
      */
-    private void reconnect(){
+    private void reconnect() {
         LOGGER.warn("Reconnecting to RCON server . . .");
-        try{
+        try {
             Thread.sleep(1000);
             connect(this.host, this.port, this.password);
-        } catch (AuthenticationException | InterruptedException ex){
+        } catch (AuthenticationException | InterruptedException ex) {
             LOGGER.error("Error authenticating with RCON server.");
             LOGGER.error(ex.getMessage());
             System.exit(1);
@@ -218,7 +222,7 @@ public class RconImpl {
      *
      * @return true if there is data to be retrieved, false if not
      */
-    private boolean socketHasData(){
+    private boolean socketHasData() {
         boolean status = false;
         try {
             Thread.sleep(100);
@@ -238,32 +242,34 @@ public class RconImpl {
 
     /**
      * Method that waits until there is no more data to receive from the socket.
-     *
+     * <p>
      * Should only be used asynchronously as this will hold up execution of a synchronously-running program.
      */
-    private void waitUntilNoData(){
+    private void waitUntilNoData() {
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
             LOGGER.error("Thread error", e);
         }
-        while(socketHasData()){}
+        while (socketHasData()) {
+        }
     }
 
     /**
      * Connects a socket to an RCON server, then attempts to authenticate with the given password.
-     * @param host the host to connect to
-     * @param port the port the RCON server is listening on
+     *
+     * @param host     the host to connect to
+     * @param port     the port the RCON server is listening on
      * @param password a byte array of the password to authenticate with
      * @throws AuthenticationException when the password is incorrect
      */
     private void connect(String host, Integer port, byte[] password) throws AuthenticationException {
         LOGGER.info("Connecting to rcon . . . ");
-        synchronized (sync){
+        synchronized (sync) {
             try {
                 //New request id
                 requestId = rand.nextInt();
-                while(requestId == -1 || requestId == 0){
+                while (requestId == -1 || requestId == 0) {
                     requestId = rand.nextInt();
                 }
 
@@ -282,7 +288,7 @@ public class RconImpl {
             //Read SERVERDATA_AUTH_RESPONSE with authentication status
             RconPacket pak2 = read(socket.getInputStream());
             //If auth response packet has request id of -1, then it is an incorrect password
-            if(pak2 != null && pak2.getRequestId() == -1){
+            if (pak2 != null && pak2.getRequestId() == -1) {
                 LOGGER.error("Incorrect RCON password.");
                 throw new AuthenticationException("Incorrect password.");
             }
@@ -295,15 +301,14 @@ public class RconImpl {
     /**
      * Sends data to the RCON server, given a packet type and payload
      *
-     * @param type the type of packet as defined by the Source RCON Protocol
+     * @param type    the type of packet as defined by the Source RCON Protocol
      * @param payload a byte array of the payload to send to the RCON server
      */
-    private void send(int type, byte[] payload){
-        synchronized (sync){
+    private void send(int type, byte[] payload) {
+        synchronized (sync) {
             try {
                 write(socket.getOutputStream(), requestId, type, payload);
-            }
-            catch(SocketException se) {
+            } catch (SocketException se) {
                 // Close the socket if something happens
                 try {
                     socket.close();
@@ -321,10 +326,10 @@ public class RconImpl {
     /**
      * Writes data to the socket for this Rcon's {@link OutputStream} and flushes it.
      *
-     * @param out the {@link OutputStream} to write to
+     * @param out       the {@link OutputStream} to write to
      * @param requestId the id of the request to sent
-     * @param type the type of packet
-     * @param payload the payload being sent
+     * @param type      the type of packet
+     * @param payload   the payload being sent
      * @throws IOException
      */
     private void write(OutputStream out, int requestId, int type, byte[] payload) throws IOException {
@@ -341,9 +346,9 @@ public class RconImpl {
         buffer.put(payload);
 
         //Null byte terminator for body
-        buffer.put((byte)0);
+        buffer.put((byte) 0);
         //Null byte terminator for packet
-        buffer.put((byte)0);
+        buffer.put((byte) 0);
 
         // Bye bye!
         out.write(buffer.array());
@@ -362,9 +367,9 @@ public class RconImpl {
         byte[] header = new byte[4 * 3];
 
         try {
-            synchronized (sync){
+            synchronized (sync) {
                 // Read the 3 ints
-                if(in.read(header) == -1){
+                if (in.read(header) == -1) {
                     return null;
                 }
                 // Use a bytebuffer in little endian to read the first 3 ints
@@ -406,23 +411,11 @@ public class RconImpl {
                 }*/
                 return new RconPacket(new Date(), length, requestId, type, payload);
             }
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Error reading packet", e);
             reconnect();
         }
         return null;
-    }
-
-    /* Helper methods */
-    private static int getPacketLength(int bodyLength) {
-        // 4 bytes for length + x bytes for body length
-        return 4 + bodyLength;
-    }
-
-    private static int getBodyLength(int payloadLength) {
-        // 4 bytes for requestId, 4 bytes for type, x bytes for payload, 2 bytes for two null bytes
-        return 4 + 4 + payloadLength + 2;
     }
 
 }

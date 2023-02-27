@@ -2,9 +2,9 @@ package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.SteamService;
-import com.example.adminpanelbackend.dataBase.entity.*;
+import com.example.adminpanelbackend.db.entity.*;
 import com.example.adminpanelbackend.model.SteamUserModel;
-import com.woop.Squad4J.model.OnlinePlayer;
+import com.woop.Squad4J.dto.rcon.OnlinePlayer;
 import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
@@ -546,8 +546,16 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
 
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllActionsWithPlayerByAdmin(playerSteamId, PageRequest.of(page, size, Sort.by("id").descending()));
-        HashMap<String, Object> map = getMapForPagination(resultPage);
+        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllActionsWithPlayerByAdmin(playerSteamId, PageRequest.of(--page, size, Sort.by("id").descending()));
+        HashMap<String, Object> map = new HashMap<>() {{
+            put("currentPage", resultPage.getNumber() + 1);
+            put("totalPages", resultPage.getTotalPages() + 1);
+            put("totalElements", resultPage.getTotalElements());
+            put("hasNext", resultPage.hasNext());
+            put("nextPage", resultPage.hasNext() ? resultPage.nextPageable().getPageNumber() + 1 : null);
+            put("hasPrevious", resultPage.hasPrevious());
+            put("previousPage", resultPage.hasPrevious() ? resultPage.previousPageable().getPageNumber() + 1 : null);
+        }};
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
         resultPage.getContent().forEach(adminActionLogEntity -> {

@@ -9,10 +9,9 @@ import lombok.Getter;
  * Class describing a "combined" A2S response. A combined A2S response contains a {@link A2SInfoResponse} and
  * a {@link A2SRulesResponse}.
  *
+ * @author Robert Engle
  * @see A2SInfoResponse
  * @see A2SRulesResponse
- *
- * @author Robert Engle
  */
 @AllArgsConstructor
 @Getter

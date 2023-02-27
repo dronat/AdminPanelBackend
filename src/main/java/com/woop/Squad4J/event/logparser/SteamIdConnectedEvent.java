@@ -12,10 +12,9 @@ import java.util.Date;
  * Described an event where a player connects to a server an the steam64id is provided. This event is fired
  * BEFORE the corresponding {@link PlayerConnectedEvent}, in which only the player name is provided.
  *
+ * @author Robert Engle
  * @see PlayerConnectedEvent
  * @see SteamidConnectedListener
- *
- * @author Robert Engle
  */
 @Getter
 @ToString
@@ -26,13 +25,13 @@ public class SteamIdConnectedEvent extends Event {
     /**
      * Constructs a {@link SteamIdConnectedEvent}.
      *
-     * @param date a {@link Date} corresponding to when this event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date    a {@link Date} corresponding to when this event occurred
+     * @param type    the corresponding {@link EventType} for this event
      * @param chainID the chain ID of this event
      * @param steamId the steam64id of the player that connected
-     * @param name the name of the player that connected
+     * @param name    the name of the player that connected
      */
-    public SteamIdConnectedEvent(Date date, EventType type, Integer chainID, long steamId, String name){
+    public SteamIdConnectedEvent(Date date, EventType type, Integer chainID, long steamId, String name) {
         super(date, type, chainID);
         this.steamId = steamId;
         this.name = name;

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Robert Engle
- *
+ * <p>
  * Singleton wrapper for RconImpl
  */
 public class Rcon {
@@ -17,8 +17,11 @@ public class Rcon {
     private static RconImpl rconImpl;
     private static boolean initialized = false;
 
-    public static void init(){
-        if(initialized)
+    private Rcon() {
+    }
+
+    public static void init() {
+        if (initialized)
             throw new IllegalStateException("Rcon has already been initialized, you cannot re-initialize it.");
 
         String host = ConfigLoader.get("$.server.host", String.class);
@@ -35,7 +38,7 @@ public class Rcon {
         LOGGER.info("Connected to RCON server.");
 
         rconImpl.onRconPacket(rconPacket -> {
-            if(rconPacket.getType() == RconImpl.SERVERDATA_BROADCAST){
+            if (rconPacket.getType() == RconImpl.SERVERDATA_BROADCAST) {
                 LOGGER.info("\u001B[46m \u001B[30m" + rconPacket.getPayloadAsString() + "\u001B[0m");
                 LogParser.parseLine(rconPacket.getPayloadAsString());
             }
@@ -45,9 +48,7 @@ public class Rcon {
 
     }
 
-    private Rcon(){}
-
-    public static String command(String cmd){
+    public static String command(String cmd) {
         return initialized ? rconImpl.command(cmd) : "";
     }
 

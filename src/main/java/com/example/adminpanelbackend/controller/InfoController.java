@@ -2,7 +2,7 @@ package com.example.adminpanelbackend.controller;
 
 
 import com.example.adminpanelbackend.Role;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
 import com.woop.Squad4J.a2s.Query;
 import com.woop.Squad4J.server.RconUpdater;
 import com.woop.Squad4J.server.tailer.FtpBanService;
@@ -26,7 +26,7 @@ import static com.example.adminpanelbackend.RoleEnum.BASE;
 @RestController()
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 @CrossOrigin
-public class InfoController extends BaseSecureController{
+public class InfoController extends BaseSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(InfoController.class);
 
 

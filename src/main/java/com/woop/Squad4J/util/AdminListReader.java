@@ -15,15 +15,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AdminListReader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdminListReader.class);
-
     public static final String groupRegex = "Group=(.*):([a-z]+)(,\\s*[a-z]+)*";
     public static final String adminRegex = "Admin=(\\d{17}):(\\s*\\w+)(?:.*)";
-
     public static final Pattern groupPattern = Pattern.compile(groupRegex);
     public static final Pattern adminPattern = Pattern.compile(adminRegex);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdminListReader.class);
 
-    private AdminListReader(){
+    private AdminListReader() {
         throw new IllegalStateException("Utility classes cannot be instantiated.");
     }
 
@@ -39,7 +37,7 @@ public class AdminListReader {
     public static List<String> getAdminIdsFromLocal(String filePath) throws IOException {
         //TODO: Test implementation
         File file = new File(filePath);
-        if(!file.exists())
+        if (!file.exists())
             throw new FileNotFoundException("File does not exist.");
 
         InputStream is = new FileInputStream(file);
@@ -48,28 +46,27 @@ public class AdminListReader {
         return parseContent(content);
     }
 
-    private static List<String> parseContent(String content){
+    private static List<String> parseContent(String content) {
         List<String> ids = new ArrayList<>();
 
         StringTokenizer st = new StringTokenizer(content, "\n");
-        while(st.hasMoreElements()){
+        while (st.hasMoreElements()) {
             String token = st.nextToken();
-            if(token == null)
+            if (token == null)
                 continue;
-            if(token.matches(groupRegex)){
+            if (token.matches(groupRegex)) {
                 Matcher matcher = groupPattern.matcher(token);
                 matcher.find();
                 String groupName = matcher.group(1);
                 List<String> permissions = new ArrayList<>();
                 permissions.add(matcher.group(2));
-                if(matcher.group(3) != null){
+                if (matcher.group(3) != null) {
                     permissions.addAll(
                             Arrays.asList(matcher.group(3).split(","))
                     );
                 }
                 //TODO: Improve implementation by including permissions with admin id
-            }
-            else if(token.matches(adminRegex)){
+            } else if (token.matches(adminRegex)) {
                 Matcher matcher = adminPattern.matcher(token);
                 matcher.find();
                 String id = matcher.group(1);

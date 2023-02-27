@@ -1,8 +1,5 @@
 package com.woop.Squad4J.util.logger;
 
-import ch.qos.logback.classic.Level;
-import com.woop.Squad4J.util.ConfigLoader;
-
 /**
  * Simple class to control logger as configured through configuration file.
  *
@@ -11,12 +8,12 @@ import com.woop.Squad4J.util.ConfigLoader;
 public class LoggerUtil {
     private static boolean initialized = false;
 
-    private LoggerUtil(){
+    private LoggerUtil() {
         throw new IllegalStateException("Utility classes cannot be instantiated.");
     }
 
-    public static void init(){
-        if(initialized)
+    public static void init() {
+        if (initialized)
             throw new IllegalStateException("This class is already initialized.");
 
         /*//Get root logger

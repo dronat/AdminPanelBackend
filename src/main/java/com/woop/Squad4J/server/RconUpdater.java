@@ -1,15 +1,15 @@
 package com.woop.Squad4J.server;
 
 import com.woop.Squad4J.concurrent.GlobalThreadPool;
+import com.woop.Squad4J.dto.rcon.DisconnectedPlayer;
+import com.woop.Squad4J.dto.rcon.OnlinePlayer;
+import com.woop.Squad4J.dto.rcon.Squad;
+import com.woop.Squad4J.dto.rcon.Team;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.rcon.LayerInfoUpdatedEvent;
 import com.woop.Squad4J.event.rcon.PlayerListUpdatedEvent;
 import com.woop.Squad4J.event.rcon.SquadAndTeamListsUpdatedEvent;
-import com.woop.Squad4J.model.DisconnectedPlayer;
-import com.woop.Squad4J.model.OnlinePlayer;
-import com.woop.Squad4J.model.Squad;
-import com.woop.Squad4J.model.Team;
 import com.woop.Squad4J.rcon.Rcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,22 +31,20 @@ import java.util.regex.Pattern;
  */
 public class RconUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(RconUpdater.class);
-
-    private static boolean initialized = false;
-
     private static final Pattern onlinePlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Name: (.+) \\| Team ID: (1|2|N/A) \\| Squad ID: ([0-9]+|N/A) \\| Is Leader: (True|False) \\| Role: (.+)");
     private static final Pattern disconnectedPlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Since Disconnect: (.+) \\| Name: (.+)");
     private static final Pattern squadPattern = Pattern.compile("ID: ([0-9]+) \\| Name: (.+) \\| Size: ([0-9]+) \\| Locked: (True|False) \\| Creator Name: (.+) \\| Creator Steam ID: ([0-9]{17})");
     private static final Pattern currentLayerPattern = Pattern.compile("Current level is (.+), layer is (.+)");
     private static final Pattern nextLayerPattern = Pattern.compile("Next level is (.+), layer is (.+)");
     public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+    private static boolean initialized = false;
 
-    private RconUpdater(){
+    private RconUpdater() {
         throw new IllegalStateException("This class cannot be instantiated.");
     }
 
-    public static void init(){
-        if(initialized)
+    public static void init() {
+        if (initialized)
             throw new IllegalStateException(RconUpdater.class.getSimpleName() + " has already been initialized.");
 
         GlobalThreadPool.getScheduler().scheduleWithFixedDelay(RconUpdater::updateRcon, 5, 2, TimeUnit.SECONDS);
@@ -67,7 +65,7 @@ public class RconUpdater {
     /**
      * Updates the player list by querying the RCON console for a player list.
      */
-    protected static boolean updatePlayerList(){
+    protected static boolean updatePlayerList() {
         //long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving player list.");
         //System.out.println("ListPlayers");
@@ -82,11 +80,11 @@ public class RconUpdater {
         List<OnlinePlayer> onlinePlayers = new ArrayList<>();
         List<DisconnectedPlayer> disconnectedPlayers = new ArrayList<>();
         StringTokenizer tokenizer = new StringTokenizer(response, "\n");
-        while(tokenizer.hasMoreElements()){
+        while (tokenizer.hasMoreElements()) {
             String line = tokenizer.nextToken();
             Matcher onlineMatcher = onlinePlayerPattern.matcher(line);
             Matcher disconnectedMatcher = disconnectedPlayerPattern.matcher(line);
-            if(onlineMatcher.find()){
+            if (onlineMatcher.find()) {
                 Integer id = Integer.valueOf(onlineMatcher.group(1));
                 long steamId = Long.parseLong(onlineMatcher.group(2));
                 String name = onlineMatcher.group(3);
@@ -123,7 +121,7 @@ public class RconUpdater {
     /**
      * Updates the squad list by querying the RCON console.
      */
-    protected static boolean updateSquadList(){
+    protected static boolean updateSquadList() {
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving squad list.");
         //System.out.println("ListSquads");
@@ -139,19 +137,19 @@ public class RconUpdater {
         List<Team> teams = new ArrayList<>();
         int teamId = 1;
         StringTokenizer tokenizer = new StringTokenizer(response, "\n");
-        while(tokenizer.hasMoreElements()){
+        while (tokenizer.hasMoreElements()) {
             String line = tokenizer.nextToken();
             if (line.startsWith("Team ID:")) {
                 String teamName = line.substring(line.indexOf("(") + 1, line.indexOf(")"));
                 teams.add(new Team(teamName.trim(), line.startsWith("Team ID: 1") ? 1 : 2));
             }
-            if(line.startsWith("Team ID: 2")){
+            if (line.startsWith("Team ID: 2")) {
                 teamId = 2;
                 continue;
             }
 
             Matcher matcher = squadPattern.matcher(line);
-            if(matcher.find()){
+            if (matcher.find()) {
                 Integer id = Integer.valueOf(matcher.group(1));
                 String name = matcher.group(2);
                 Integer size = Integer.valueOf(matcher.group(3));
@@ -173,10 +171,10 @@ public class RconUpdater {
 
     /**
      * Updates the layer information by querying the RCON console.
-     *
+     * <p>
      * Updates both the current and next layers/maps.
      */
-    public static boolean updateLayerInfo(){
+    public static boolean updateLayerInfo() {
         LOGGER.trace("Retrieving layer information");
         String currentLayer = "";
         String nextLayer = "";
@@ -191,7 +189,7 @@ public class RconUpdater {
         //System.out.println(response);
         LOGGER.trace("Getting current map. Response: {}", response);
         Matcher matcher = currentLayerPattern.matcher(response);
-        if(matcher.find()){
+        if (matcher.find()) {
             currentMap = matcher.group(1);
             currentLayer = matcher.group(2);
             LOGGER.trace("Current layer is {}", currentLayer);
@@ -200,7 +198,7 @@ public class RconUpdater {
         response = Rcon.command("ShowNextMap");
         LOGGER.trace("Retrieved next map. Response: {}", response);
         matcher = nextLayerPattern.matcher(response);
-        if(matcher.find()){
+        if (matcher.find()) {
             nextMap = matcher.group(1);
             nextLayer = matcher.group(2);
             LOGGER.trace("Next layer is {}", nextLayer);

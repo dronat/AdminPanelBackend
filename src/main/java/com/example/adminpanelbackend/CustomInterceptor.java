@@ -1,8 +1,8 @@
 package com.example.adminpanelbackend;
 
 import com.example.adminpanelbackend.controller.NotSecureController;
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class CustomInterceptor implements HandlerInterceptor {
-    EntityManager em = new EntityManager();
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomInterceptor.class);
+    EntityManager em = new EntityManager();
 
     @Override
     public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {

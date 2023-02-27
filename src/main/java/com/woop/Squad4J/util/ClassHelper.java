@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public class ClassHelper {
 
-    private ClassHelper(){
+    private ClassHelper() {
         throw new UnsupportedOperationException("This class cannot be instantiated.");
     }
 
@@ -41,7 +41,7 @@ public class ClassHelper {
      *
      * <a href=https://github.com/Javacord/Javacord/blob/master/javacord-core/src/main/java/org/javacord/core/util/ClassHelper.java>Javacord ClassHelper class</a>
      *
-     * @param clazz The class to get the superclasses for.
+     * @param clazz           The class to get the superclasses for.
      * @param includeArgument Whether to include the given class in the result.
      * @return The stream of superclasses of the given class.
      */

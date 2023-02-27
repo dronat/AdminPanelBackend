@@ -18,45 +18,9 @@ public class HighlightingCompositeConverterEx extends ForegroundCompositeConvert
     private static final boolean errorBold = ConfigLoader.get("$.logging.colors.error.bold", Boolean.class);
     private static final String errorColor = ConfigLoader.get("$.logging.colors.error.color", String.class);
 
-    @Override
-    protected String getForegroundColorCode(ILoggingEvent event) {
-        String output = "";
-        Level level = event.getLevel();
-
-        switch (level.toInt()) {
-            case Level.TRACE_INT:
-                if(traceBold)
-                    output += ANSIConstants.BOLD;
-                output += getANSIConstantByName(traceColor);
-                return output;
-            case Level.DEBUG_INT:
-                if(debugBold)
-                    output += ANSIConstants.BOLD;
-                output += getANSIConstantByName(debugColor);
-                return output;
-            case Level.ERROR_INT:
-                if(errorBold)
-                    output += ANSIConstants.BOLD;
-                output += getANSIConstantByName(errorColor);
-                return output;
-            case Level.WARN_INT:
-                if(warnBold)
-                    output += ANSIConstants.BOLD;
-                output += getANSIConstantByName(warnColor);
-                return output;
-            case Level.INFO_INT:
-                if(infoBold)
-                    output += ANSIConstants.BOLD;
-                output += getANSIConstantByName(infoColor);
-                return output;
-            default:
-                return ANSIConstants.DEFAULT_FG;
-        }
-    }
-
-    private static String getANSIConstantByName(String colorName){
+    private static String getANSIConstantByName(String colorName) {
         String name = colorName.toLowerCase();
-        switch(name){
+        switch (name) {
             case "black":
                 return ANSIConstants.BLACK_FG;
             case "blue":
@@ -73,6 +37,42 @@ public class HighlightingCompositeConverterEx extends ForegroundCompositeConvert
                 return ANSIConstants.WHITE_FG;
             case "yellow":
                 return ANSIConstants.YELLOW_FG;
+            default:
+                return ANSIConstants.DEFAULT_FG;
+        }
+    }
+
+    @Override
+    protected String getForegroundColorCode(ILoggingEvent event) {
+        String output = "";
+        Level level = event.getLevel();
+
+        switch (level.toInt()) {
+            case Level.TRACE_INT:
+                if (traceBold)
+                    output += ANSIConstants.BOLD;
+                output += getANSIConstantByName(traceColor);
+                return output;
+            case Level.DEBUG_INT:
+                if (debugBold)
+                    output += ANSIConstants.BOLD;
+                output += getANSIConstantByName(debugColor);
+                return output;
+            case Level.ERROR_INT:
+                if (errorBold)
+                    output += ANSIConstants.BOLD;
+                output += getANSIConstantByName(errorColor);
+                return output;
+            case Level.WARN_INT:
+                if (warnBold)
+                    output += ANSIConstants.BOLD;
+                output += getANSIConstantByName(warnColor);
+                return output;
+            case Level.INFO_INT:
+                if (infoBold)
+                    output += ANSIConstants.BOLD;
+                output += getANSIConstantByName(infoColor);
+                return output;
             default:
                 return ANSIConstants.DEFAULT_FG;
         }

@@ -11,9 +11,8 @@ import java.util.Date;
 /**
  * Describes an event where an admin possesses the admin cam.
  *
- * @see EnteredInAdminCameraListener
- *
  * @author Robert Engle
+ * @see EnteredInAdminCameraListener
  */
 @Getter
 @ToString
@@ -24,12 +23,12 @@ public class EnteredInAdminCameraEvent extends Event {
     /**
      * Constructs a {@link EnteredInAdminCameraEvent}.
      *
-     * @param date a {@link Date} corresponding to when this event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date    a {@link Date} corresponding to when this event occurred
+     * @param type    the corresponding {@link EventType} for this event
      * @param steamId the steam64id of the admin entering admin cam
-     * @param name the name of the admin entering admin cam
+     * @param name    the name of the admin entering admin cam
      */
-    public EnteredInAdminCameraEvent(Date date, EventType type, long steamId, String name){
+    public EnteredInAdminCameraEvent(Date date, EventType type, long steamId, String name) {
         super(date, type);
         this.steamId = steamId;
         this.name = name;

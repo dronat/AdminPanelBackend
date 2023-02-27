@@ -6,15 +6,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Robert Engle
- *
+ * <p>
  * Test class which implements various listeners to test their functionality. Also tests the event binding
  * with these listeners.
- *
+ * <p>
  * Will be removed in initial release.
  */
 @NoArgsConstructor
 public class DevelopmentTestPlugin /*implements A2SUpdatedListener, LayerInfoUpdatedListener, ChatMessageListener,
-        PossessedAdminCameraListener, UnpossessedAdminCameraListener */{
+        PossessedAdminCameraListener, UnpossessedAdminCameraListener */ {
     private static final Logger LOGGER = LoggerFactory.getLogger(DevelopmentTestPlugin.class);
 
     /*@Override

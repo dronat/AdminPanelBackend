@@ -2,8 +2,8 @@ package com.example.adminpanelbackend.controller;
 
 
 import com.example.adminpanelbackend.Role;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
-import com.example.adminpanelbackend.dataBase.entity.RuleGroupEntity;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.RuleGroupEntity;
 import com.example.adminpanelbackend.model.RuleGroupModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ import static com.example.adminpanelbackend.RoleEnum.RULES_MANAGEMENT;
 @RestController()
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 @CrossOrigin
-public class RulesController extends BaseSecureController{
+public class RulesController extends BaseSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(RulesController.class);
 
     @Role(role = BASE)

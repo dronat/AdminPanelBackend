@@ -34,7 +34,8 @@ public class SteamService {
                 LOGGER.warn("Exception while trying get user from steam api", e);
                 try {
                     Thread.sleep(1000);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException ignored) {
+                }
             }
         }
         if (steamUserModel == null) {

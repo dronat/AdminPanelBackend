@@ -2,10 +2,10 @@ package com.example.adminpanelbackend.controller;
 
 
 import com.example.adminpanelbackend.Role;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
-import com.example.adminpanelbackend.dataBase.entity.RoleEntity;
-import com.example.adminpanelbackend.dataBase.entity.RoleGroupEntity;
-import com.example.adminpanelbackend.dataBase.entity.RolesEntity;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.RoleEntity;
+import com.example.adminpanelbackend.db.entity.RoleGroupEntity;
+import com.example.adminpanelbackend.db.entity.RolesEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
