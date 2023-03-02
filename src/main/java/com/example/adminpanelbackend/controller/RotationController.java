@@ -43,7 +43,7 @@ public class RotationController extends BaseSecureController {
 
     @Role(role = ROTATION_MANAGEMENT)
     @PostMapping(path = "/add-new-rotation-group")
-    public ResponseEntity<Object> setRotation(
+    public ResponseEntity<Object> addNewRotationGroup(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
@@ -69,7 +69,7 @@ public class RotationController extends BaseSecureController {
 
     @Role(role = ROTATION_MANAGEMENT)
     @GetMapping(path = "/get-all-rotation-groups")
-    public ResponseEntity<List<RotationGroupEntity>> getRotation(
+    public ResponseEntity<List<RotationGroupEntity>> getAllRotationGroups(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
