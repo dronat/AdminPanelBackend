@@ -1,6 +1,5 @@
 package com.example.adminpanelbackend.controller;
 
-import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.SteamOpenID;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.db.EntityManager;
@@ -23,8 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
-
-import static com.example.adminpanelbackend.RoleEnum.BASE;
 
 @RestController()
 @CrossOrigin

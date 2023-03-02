@@ -396,16 +396,21 @@ public class EntityManager extends JpaManager implements JpaConnection {
                 .getResultList();
     }
 
-    public synchronized List<RotationEntity> getRotationEntitiesByServerId(int serverId) {
-        ServersEntity serverEntity = getServerById(serverId);
-        return em.createQuery("SELECT t FROM RotationEntity t where t.serverId = :serverId", RotationEntity.class)
-                .setParameter("serverId", serverEntity)
-                .getResultList();
+    public synchronized RotationGroupEntity getActiveRotationGroupByServerId(ServerEntity serverEntity) {
+        return em.createQuery("SELECT t FROM RotationGroupEntity t where t.isActive = true AND t.serverID = :serverEntity", RotationGroupEntity.class)
+                .setParameter("serverEntity", serverEntity)
+                .getSingleResult();
     }
 
-    public synchronized ServersEntity getServerById(int serverId) {
+    public synchronized RotationGroupEntity getActiveRotationGroupByServerId(int serverId) {
+        return em.createQuery("SELECT t FROM RotationGroupEntity t where t.isActive = true AND t.serverID = :serverEntity", RotationGroupEntity.class)
+                .setParameter("serverEntity", serverId)
+                .getSingleResult();
+    }
+
+    public synchronized ServerEntity getServerById(int serverId) {
         try {
-            return em.createQuery("SELECT t FROM ServersEntity t where t.id = :serverId", ServersEntity.class)
+            return em.createQuery("SELECT t FROM ServerEntity t where t.id = :serverId", ServerEntity.class)
                     .setParameter("serverId", serverId)
                     .getSingleResult();
         } catch (Exception e) {

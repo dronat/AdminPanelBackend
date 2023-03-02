@@ -215,9 +215,14 @@ public class MySQLConnector extends Connector {
             createMapTeamVehicles();
         }
         try {
-            statement.executeQuery("SELECT COUNT(*) FROM rotation");
+            statement.executeQuery("SELECT COUNT(*) FROM rotation_groups");
         } catch (SQLException e) {
-            createRotation();
+            createRotationGroups();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM rotation_maps");
+        } catch (SQLException e) {
+            createRotationMaps();
         }
     }
 
@@ -475,7 +480,7 @@ public class MySQLConnector extends Connector {
                 "serverId INT NOT NULL," +
                 "layer VARCHAR(255) NOT NULL," +
                 "creationTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL," +
-                "CONSTRAINT layersHistoryServerId FOREIGN KEY (serverId) REFERENCES servers (id) ON DELETE CASCADE," +
+                "CONSTRAINT layersHistoryServerId FOREIGN KEY (serverId) REFERENCES servers (id)," +
                 "CONSTRAINT layers_history_map_rawName_fk FOREIGN KEY (layer) REFERENCES map (rawName) ON DELETE CASCADE)");
     }
 
@@ -590,15 +595,25 @@ public class MySQLConnector extends Connector {
                 "CONSTRAINT map_vehicle_fk FOREIGN KEY (vehicle) REFERENCES map_team_vehicle (id) ON DELETE CASCADE);");
     }
 
-    private static void createRotation() throws SQLException {
-        LOGGER.info("Creating table rotation");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS rotation (" +
+    private static void createRotationGroups() throws SQLException {
+        LOGGER.info("Creating table rotation_groups");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS rotation_groups (" +
+                "id INT AUTO_INCREMENT NOT NULL PRIMARY KEY," +
+                "serverID INT NOT NULL, " +
+                "name VARCHAR(255), " +
+                "isActive BOOL DEFAULT FALSE NOT NULL, " +
+                "CONSTRAINT rotation_groups_servers_id_fk FOREIGN KEY (serverID) REFERENCES servers (id));");
+    }
+
+    private static void createRotationMaps() throws SQLException {
+        LOGGER.info("Creating table rotation_maps");
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS rotation_maps (" +
                 "id INT AUTO_INCREMENT NOT NULL PRIMARY KEY," +
                 "map INT NOT NULL, " +
-                "serverID INT NOT NULL, " +
                 "position INT NOT NULL, " +
-                "CONSTRAINT rotation_map_null_fk FOREIGN KEY (map) REFERENCES map (id) ON DELETE CASCADE," +
-                "CONSTRAINT rotation_servers_id_fk FOREIGN KEY (serverID) REFERENCES servers (id) ON DELETE CASCADE);");
+                "rotationGroup INT NOT NULL, " +
+                "CONSTRAINT rotation_maps_map_id_fk FOREIGN KEY (map) REFERENCES map (id) ON DELETE CASCADE," +
+                "CONSTRAINT rotation_maps_rotation_groups_id_fk FOREIGN KEY (rotationGroup) REFERENCES rotation_groups (id) ON DELETE CASCADE);");
     }
 
     public static void createSpringSessions() throws SQLException {

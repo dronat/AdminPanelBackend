@@ -57,7 +57,9 @@ public class BaseSecureController {
     @Autowired
     VehicleService vehicleService;
     @Autowired
-    RotationService rotationService;
+    RotationGroupService rotationGroupService;
+    @Autowired
+    RotationMapService rotationMapService;
     @Autowired
     ServersService serversService;
     @Autowired

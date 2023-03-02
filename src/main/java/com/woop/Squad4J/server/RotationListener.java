@@ -1,7 +1,7 @@
 package com.woop.Squad4J.server;
 
 import com.example.adminpanelbackend.db.EntityManager;
-import com.example.adminpanelbackend.db.entity.RotationEntity;
+import com.example.adminpanelbackend.db.entity.RotationMapEntity;
 import com.woop.Squad4J.util.ConfigLoader;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -32,7 +32,7 @@ public class RotationListener {
         if (!init) {
             throw new IllegalStateException("This class doesn't initialized.");
         }
-        List<RotationEntity> rotationEntities = entityManager.getRotationEntitiesByServerId(SERVER_ID);
+        List<RotationMapEntity> rotationEntities = entityManager.getActiveRotationGroupByServerId(SERVER_ID).getMaps();
         if (nextMapPosition > rotationEntities.size() || nextMapPosition <= 0) {
             return false;
         } else if (rotationEntities.stream().anyMatch(rotationEntity -> rotationEntity.getPosition() == nextMapPosition)) {
@@ -48,9 +48,9 @@ public class RotationListener {
     }
 
     public static synchronized String getNextMapWithoutIncrement() {
-        List<RotationEntity> rotationEntities = entityManager.getRotationEntitiesByServerId(SERVER_ID);
+        List<RotationMapEntity> rotationEntities = entityManager.getActiveRotationGroupByServerId(SERVER_ID).getMaps();
         String nextMap = null;
-        for (RotationEntity rotationMap : rotationEntities) {
+        for (RotationMapEntity rotationMap : rotationEntities) {
             if (rotationMap.getPosition() == nextMapPosition) {
                 nextMap = rotationMap.getMap().getRawName();
             }
@@ -58,7 +58,7 @@ public class RotationListener {
         if (nextMap == null || nextMap.isEmpty()) {
             int tmpMapPosition = nextMapPosition;
 
-            RotationEntity tmpRotation = findMapInRotationWithLowestPosition(rotationEntities);
+            RotationMapEntity tmpRotation = findMapInRotationWithLowestPosition(rotationEntities);
             nextMap = tmpRotation.getMap().getRawName();
             nextMapPosition = tmpRotation.getPosition();
             if (nextMap == null || nextMap.isEmpty()) {
@@ -69,11 +69,16 @@ public class RotationListener {
     }
 
     public static boolean isRotationHaveMaps() {
-        return entityManager.getRotationEntitiesByServerId(SERVER_ID).size() > 0;
+        try {
+            return entityManager.getActiveRotationGroupByServerId(SERVER_ID).getMaps().size() > 0;
+        } catch (Exception e) {
+            return false;
+        }
+
     }
 
-    private static RotationEntity findMapInRotationWithLowestPosition(List<RotationEntity> rotationEntities) {
-        int position = rotationEntities.stream().map(RotationEntity::getPosition).mapToInt(rotationMap -> rotationMap).min().orElse(Integer.MAX_VALUE);
+    private static RotationMapEntity findMapInRotationWithLowestPosition(List<RotationMapEntity> rotationEntities) {
+        int position = rotationEntities.stream().map(RotationMapEntity::getPosition).mapToInt(rotationMap -> rotationMap).min().orElse(Integer.MAX_VALUE);
         return rotationEntities
                 .stream()
                 .filter(tmpNextMap -> tmpNextMap.getPosition() == position)

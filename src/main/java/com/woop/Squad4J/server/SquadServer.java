@@ -3,7 +3,7 @@ package com.woop.Squad4J.server;
 import com.example.adminpanelbackend.db.EntityManager;
 import com.example.adminpanelbackend.db.entity.MapEntity;
 import com.example.adminpanelbackend.db.entity.PlayerEntity;
-import com.example.adminpanelbackend.db.entity.ServersEntity;
+import com.example.adminpanelbackend.db.entity.ServerEntity;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.ibasco.agql.protocols.valve.source.query.info.SourceServer;
@@ -146,10 +146,10 @@ public class SquadServer {
             }*/
 
             //Update A2S and RCON information first so Squad server has attributes for them in memory
-            ServersEntity serverEntity = entityManager.getServerById(SERVER_ID);
+            ServerEntity serverEntity = entityManager.getServerById(SERVER_ID);
             if (serverEntity == null) {
                 entityManager.update(
-                        new ServersEntity()
+                        new ServerEntity()
                                 .setId(SERVER_ID)
                                 .setShortName(ConfigLoader.get("server.name", String.class))
                 );
@@ -157,7 +157,7 @@ public class SquadServer {
                 entityManager.update(serverEntity.setShortName(ConfigLoader.get("server.name", String.class)));
             }
             Runnable runnable = () -> {
-                ServersEntity tmpServerEntity = entityManager.getServerById(SERVER_ID);
+                ServerEntity tmpServerEntity = entityManager.getServerById(SERVER_ID);
                 try {
                     Thread.sleep(60000);
                 } catch (InterruptedException e) {

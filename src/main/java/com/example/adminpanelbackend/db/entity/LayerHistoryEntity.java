@@ -19,7 +19,7 @@ public class LayerHistoryEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "serverId", referencedColumnName = "id", nullable = false)
-    private ServersEntity serverId;
+    private ServerEntity serverId;
 
     @ManyToOne
     @JoinColumn(name = "layer", referencedColumnName = "rawName", nullable = false)

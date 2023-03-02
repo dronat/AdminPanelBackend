@@ -22,7 +22,8 @@
         <class>com.example.adminpanelbackend.db.entity.TeamEntity</class>
         <class>com.example.adminpanelbackend.db.entity.VehicleEntity</class>
         <class>com.example.adminpanelbackend.db.entity.VehiclesEntity</class>
-        <class>com.example.adminpanelbackend.db.entity.RotationEntity</class>
-        <class>com.example.adminpanelbackend.db.entity.ServersEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RotationGroupEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RotationMapEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.ServerEntity</class>
     </persistence-unit>
 </persistence>

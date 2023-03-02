@@ -4,8 +4,7 @@ package com.example.adminpanelbackend.controller;
 import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.db.entity.AdminEntity;
 import com.example.adminpanelbackend.db.entity.MapEntity;
-import com.example.adminpanelbackend.db.entity.RotationEntity;
-import com.example.adminpanelbackend.model.RotationModel;
+import com.example.adminpanelbackend.db.entity.RotationGroupEntity;
 import com.woop.Squad4J.server.RotationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,40 +42,72 @@ public class RotationController extends BaseSecureController {
     }
 
     @Role(role = ROTATION_MANAGEMENT)
-    @PostMapping(path = "/set-rotation")
+    @PostMapping(path = "/add-new-rotation-group")
     public ResponseEntity<Object> setRotation(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestBody RotationModel rotationModel) {
+            @RequestBody RotationGroupEntity rotationGroup) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        Set<Integer> set = new HashSet<>(rotationModel.getRotationList().stream().map(RotationModel.Rotation::getPosition).toList());
-        if (set.size() != rotationModel.getRotationList().size()) {
+        Set<Integer> set = new HashSet<>(rotationGroup.getMaps().stream().map(rotation -> rotation.getPosition()).toList());
+        if (set.size() != rotationGroup.getMaps().size()) {
             return ResponseEntity.status(400).body("Duplicate value 'position' in some rotations");
         }
+        rotationGroupService.saveAndFlush(rotationGroup.setIsActive(false));
 
-        rotationService.deleteAllByServerId(serversService.findById(SERVER_ID).orElseThrow());
-        rotationModel.getRotationList().forEach(rotationMap ->
-                rotationService.saveAndFlush(
-                        new RotationEntity()
+        /*rotationGroup.getRotationList().forEach(rotationMap ->
+                rotationMapService.saveAndFlush(
+                        new RotationMapEntity()
                                 .setPosition(rotationMap.getPosition())
                                 .setMap(mapService.findById(rotationMap.getMapId()).get())
                                 .setServerId(serversService.findById(SERVER_ID).orElseThrow())
                 )
-        );
+        );*/
         return ResponseEntity.ok().build();
     }
 
     @Role(role = ROTATION_MANAGEMENT)
-    @GetMapping(path = "/get-rotation")
-    public ResponseEntity<List<RotationEntity>> getRotation(
+    @GetMapping(path = "/get-all-rotation-groups")
+    public ResponseEntity<List<RotationGroupEntity>> getRotation(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(entityManager.getRotationEntitiesByServerId(SERVER_ID));
+        return ResponseEntity.ok(rotationGroupService.findAllByServerID(serversService.findById(SERVER_ID).orElseThrow()));
+    }
+
+    @Role(role = ROTATION_MANAGEMENT)
+    @GetMapping(path = "/delete-rotation-group")
+    public ResponseEntity<Void> deleteRotationGroup(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int roleGroupId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        rotationGroupService.deleteById(roleGroupId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Role(role = ROTATION_MANAGEMENT)
+    @GetMapping(path = "/activate-rotation-group")
+    public ResponseEntity<Void> activateRotationGroup(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int roleGroupId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        RotationGroupEntity rotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow();
+        rotationGroupService.saveAndFlush(
+                rotationGroupService
+                        .findByServerIDAndIsActiveIsTrue(serversService.findById(SERVER_ID).orElseThrow())
+                        .setIsActive(false)
+        );
+        rotationGroupService.saveAndFlush(rotationGroup.setIsActive(true));
+        return ResponseEntity.ok().build();
     }
 
     @Role(role = ROTATION_MANAGEMENT)
@@ -89,8 +120,8 @@ public class RotationController extends BaseSecureController {
             @RequestParam int position) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         AtomicBoolean flag = new AtomicBoolean(false);
-        entityManager.getRotationEntitiesByServerId(SERVER_ID).forEach(rotationEntity -> {
-            if (rotationEntity.getPosition() == position) {
+        rotationGroupService.findByServerIDAndIsActiveIsTrue(serversService.findById(SERVER_ID).orElseThrow()).getMaps().forEach(map -> {
+            if (map.getPosition() == position) {
                 flag.set(true);
             }
         });

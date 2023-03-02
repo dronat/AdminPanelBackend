@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Accessors(chain = true)
 @Entity
 @Table(name = "servers", schema = "squad")
-public class ServersEntity implements Serializable {
+public class ServerEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)

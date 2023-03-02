@@ -21,7 +21,7 @@ public class AdminActionLogEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "serverId", referencedColumnName = "id", nullable = false)
-    private ServersEntity serverId;
+    private ServerEntity serverId;
 
     @Basic
     @Column(name = "action", nullable = false, length = 20)
