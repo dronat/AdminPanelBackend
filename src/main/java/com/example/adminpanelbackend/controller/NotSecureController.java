@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.SteamOpenID;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.db.EntityManager;
@@ -8,6 +9,7 @@ import com.example.adminpanelbackend.db.entity.RoleGroupEntity;
 import com.example.adminpanelbackend.db.service.AdminService;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
+import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+
+import static com.example.adminpanelbackend.RoleEnum.BASE;
 
 @RestController()
 @CrossOrigin
@@ -49,6 +53,16 @@ public class NotSecureController {
         );
     }
 
+    @GetMapping(path = "/get-server-info-discord")
+    public ResponseEntity<HashMap<String, Object>> getServerInfo(
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        LOGGER.info("SERVER INFO DISCORD");
+        return ResponseEntity.ok(SquadServer.getServerInfo());
+    }
+
     @PostMapping(path = "/verify-steam")
     public ResponseEntity<RoleGroupEntity> verifySteam(HttpSession httpSession,
                                                        HttpServletRequest request,
@@ -73,8 +87,9 @@ public class NotSecureController {
 
         entityManager.update(adminEntity);
         httpSession.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, String.valueOf(adminEntity.getSteamId()));
-        httpSession.setAttribute("userInfo", adminEntity);
-        return ResponseEntity.ok(adminEntity.getRoleGroup());
+        RoleGroupEntity rge = adminEntity.getRoleGroup();
+        httpSession.setAttribute("userInfo", adminEntity.setRoleGroup(null));
+        return ResponseEntity.ok(rge);
     }
 
     /*@GetMapping(path = "/verify-steam-return")

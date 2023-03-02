@@ -56,7 +56,7 @@ public class RotationController extends BaseSecureController {
             return ResponseEntity.status(400).body("Duplicate value 'position' in some rotations");
         }
 
-        rotationService.deleteAllByServerId(SERVER_ID);
+        rotationService.deleteAllByServerId(serversService.findById(SERVER_ID).orElseThrow());
         rotationModel.getRotationList().forEach(rotationMap ->
                 rotationService.saveAndFlush(
                         new RotationEntity()

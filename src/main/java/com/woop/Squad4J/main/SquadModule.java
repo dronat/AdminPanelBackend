@@ -49,6 +49,9 @@ public class SquadModule {
     private static final EntityManager entityManager = new EntityManager();
 
     public static void init() {
+        //Initialize connectors
+        MySQLConnector.init();
+
         initMaps();
 
         //Initialize logger before pushing any output to console
@@ -56,9 +59,6 @@ public class SquadModule {
 
         //Initailize query service
         Query.init();
-
-        //Initialize connectors
-        MySQLConnector.init();
 
         //Initialize services
         //Initialize RCON service
@@ -116,7 +116,12 @@ public class SquadModule {
 
     private static void initMaps() {
         LOGGER.info("Initializing maps");
-        List<String> dbRawNames = entityManager.getAllMaps().stream().map(MapEntity::getRawName).toList();
+        List<String> dbRawNames;
+        try {
+            dbRawNames = entityManager.getAllMaps().stream().map(MapEntity::getRawName).toList();
+        } catch (Exception e) {
+            dbRawNames = new ArrayList<>();
+        }
         List<String> addedRawNames = new ArrayList<>();
         List<String> duplicatedRawNames = new ArrayList<>();
         List<String> wrongRawNames = new ArrayList<>();
@@ -132,6 +137,7 @@ public class SquadModule {
             if (mapsDTO == null) {
                 throw new RuntimeException();
             }
+            List<String> finalDbRawNames = dbRawNames;
             mapsDTO.getMaps().forEach(mapDTO -> {
                 try {
 
@@ -205,7 +211,7 @@ public class SquadModule {
                                     .collect(Collectors.toList())
                     );
 
-                    if (dbRawNames.contains(mapEntity.getRawName())) {
+                    if (finalDbRawNames.contains(mapEntity.getRawName())) {
                         duplicatedRawNames.add(mapDTO.getRawName());
                     } else {
                         if (checkDtoValid(mapDTO)) {

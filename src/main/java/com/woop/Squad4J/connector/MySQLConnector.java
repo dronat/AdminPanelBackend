@@ -160,6 +160,16 @@ public class MySQLConnector extends Connector {
             createPlayersNotes();
         }
         try {
+            statement.executeQuery("SELECT COUNT(*) FROM map_team");
+        } catch (SQLException e) {
+            createMapTeam();
+        }
+        try {
+            statement.executeQuery("SELECT COUNT(*) FROM map");
+        } catch (SQLException e) {
+            createMap();
+        }
+        try {
             statement.executeQuery("SELECT COUNT(*) FROM layers_history");
         } catch (SQLException e) {
             createLayersHistory();
@@ -193,16 +203,6 @@ public class MySQLConnector extends Connector {
             statement.executeQuery("SELECT COUNT(*) FROM discord_messages_id");
         } catch (SQLException e) {
             createDiscordMessagesId();
-        }
-        try {
-            statement.executeQuery("SELECT COUNT(*) FROM map_team");
-        } catch (SQLException e) {
-            createMapTeam();
-        }
-        try {
-            statement.executeQuery("SELECT COUNT(*) FROM map");
-        } catch (SQLException e) {
-            createMap();
         }
         try {
             statement.executeQuery("SELECT COUNT(*) FROM map_team_vehicle");
@@ -532,7 +532,7 @@ public class MySQLConnector extends Connector {
 
     private static void createServers() throws SQLException {
         LOGGER.info("Creating table servers");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS roles (" +
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS servers (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
                 "fullName VARCHAR(255) NULL, " +
                 "shortName VARCHAR(255) NOT NULL);");
@@ -549,7 +549,7 @@ public class MySQLConnector extends Connector {
 
     private static void createMap() throws SQLException {
         LOGGER.info("Creating table map");
-        statement.executeUpdate("CREATE TABLE IF NOT EXISTS map_team (" +
+        statement.executeUpdate("CREATE TABLE IF NOT EXISTS map (" +
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
                 "name VARCHAR(255) NOT NULL, " +
                 "rawName VARCHAR(255) NOT NULL, " +
@@ -558,7 +558,7 @@ public class MySQLConnector extends Connector {
                 "teamOne INT NOT NULL, " +
                 "teamTwo INT NOT NULL, " +
                 "mapName VARCHAR(255) NOT NULL, " +
-                "gameMove VARCHAR(255) NOT NULL, " +
+                "gameMode VARCHAR(255) NOT NULL, " +
                 "layerVersion VARCHAR(255) NOT NULL, " +
                 "mapSize VARCHAR(255) NOT NULL, " +
                 "numOfGames INT NOT NULL DEFAULT 0," +
@@ -583,8 +583,9 @@ public class MySQLConnector extends Connector {
     private static void createMapTeamVehicles() throws SQLException {
         LOGGER.info("Creating table map_team_vehicles");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS map_team_vehicles (" +
-                "team INT PRIMARY KEY, " +
-                "vehicle INT PRIMARY KEY," +
+                "team INT NOT NULL, " +
+                "vehicle INT NOT NULL, " +
+                "CONSTRAINT map_team_vehicles_pk PRIMARY KEY (team, vehicle), " +
                 "CONSTRAINT map_team_fk FOREIGN KEY (team) REFERENCES map_team (id) ON DELETE CASCADE," +
                 "CONSTRAINT map_vehicle_fk FOREIGN KEY (vehicle) REFERENCES map_team_vehicle (id) ON DELETE CASCADE);");
     }
@@ -592,10 +593,12 @@ public class MySQLConnector extends Connector {
     private static void createRotation() throws SQLException {
         LOGGER.info("Creating table rotation");
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS rotation (" +
-                "team INT PRIMARY KEY, " +
-                "vehicle INT PRIMARY KEY," +
-                "CONSTRAINT map_team_fk FOREIGN KEY (team) REFERENCES map_team (id) ON DELETE CASCADE," +
-                "CONSTRAINT map_vehicle_fk FOREIGN KEY (vehicle) REFERENCES map_team_vehicle (id) ON DELETE CASCADE);");
+                "id INT AUTO_INCREMENT NOT NULL PRIMARY KEY," +
+                "map INT NOT NULL, " +
+                "serverID INT NOT NULL, " +
+                "position INT NOT NULL, " +
+                "CONSTRAINT rotation_map_null_fk FOREIGN KEY (map) REFERENCES map (id) ON DELETE CASCADE," +
+                "CONSTRAINT rotation_servers_id_fk FOREIGN KEY (serverID) REFERENCES servers (id) ON DELETE CASCADE);");
     }
 
     public static void createSpringSessions() throws SQLException {

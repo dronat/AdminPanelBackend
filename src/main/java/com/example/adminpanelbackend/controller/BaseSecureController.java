@@ -14,6 +14,7 @@ import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHtt
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController()
 @EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 604800)
 @CrossOrigin
+@Transactional
 public class BaseSecureController {
     public static final int SERVER_ID = ConfigLoader.get("server.id", Integer.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSecureController.class);
