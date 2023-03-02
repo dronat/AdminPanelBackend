@@ -5,6 +5,8 @@ import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.db.entity.AdminEntity;
 import com.example.adminpanelbackend.db.entity.MapEntity;
 import com.example.adminpanelbackend.db.entity.RotationGroupEntity;
+import com.example.adminpanelbackend.db.entity.RotationMapEntity;
+import com.example.adminpanelbackend.model.RotationGroupModel;
 import com.woop.Squad4J.server.RotationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,22 +50,27 @@ public class RotationController extends BaseSecureController {
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestBody RotationGroupEntity rotationGroup) {
+            @RequestBody RotationGroupModel rotationGroupModel) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        Set<Integer> set = new HashSet<>(rotationGroup.getMaps().stream().map(rotation -> rotation.getPosition()).toList());
-        if (set.size() != rotationGroup.getMaps().size()) {
+        Set<Integer> set = new HashSet<>(rotationGroupModel.getMaps().stream().map(RotationGroupModel.RotationMapModel::getPosition).toList());
+        if (set.size() != rotationGroupModel.getMaps().size()) {
             return ResponseEntity.status(400).body("Duplicate value 'position' in some rotations");
         }
-        rotationGroupService.saveAndFlush(rotationGroup.setIsActive(false));
 
-        /*rotationGroup.getRotationList().forEach(rotationMap ->
+        RotationGroupEntity rotationGroup = new RotationGroupEntity()
+                .setServerID(serversService.findById(SERVER_ID).orElseThrow())
+                .setName(rotationGroupModel.getName())
+                .setIsActive(false);
+        rotationGroupService.saveAndFlush(rotationGroup);
+
+        rotationGroupModel.getMaps().forEach(mapModel ->
                 rotationMapService.saveAndFlush(
-                        new RotationMapEntity()
-                                .setPosition(rotationMap.getPosition())
-                                .setMap(mapService.findById(rotationMap.getMapId()).get())
-                                .setServerId(serversService.findById(SERVER_ID).orElseThrow())
+                                new RotationMapEntity()
+                                        .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
+                                        .setPosition(mapModel.getPosition())
+                                        .setRotationGroup(rotationGroup)
                 )
-        );*/
+        );
         return ResponseEntity.ok().build();
     }
 
