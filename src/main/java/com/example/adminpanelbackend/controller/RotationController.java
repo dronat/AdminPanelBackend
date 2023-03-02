@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,34 @@ public class RotationController extends BaseSecureController {
         rotationGroupService.saveAndFlush(rotationGroup);
 
         rotationGroupModel.getMaps().forEach(mapModel ->
+                rotationMapService.saveAndFlush(
+                                new RotationMapEntity()
+                                        .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
+                                        .setPosition(mapModel.getPosition())
+                                        .setRotationGroup(rotationGroup)
+                )
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    @Role(role = ROTATION_MANAGEMENT)
+    @PostMapping(path = "/change-rotation-group")
+    public ResponseEntity<Object> changeRotationGroup(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int roleGroupId,
+            @RequestBody List<RotationGroupModel.RotationMapModel> rotationMapModel) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        Set<Integer> set = new HashSet<>(rotationMapModel.stream().map(RotationGroupModel.RotationMapModel::getPosition).toList());
+        if (set.size() != rotationMapModel.size()) {
+            return ResponseEntity.status(400).body("Duplicate value 'position' in some rotations");
+        }
+
+        RotationGroupEntity rotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow().setMaps(new ArrayList<>());
+
+        rotationMapModel.forEach(mapModel ->
                 rotationMapService.saveAndFlush(
                                 new RotationMapEntity()
                                         .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
