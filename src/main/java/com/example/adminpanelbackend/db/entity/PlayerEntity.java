@@ -53,6 +53,11 @@ public class PlayerEntity implements Serializable {
     @OneToMany(mappedBy = "player")
     private List<PlayerKickEntity> playerKicks;
 
+    @JsonBackReference
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(mappedBy = "player")
+    private List<AdminActionLogEntity> playerAdminActions;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

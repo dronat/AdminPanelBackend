@@ -210,6 +210,7 @@ public class PlayerController extends BaseSecureController {
             put("playersMessagesBySteamId", player.getPlayerMessages().size());
             put("playersNotesBySteamId", player.getPlayerNotes().size());
             put("playersKicksBySteamId", player.getPlayerKicks().size());
+            put("numOfAdminActions", player.getPlayerAdminActions().size());
         }}));
         map.put("content", contentList);
         return ResponseEntity.ok(map);
@@ -232,12 +233,16 @@ public class PlayerController extends BaseSecureController {
             put("isOnControl", player.getOnControl());
             put("isAdmin", SquadServer.getAdmins().contains(steamId));
             put("avatarFull", SteamService.getSteamUserInfo(steamId).getAvatarfull());
-            put("numOfActiveBans", player
+            put("numOfPunishments",  player.getPlayerBans().size() + player.getPlayerKicks().size());
+            put("numOfActiveBans",  player
                     .getPlayerBans()
                     .stream()
                     .filter(ban -> !ban.getIsUnbannedManually() && (ban.getExpirationTime() == null || ban.getExpirationTime().after(new Date(System.currentTimeMillis()))))
-                    .count()
-            );
+                    .count());
+            put("numOfMessages", player.getPlayerMessages().size());
+            put("numOfNotes", player.getPlayerNotes().size());
+            put("numOfAdminActions", player.getPlayerAdminActions().size());
+
         }});
     }
 
