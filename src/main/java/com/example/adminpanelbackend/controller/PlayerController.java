@@ -573,6 +573,7 @@ public class PlayerController extends BaseSecureController {
                 put("adminName", admin.getName());
                 put("adminSteamId", admin.getSteamId());
                 put("createTime", adminActionLogEntity.getCreateTime());
+                put("server", adminActionLogEntity.getServerId());
             }};
             contentList.add(contentMap);
         });
