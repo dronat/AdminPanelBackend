@@ -530,6 +530,7 @@ public class PlayerController extends BaseSecureController {
                     put("chatType", playerMessageEntity.getChatType());
                     put("message", playerMessageEntity.getMessage());
                     put("createTime", playerMessageEntity.getCreationTime());
+                    put("server", playerMessageEntity.getServerId());
                 }})
         );
         map.put("content", contentList);
@@ -601,6 +602,7 @@ public class PlayerController extends BaseSecureController {
                 put("chatType", playerMessageEntity.getChatType());
                 put("message", playerMessageEntity.getMessage());
                 put("createTime", playerMessageEntity.getCreationTime());
+                put("server", playerMessageEntity.getServerId());
             }};
             contentList.add(contentMap);
         });

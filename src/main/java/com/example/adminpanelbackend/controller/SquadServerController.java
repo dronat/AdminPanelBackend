@@ -4,6 +4,7 @@ import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.db.entity.AdminActionLogEntity;
 import com.example.adminpanelbackend.db.entity.AdminEntity;
 import com.example.adminpanelbackend.db.entity.LayerHistoryEntity;
+import com.example.adminpanelbackend.db.entity.ServerEntity;
 import com.woop.Squad4J.dto.rcon.DisconnectedPlayer;
 import com.woop.Squad4J.dto.rcon.OnlineInfo;
 import com.woop.Squad4J.event.rcon.ChatMessageEvent;
@@ -111,7 +112,8 @@ public class SquadServerController extends BaseSecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<LayerHistoryEntity> resultPage = layersHistoryService.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+        ServerEntity server = serversService.findById(SERVER_ID).orElseThrow();
+        Page<LayerHistoryEntity> resultPage = layersHistoryService.findAllByServerId(server ,PageRequest.of(page, size, Sort.by("id").descending()));
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
@@ -124,6 +126,7 @@ public class SquadServerController extends BaseSecureController {
             }};
             contentList.add(contentMap);
         });
+        map.put("server", server);
         map.put("content", contentList);
         return ResponseEntity.ok(map);
     }

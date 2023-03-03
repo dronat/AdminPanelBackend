@@ -132,6 +132,7 @@ public class AdminController extends BaseSecureController {
                 put("reason", adminActionLogEntity.getReason());
                 put("createTime", adminActionLogEntity.getCreateTime());
                 put("playerByAdminId", finalPlayerByAdminId);
+                put("server", adminActionLogEntity.getServerId());
             }};
             contentList.add(contentMap);
         });
@@ -186,6 +187,7 @@ public class AdminController extends BaseSecureController {
                 put("adminSteamId", admin.getSteamId());
                 put("createTime", adminActionLogEntity.getCreateTime());
                 put("playerByAdminId", finalPlayerByAdminId);
+                put("server", adminActionLogEntity.getServerId());
             }};
             contentList.add(contentMap);
         });
@@ -227,6 +229,7 @@ public class AdminController extends BaseSecureController {
                 put("createTime", adminActionLogEntity.getCreateTime());
                 put("adminsByAdminId", adminActionLogEntity.getAdmin().getName());
                 put("playerByAdminId", finalPlayerByAdminId);
+                put("server", adminActionLogEntity.getServerId());
             }};
             contentList.add(contentMap);
         });
