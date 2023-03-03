@@ -8,6 +8,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class RotationGroupModel {
+
+    private int id;
     private String name;
 
     private List<RotationMapModel> maps;

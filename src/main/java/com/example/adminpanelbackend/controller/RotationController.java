@@ -82,17 +82,17 @@ public class RotationController extends BaseSecureController {
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            int roleGroupId,
-            @RequestBody List<RotationGroupModel.RotationMapModel> rotationMapModel) {
+            @RequestBody RotationGroupModel rotationGroupModel) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        Set<Integer> set = new HashSet<>(rotationMapModel.stream().map(RotationGroupModel.RotationMapModel::getPosition).toList());
-        if (set.size() != rotationMapModel.size()) {
+        Set<Integer> set = new HashSet<>(rotationGroupModel.getMaps().stream().map(RotationGroupModel.RotationMapModel::getPosition).toList());
+        if (set.size() != rotationGroupModel.getMaps().size()) {
             return ResponseEntity.status(400).body("Duplicate value 'position' in some rotations");
         }
 
-        RotationGroupEntity rotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow().setMaps(new ArrayList<>());
+        RotationGroupEntity rotationGroup = rotationGroupService.findById(rotationGroupModel.getId()).orElseThrow().setMaps(new ArrayList<>());
+        rotationGroupService.saveAndFlush(rotationGroup.setName(rotationGroupModel.getName()));
 
-        rotationMapModel.forEach(mapModel ->
+        rotationGroupModel.getMaps().forEach(mapModel ->
                 rotationMapService.saveAndFlush(
                                 new RotationMapEntity()
                                         .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
