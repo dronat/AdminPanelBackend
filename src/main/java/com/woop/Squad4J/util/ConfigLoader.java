@@ -28,13 +28,15 @@ public class ConfigLoader {
     static {
 
         String json = "{}";
-        File file = new File("config.json");
-        if (!file.exists()) {
-            LOGGER.error("config.json does not exist. Exiting.");
+        File file = null;
+        try {
+             file = new File(ConfigLoader.class.getClassLoader().getResource("config.json").getFile());
+        } catch (Exception e) {
+            System.out.println("config.json does not exist by the path 'src/main/resources/config.json'. Exiting.");
             System.exit(1);
         }
         try {
-            InputStream is = new FileInputStream("config.json");
+            InputStream is = new FileInputStream(file);
             json = IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
@@ -43,8 +45,9 @@ public class ConfigLoader {
         try {
             document = Configuration.defaultConfiguration().jsonProvider().parse(json);
         } catch (InvalidJsonException e) {
-            LOGGER.error("config.json is not valid JSON.", e);
-            LOGGER.error("Exiting");
+            System.out.println("config.json is not valid JSON.");
+            System.out.println("Exiting");
+            e.printStackTrace();
             System.exit(1);
         }
 

@@ -17,11 +17,13 @@ import com.woop.Squad4J.server.RotationListener;
 import com.woop.Squad4J.server.SquadServer;
 import com.woop.Squad4J.server.tailer.FtpBanService;
 import com.woop.Squad4J.server.tailer.TailerService;
+import com.woop.Squad4J.util.ConfigLoader;
 import com.woop.Squad4J.util.logger.LoggerUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -126,8 +128,7 @@ public class SquadModule {
         List<String> duplicatedRawNames = new ArrayList<>();
         List<String> wrongRawNames = new ArrayList<>();
 
-
-        try (InputStream fis = new FileInputStream("maps.json")) {
+        try (InputStream fis = new FileInputStream(ConfigLoader.class.getClassLoader().getResource("maps.json").getFile())) {
             String fileContent = IOUtils.toString(fis, StandardCharsets.UTF_8);
             if (fileContent == null || fileContent.isEmpty()) {
                 throw new RuntimeException();
@@ -234,10 +235,10 @@ public class SquadModule {
         }
         LOGGER.info("Maps initialized");
         if (!addedRawNames.isEmpty()) {
-            LOGGER.info("Added maps: " + addedRawNames.size());
+            LOGGER.info("New added maps: " + addedRawNames.size());
         }
         if (!duplicatedRawNames.isEmpty()) {
-            LOGGER.warn("Not added because of duplicate: " + duplicatedRawNames.size());
+            LOGGER.warn("New maps not added because of duplicate: " + duplicatedRawNames.size());
         }
         wrongRawNames.forEach(wrongRawName -> LOGGER.warn("Map '" + wrongRawName + "' not added because have some errors in json validation"));
     }

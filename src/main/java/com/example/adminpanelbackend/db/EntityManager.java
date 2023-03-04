@@ -45,7 +45,13 @@ public class EntityManager extends JpaManager implements JpaConnection {
         try {
             em.createQuery("SELECT a FROM  AdminEntity a WHERE steamId = 1").getSingleResult();
         } catch (Exception e) {
-            persist(new AdminEntity().setSteamId(1L).setName("Rotation module"));
+            persist(
+                    new AdminEntity()
+                    .setSteamId(1L)
+                    .setName("Rotation module")
+                    .setCreateTime(new Timestamp(System.currentTimeMillis()))
+                    .setModifiedTime(new Timestamp(System.currentTimeMillis()))
+            );
         }
 
     }
