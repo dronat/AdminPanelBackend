@@ -26,7 +26,7 @@ enum EmfContext {
         if (this.container.containsKey(ConnectionConfig)) {
             return (EntityManagerFactory) this.container.get(ConnectionConfig);
         } else {
-            this.log.info("### Init EntityManagerFactory ###");
+            //this.log.info("### Init EntityManagerFactory ###");
             Map<String, String> settings = new HashMap();
             if (ConnectionConfig.jdbcUrl == null) {
                 settings.put("hibernate.connection.url", ConnectionConfig.jdbcPrefix + "://" + ConnectionConfig.dbHost + ":" + ConnectionConfig.dbPort + "/" + ConnectionConfig.dbName);

@@ -158,7 +158,13 @@ public class AdminController extends BaseSecureController {
         if (size > 100) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        Page<AdminActionLogEntity> resultPage = adminActionLogsService.findAllByParams(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
+        Page<AdminActionLogEntity> resultPage;
+        if (playerSteamId.isEmpty()) {
+            resultPage = adminActionLogsService.findAllByParams(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
+
+        } else {
+            resultPage = adminActionLogsService.findAllByParams(adminSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
+        }
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
         List<HashMap<String, Object>> contentList = new ArrayList<>();
