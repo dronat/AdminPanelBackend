@@ -103,7 +103,7 @@ public class SquadServer {
     public static void init() {
         if (initialized)
             throw new IllegalStateException("This class is already initialized.");
-        entityManager.initRole();
+        entityManager.init();
 
         String sourceRef = null;
         //TODO: Improve admin reading to take union all permissions for UNIQUE ADMINS across all files. Currently, this logic actually sucks
@@ -373,6 +373,7 @@ public class SquadServer {
                             LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
                             LOGGER.error("RCON RESPONSE: " + response);
                         }
+                        entityManager.addAdminActionInLog(1, null, "ChangeNextLayer", null);
                         LOGGER.info("Next map '" + map + "' was set");
                     }
                 }

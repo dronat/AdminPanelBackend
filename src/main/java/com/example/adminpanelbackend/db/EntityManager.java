@@ -26,7 +26,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         super(EMF_THREAD_LOCAL.getEntityManager());
     }
 
-    public synchronized void initRole() {
+    public synchronized void init() {
         List<RoleEnum> roleEnums = List.of(RoleEnum.values());
         List<String> roleEntities = em.createQuery("SELECT a FROM RoleEntity a", RoleEntity.class)
                 .getResultList()
@@ -42,6 +42,12 @@ public class EntityManager extends JpaManager implements JpaConnection {
                 );
             }
         });
+        try {
+            em.createQuery("SELECT a FROM  AdminEntity a WHERE steamId = 1").getSingleResult();
+        } catch (Exception e) {
+            persist(new AdminEntity().setSteamId(1L).setName("Rotation module"));
+        }
+
     }
 
     public synchronized void addAdmin(long adminSteamId) {

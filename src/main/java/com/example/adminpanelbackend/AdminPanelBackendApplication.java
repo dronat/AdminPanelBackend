@@ -28,7 +28,7 @@ public class AdminPanelBackendApplication {
             put("spring.session.store-type", "jdbc");
         }});
 
-        springApplication.addListeners(new ApplicationPidFileWriter("./bin/shutdown.pid"));
+        //springApplication.addListeners(new ApplicationPidFileWriter("./bin/shutdown.pid"));
         springApplication.run(args);
     }
 }
