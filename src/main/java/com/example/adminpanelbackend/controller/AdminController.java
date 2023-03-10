@@ -89,7 +89,7 @@ public class AdminController extends BaseSecureController {
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam(required = false) Boolean withCountOfActions) {
+            @RequestParam Boolean withCountOfActions) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         List<HashMap<String, Object>> list = new ArrayList<>();
         adminService.findAll().forEach(admin -> {
