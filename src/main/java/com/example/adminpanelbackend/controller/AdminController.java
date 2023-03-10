@@ -106,8 +106,8 @@ public class AdminController extends BaseSecureController {
             }};
             if (withCountOfActions) {
                 ActionEnum.getAllActions().forEach(action -> tmp.put(action.actionName, 0));
+                admin.getAdminActionLogs().forEach(logAction -> tmp.put(logAction.getAction(), ((int) tmp.get(logAction.getAction())) + 1));
             }
-            admin.getAdminActionLogs().forEach(logAction -> tmp.put(logAction.getAction(), ((int) tmp.get(logAction.getAction())) + 1));
             list.add(tmp);
         });
         return ResponseEntity.ok(list);
