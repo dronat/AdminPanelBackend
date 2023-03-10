@@ -126,6 +126,9 @@ public class RolesController extends BaseSecureController {
             HttpServletRequest request,
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (adminService.countOfAdminsWithRoleGroup(roleGroupId) > 0) {
+            return ResponseEntity.badRequest().build();
+        }
         roleGroupService.deleteById(roleGroupId);
         return ResponseEntity.ok().build();
     }
