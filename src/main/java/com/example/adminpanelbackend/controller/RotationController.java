@@ -115,7 +115,7 @@ public class RotationController extends BaseSecureController {
     }
 
     @Role(role = ROTATION_MANAGEMENT)
-    @GetMapping(path = "/delete-rotation-group")
+    @PostMapping(path = "/delete-rotation-group")
     public ResponseEntity<Void> deleteRotationGroup(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
@@ -128,7 +128,7 @@ public class RotationController extends BaseSecureController {
     }
 
     @Role(role = ROTATION_MANAGEMENT)
-    @GetMapping(path = "/activate-rotation-group")
+    @PostMapping(path = "/activate-rotation-group")
     public ResponseEntity<Void> activateRotationGroup(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,

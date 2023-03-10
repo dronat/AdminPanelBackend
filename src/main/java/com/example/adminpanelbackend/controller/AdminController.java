@@ -160,10 +160,9 @@ public class AdminController extends BaseSecureController {
         }
         Page<AdminActionLogEntity> resultPage;
         if (playerSteamId.isEmpty()) {
-            resultPage = adminActionLogsService.findAllByParams(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
-
+            resultPage = adminActionLogsService.findAllByParamsWithNullPlayerSteamID(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
         } else {
-            resultPage = adminActionLogsService.findAllByParams(adminSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
+            resultPage = adminActionLogsService.findAllByParams(adminSteamId, playerSteamId, actions, new Timestamp(dateFrom), new Timestamp(dateTo), PageRequest.of(page, size, Sort.by("id").descending()));
         }
         HashMap<String, Object> map = getMapForPagination(resultPage);
 
