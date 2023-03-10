@@ -426,7 +426,16 @@ public class SquadServer {
                 LOGGER.trace("Updating SquadServer for SQUADLIST_UPDATED");
                 SquadAndTeamListsUpdatedEvent squadAndTeamListsUpdatedEvent = (SquadAndTeamListsUpdatedEvent) ev;
                 squads = squadAndTeamListsUpdatedEvent.getSquadList();
-                teams = squadAndTeamListsUpdatedEvent.getTeamsList();
+                teams = squadAndTeamListsUpdatedEvent
+                        .getTeamsList()
+                        .stream()
+                        .peek(elm -> {
+                            if (elm.getId() == 1) {
+                                elm.setTeamNameShort(currentMapEntity.getTeamOne().getFaction());
+                            } else if (elm.getId() == 2) {
+                                elm.setTeamNameShort(currentMapEntity.getTeamTwo().getFaction());
+                            }
+                        }).collect(Collectors.toList());
                 LOGGER.trace("Done updating SquadServer for SQUADLIST_UPDATED");
                 break;
             default:
@@ -468,7 +477,7 @@ public class SquadServer {
                 }
             }
         });
-        if (!onlineInfo.getTeams().isEmpty()) {
+        /*if (!onlineInfo.getTeams().isEmpty()) {
             //onlineInfo.getTeamById(1).setTeamNameShort(teamOneName.substring(teamOneName.lastIndexOf("_") + 1));
             //onlineInfo.getTeamById(2).setTeamNameShort(teamTwoName.substring(teamOneName.lastIndexOf("_") + 1));
             try {
@@ -495,7 +504,7 @@ public class SquadServer {
                 );
             } catch (Exception ignored) {
             }
-        }
+        }*/
         return onlineInfo;
     }
 
