@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.db.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -26,7 +27,7 @@ public class RotationMapEntity implements Serializable {
     @Column(name = "position", nullable = false)
     private Integer position;
 
-    @JsonManagedReference
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "rotationGroup", referencedColumnName = "id", nullable = false)
     private RotationGroupEntity rotationGroup;
