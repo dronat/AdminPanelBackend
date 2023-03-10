@@ -347,7 +347,6 @@ public class SquadServer {
                 chatMessages.add(cme);
                 if (cme.getMessage().toLowerCase().contains("!report")) {
                     String msg = " Репорт от " + cme.getPlayerName() + ": " + cme.getMessage().toLowerCase().replace("!report", "").trim();
-                    ;
                     new Thread(() ->
                             adminsInGame.forEach(adminSteamId ->
                                     Rcon.command("AdminWarn " + adminSteamId + msg)
