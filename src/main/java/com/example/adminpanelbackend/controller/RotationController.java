@@ -17,10 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.example.adminpanelbackend.RoleEnum.BASE;
@@ -66,10 +63,10 @@ public class RotationController extends BaseSecureController {
 
         rotationGroupModel.getMaps().forEach(mapModel ->
                 rotationMapService.saveAndFlush(
-                                new RotationMapEntity()
-                                        .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
-                                        .setPosition(mapModel.getPosition())
-                                        .setRotationGroup(rotationGroup)
+                        new RotationMapEntity()
+                                .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
+                                .setPosition(mapModel.getPosition())
+                                .setRotationGroup(rotationGroup)
                 )
         );
         return ResponseEntity.ok().build();
@@ -94,10 +91,10 @@ public class RotationController extends BaseSecureController {
 
         rotationGroupModel.getMaps().forEach(mapModel ->
                 rotationMapService.saveAndFlush(
-                                new RotationMapEntity()
-                                        .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
-                                        .setPosition(mapModel.getPosition())
-                                        .setRotationGroup(rotationGroup)
+                        new RotationMapEntity()
+                                .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
+                                .setPosition(mapModel.getPosition())
+                                .setRotationGroup(rotationGroup)
                 )
         );
         return ResponseEntity.ok().build();
@@ -105,13 +102,18 @@ public class RotationController extends BaseSecureController {
 
     @Role(role = ROTATION_MANAGEMENT)
     @GetMapping(path = "/get-all-rotation-groups")
-    public ResponseEntity<List<RotationGroupEntity>> getAllRotationGroups(
+    public ResponseEntity<HashMap<String, Object>> getAllRotationGroups(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        return ResponseEntity.ok(rotationGroupService.findAllByServerID(serversService.findById(SERVER_ID).orElseThrow()));
+        return ResponseEntity.ok(
+                new HashMap<>() {{
+                    put("nextMapPosition", RotationListener.getNextMapWithoutIncrement());
+                    put("rotations", rotationGroupService.findAllByServerID(serversService.findById(SERVER_ID).orElseThrow()));
+                }}
+        );
     }
 
     @Role(role = ROTATION_MANAGEMENT)
