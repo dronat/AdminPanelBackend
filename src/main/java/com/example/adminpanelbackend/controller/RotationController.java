@@ -110,7 +110,7 @@ public class RotationController extends BaseSecureController {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         return ResponseEntity.ok(
                 new HashMap<>() {{
-                    put("nextMapPosition", RotationListener.getNextMapWithoutIncrement());
+                    put("nextMapPosition", RotationListener.isRotationHaveMaps() ? RotationListener.getNextMapWithoutIncrement() : null);
                     put("rotations", rotationGroupService.findAllByServerID(serversService.findById(SERVER_ID).orElseThrow()));
                 }}
         );
@@ -157,6 +157,9 @@ public class RotationController extends BaseSecureController {
             HttpServletResponse response,
             @RequestParam int position) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        if (!RotationListener.isRotationHaveMaps()) {
+            return ResponseEntity.status(400).body("Rotation module doesn't have active rotation");
+        }
         AtomicBoolean flag = new AtomicBoolean(false);
         rotationGroupService.findByServerIDAndIsActiveIsTrue(serversService.findById(SERVER_ID).orElseThrow()).getMaps().forEach(map -> {
             if (map.getPosition() == position) {
