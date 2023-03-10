@@ -105,7 +105,7 @@ public class AdminController extends BaseSecureController {
                 put("modifiedTime", admin.getModifiedTime());
             }};
             if (withCountOfActions) {
-                ActionEnum.getAllActions().forEach(action -> tmp.put(action.name(), 0));
+                ActionEnum.getAllActions().forEach(action -> tmp.put(action.actionName, 0));
             }
             admin.getAdminActionLogs().forEach(logAction -> tmp.put(logAction.getAction(), ((int) tmp.get(logAction.getAction())) + 1));
             list.add(tmp);
