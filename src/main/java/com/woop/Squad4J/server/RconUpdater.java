@@ -56,7 +56,7 @@ public class RconUpdater {
      * Helper method to update information retrieved through RCON: player list, squad list, and layer info.
      */
     public static void updateRcon() {
-        if (updateSquadList() && updateLayerInfo() && updatePlayerList()) {
+        if (updateLayerInfo() && updateSquadList() && updatePlayerList()) {
             lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
         }
         //LOGGER.info("Rcon updated");
