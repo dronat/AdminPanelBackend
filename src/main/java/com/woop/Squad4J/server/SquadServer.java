@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.example.adminpanelbackend.ActionEnum.*;
+
 /**
  * Class to represent the Squad server and it's attributes in memory.
  * <p>
@@ -372,7 +374,7 @@ public class SquadServer {
                             LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
                             LOGGER.error("RCON RESPONSE: " + response);
                         }
-                        entityManager.addAdminActionInLog(1, null, "ChangeNextLayer", null);
+                        entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, null);
                         LOGGER.info("Next map '" + map + "' was set");
                     }
                 }
@@ -410,14 +412,14 @@ public class SquadServer {
                 LOGGER.trace("Updating SquadServer for POSSESSED_ADMIN_CAM");
                 EnteredInAdminCameraEvent enteredInAdminCameraEvent = (EnteredInAdminCameraEvent) ev;
                 getPlayerBySteamId(enteredInAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.add(p));
-                entityManager.addAdminActionInLog(enteredInAdminCameraEvent.getSteamId(), null, "EnteredInAdminCam", null);
+                entityManager.addAdminActionInLog(enteredInAdminCameraEvent.getSteamId(), null, ENTERED_ADMIN_CAM, null);
                 LOGGER.trace("Done updating SquadServer for POSSESSED_ADMIN_CAM");
                 break;
             case LEFT_FROM_ADMIN_CAM:
                 LOGGER.trace("Updating SquadServer for UNPOSSESSED_ADMIN_CAM");
                 LeftFromAdminCameraEvent leftFromAdminCameraEvent = (LeftFromAdminCameraEvent) ev;
                 getPlayerBySteamId(leftFromAdminCameraEvent.getSteamId()).ifPresent(p -> adminsInAdminCam.remove(p));
-                entityManager.addAdminActionInLog(leftFromAdminCameraEvent.getSteamId(), null, "LeftFromAdminCam", null);
+                entityManager.addAdminActionInLog(leftFromAdminCameraEvent.getSteamId(), null, LEFT_FROM_ADMIN_CAM, null);
                 LOGGER.trace("Done updating SquadServer for UNPOSSESSED_ADMIN_CAM");
                 break;
             case SQUADLIST_UPDATED:

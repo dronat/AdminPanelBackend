@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.util.*;
 
+import static com.example.adminpanelbackend.ActionEnum.*;
 import static com.example.adminpanelbackend.RoleEnum.ADMIN_LOG;
 import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -43,7 +44,7 @@ public class PlayerController extends BaseSecureController {
         }
         SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
         entityManager.addPlayer(steamIdLong, steamUser.getPersonaname());
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), steamIdLong, "AddNewPlayer", null);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), steamIdLong, ADD_NEW_PLAYER, null);
         PlayerEntity player = entityManager.getPlayerBySteamId(steamIdLong);
         OnlinePlayer onlinePlayer = SquadServer.getOnlinePlayers().stream().filter(elm -> Objects.equals(elm.getSteamId(), player.getSteamId())).findFirst().orElse(null);
         return ResponseEntity.ok(
@@ -120,7 +121,7 @@ public class PlayerController extends BaseSecureController {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
         entityManager.addPlayerKick(playerSteamId, userInfo.getSteamId(), kickReason);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "KickPlayer", kickReason);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, KICK_PLAYER, kickReason);
         return ResponseEntity.ok().build();
     }
 
@@ -138,7 +139,7 @@ public class PlayerController extends BaseSecureController {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         String noteText = entityManager.getPlayerNote(noteId).getNote();
         entityManager.deletePlayerNote(noteId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "DeletePlayerNote", noteText);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, DELETE_PLAYER_NOTE, noteText);
         return ResponseEntity.ok().build();
     }
 
@@ -158,7 +159,7 @@ public class PlayerController extends BaseSecureController {
         if (rconResponse == null || !rconResponse.contains("Remote admin has warned player")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "WarnPlayer", warnReason);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, WARN_PLAYER, warnReason);
         return ResponseEntity.ok().build();
     }
 
@@ -184,7 +185,7 @@ public class PlayerController extends BaseSecureController {
         entityManager.addAdminActionInLog(
                 userInfo.getSteamId(),
                 null,
-                "WarnSquad",
+                WARN_SQUAD,
                 "(Warn to squad " + squadId + " in team " + teamId + ") | " + warnReason
         );
         return ResponseEntity.ok().build();

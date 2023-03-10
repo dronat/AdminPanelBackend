@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.controller;
 
+import com.example.adminpanelbackend.ActionEnum;
 import com.example.adminpanelbackend.Role;
 import com.example.adminpanelbackend.db.entity.AdminActionLogEntity;
 import com.example.adminpanelbackend.db.entity.AdminEntity;
@@ -25,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.adminpanelbackend.ActionEnum.ADD_ADMIN;
+import static com.example.adminpanelbackend.ActionEnum.DEACTIVATE_ADMIN;
 import static com.example.adminpanelbackend.RoleEnum.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -59,7 +62,7 @@ public class AdminController extends BaseSecureController {
             return ResponseEntity.status(409).build();
         }
         entityManager.addAdmin(adminSteamId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "AddAdmin", String.valueOf(adminSteamId));
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, ADD_ADMIN, String.valueOf(adminSteamId));
         return ResponseEntity.ok().build();
     }
 
@@ -68,7 +71,7 @@ public class AdminController extends BaseSecureController {
     public ResponseEntity<OnlineInfo> deactivateAdmin(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam long adminSteamId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         entityManager.deactivateAdmin(adminSteamId);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DeactivateAdmin", String.valueOf(adminSteamId));
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, DEACTIVATE_ADMIN, String.valueOf(adminSteamId));
         Map<String, ? extends Session> resultSessions = sessions.findByPrincipalName(String.valueOf(adminSteamId));
         resultSessions.forEach((k, v) -> {
             sessions.deleteById(v.getId());
@@ -80,21 +83,33 @@ public class AdminController extends BaseSecureController {
     }
 
     @Role(role = ADMINS_MANAGEMENT)
-    @PostMapping(path = "/get-admins")
-    public ResponseEntity<List<HashMap<String, Object>>> getAdmins(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping(path = "/get-admins")
+    public ResponseEntity<List<HashMap<String, Object>>> getAdmins(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam(required = false) Boolean withCountOfActions) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         List<HashMap<String, Object>> list = new ArrayList<>();
-        adminService.findAll().forEach(admin -> list.add(new HashMap<>() {{
-            put("steamId", admin.getSteamId());
-            put("name", admin.getName());
-            put("steamSign", admin.getSteamSign());
-            put("role", admin.getRoleGroup());
-            put("avatar", admin.getAvatar());
-            put("avatarMedium", admin.getAvatarMedium());
-            put("avatarFull", admin.getAvatarFull());
-            put("createTime", admin.getCreateTime());
-            put("modifiedTime", admin.getModifiedTime());
-        }}));
+        adminService.findAll().forEach(admin -> {
+            HashMap<String, Object> tmp = new HashMap<>() {{
+                put("steamId", admin.getSteamId());
+                put("name", admin.getName());
+                put("steamSign", admin.getSteamSign());
+                put("role", admin.getRoleGroup());
+                put("avatar", admin.getAvatar());
+                put("avatarMedium", admin.getAvatarMedium());
+                put("avatarFull", admin.getAvatarFull());
+                put("createTime", admin.getCreateTime());
+                put("modifiedTime", admin.getModifiedTime());
+            }};
+            if (withCountOfActions) {
+                ActionEnum.getAllActions().forEach(action -> tmp.put(action.name(), 0));
+            }
+            admin.getAdminActionLogs().forEach(logAction -> tmp.put(logAction.getAction(), ((int) tmp.get(logAction.getAction())) + 1));
+            list.add(tmp);
+        });
         return ResponseEntity.ok(list);
     }
 

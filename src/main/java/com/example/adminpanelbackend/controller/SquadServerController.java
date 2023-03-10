@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.example.adminpanelbackend.ActionEnum.*;
 import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -75,7 +76,7 @@ public class SquadServerController extends BaseSecureController {
         if (rconResponse == null || !rconResponse.contains("Message broadcasted")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "SendBroadcast", broadcastMessage);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, SEND_BROADCAST, broadcastMessage);
         return ResponseEntity.ok().build();
     }
 
@@ -87,7 +88,7 @@ public class SquadServerController extends BaseSecureController {
         if (rconResponse == null || !rconResponse.contains("Forced team change for player")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "PlayerTeamChange", null);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, PLAYER_TEAM_CHANGE, null);
         LOGGER.info("Admin '{}' has forced team change for player: '{}'", userInfo.getName(), playerSteamId);
         return ResponseEntity.ok().build();
     }
@@ -100,7 +101,7 @@ public class SquadServerController extends BaseSecureController {
         if (rconResponse == null || !rconResponse.contains("was removed from squad")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, "RemovePlayerFromSquad", null);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), playerSteamId, REMOVE_PLAYER_FROM_SQUAD, null);
         LOGGER.info("Admin '{}' has removed player '{}' from squad", userInfo.getSteamId(), playerSteamId);
         return ResponseEntity.ok().build();
     }
@@ -139,7 +140,7 @@ public class SquadServerController extends BaseSecureController {
         if (rconResponse == null || !rconResponse.contains("Remote admin disbanded squad")) {
             return ResponseEntity.status(BAD_REQUEST).build();
         }
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "DisbandSquad", "Расформировал отряд " + squadName + " (" + squadId + ") в команде " + teamId);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, DISBAND_SQUAD, "Расформировал отряд " + squadName + " (" + squadId + ") в команде " + teamId);
         LOGGER.info("Admin '{}' has disbanded squad '{}' in team '{}'", userInfo.getName(), squadId, teamId);
         return ResponseEntity.ok().build();
     }
@@ -149,7 +150,7 @@ public class SquadServerController extends BaseSecureController {
     public ResponseEntity<Collection<AdminActionLogEntity>> changeCurrentLayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String layerName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         Rcon.command("AdminChangeLayer " + layerName);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "ChangeCurrentLayer", layerName);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, CHANGE_CURRENT_LAYER, layerName);
         LOGGER.info("Admin '{}' has changed current layer to '{}'", userInfo.getName(), layerName);
         return ResponseEntity.ok().build();
     }
@@ -159,7 +160,7 @@ public class SquadServerController extends BaseSecureController {
     public ResponseEntity<Collection<AdminActionLogEntity>> changeNextLayer(@SessionAttribute AdminEntity userInfo, HttpSession httpSession, HttpServletRequest request, HttpServletResponse response, @RequestParam String layerName) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         Rcon.command("AdminSetNextLayer " + layerName);
-        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, "ChangeNextLayer", layerName);
+        entityManager.addAdminActionInLog(userInfo.getSteamId(), null, CHANGE_NEXT_LAYER, layerName);
         LOGGER.info("Admin '{}' has changed next layer to '{}'", userInfo.getName(), layerName);
         RconUpdater.updateLayerInfo();
         return ResponseEntity.ok().build();

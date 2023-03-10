@@ -1,5 +1,6 @@
 package com.example.adminpanelbackend.db;
 
+import com.example.adminpanelbackend.ActionEnum;
 import com.example.adminpanelbackend.RoleEnum;
 import com.example.adminpanelbackend.SteamService;
 import com.example.adminpanelbackend.db.core.JpaConnection;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.example.adminpanelbackend.ActionEnum.*;
 
 public class EntityManager extends JpaManager implements JpaConnection {
 
@@ -114,19 +117,19 @@ public class EntityManager extends JpaManager implements JpaConnection {
         }
     }
 
-    public synchronized void addAdminActionInLog(long adminSteamId, Long playerSteamId, String action, String reason) {
+    public synchronized void addAdminActionInLog(long adminSteamId, Long playerSteamId, ActionEnum action, String reason) {
         AdminEntity admin = getAdminBySteamID(adminSteamId);
         PlayerEntity player = playerSteamId == null ? null : getPlayerBySteamId(playerSteamId);
         addAdminActionInLog(admin, player, action, reason);
     }
 
-    public synchronized void addAdminActionInLog(AdminEntity admin, PlayerEntity player, String action, String reason) {
+    public synchronized void addAdminActionInLog(AdminEntity admin, PlayerEntity player, ActionEnum action, String reason) {
         LOGGER.info("\u001B[46m \u001B[30m New admin action: admin '{}' made '{}' \u001B[0m", admin.getName(), action);
         persist(
                 new AdminActionLogEntity()
                         .setAdmin(admin)
                         .setPlayer(player)
-                        .setAction(action)
+                        .setAction(action.actionName)
                         .setReason(reason)
                         .setServerId(getServerById(SERVER_ID))
                         .setCreateTime(new Timestamp(System.currentTimeMillis()))
@@ -228,7 +231,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         persist(ban);
         refresh(player);
         refresh(admin);
-        addAdminActionInLog(adminSteamId, playerSteamId, "BanPlayer", reason);
+        addAdminActionInLog(adminSteamId, playerSteamId, BAN_PLAYER, reason);
     }
 
     public synchronized void unbanPlayerBan(int banId, long adminSteamId) {
@@ -243,7 +246,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         );
         update(admin);
         update(ban.getPlayer());
-        addAdminActionInLog(admin.getSteamId(), ban.getPlayer().getSteamId(), "Unban", null);
+        addAdminActionInLog(admin.getSteamId(), ban.getPlayer().getSteamId(), UNBAN, null);
     }
 
     public synchronized List<PlayerBanEntity> getActiveBans() {
@@ -274,7 +277,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
                         .setCreationTime(new Timestamp(System.currentTimeMillis()))
         );
         refresh(player);
-        addAdminActionInLog(admin, player, "AddPlayerNote", note);
+        addAdminActionInLog(admin, player, ADD_PLAYER_NOTE, note);
     }
 
     public synchronized PlayerNoteEntity getPlayerNote(int noteId) {
@@ -291,7 +294,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m Player {} added on control by admin {} \u001B[0m", player.getName(), admin.getName());
         update(player.setOnControl(true));
         addPlayerNote(player, admin, "Добавил игрока на контроль");
-        addAdminActionInLog(admin, player, "AddPlayerOnControl", null);
+        addAdminActionInLog(admin, player, ADD_PLAYER_ON_CONTROL, null);
         SquadServer.addPlayerOnControl(player.getSteamId());
     }
 
@@ -305,7 +308,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
         LOGGER.info("\u001B[46m \u001B[30m Player {} removed from control by admin {} \u001B[0m", player.getName(), admin.getName());
         update(player.setOnControl(false));
         addPlayerNote(player, admin, "Убрал игрока с контроля");
-        addAdminActionInLog(admin, player, "RemovePlayerFromControl", null);
+        addAdminActionInLog(admin, player, REMOVE_PLAYER_FROM_CONTROL, null);
         SquadServer.removePlayerFromControl(player.getSteamId());
     }
 
