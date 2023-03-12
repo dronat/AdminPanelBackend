@@ -149,6 +149,15 @@ public class RotationController extends BaseSecureController {
                         rotationGroupService.saveAndFlush(rotationGroupEntity.setIsActive(false))
                 );
         rotationGroupService.saveAndFlush(newActiveRotationGroup.setIsActive(true));
+        String map = RotationListener.incrementNextMapAndGet();
+        LOGGER.info("Setting next map by rotation: " + map);
+        String rconResponse = Rcon.command("AdminSetNextLayer " + map);
+        if (rconResponse == null || rconResponse.isEmpty()) {
+            LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
+            LOGGER.error("RCON RESPONSE: " + rconResponse);
+        }
+        entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, map);
+        LOGGER.info("Next map '" + map + "' was set");
         return ResponseEntity.ok().build();
     }
 
