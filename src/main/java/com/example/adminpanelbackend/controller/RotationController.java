@@ -143,11 +143,11 @@ public class RotationController extends BaseSecureController {
             int roleGroupId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         RotationGroupEntity newActiveRotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow();
-        rotationGroupService
-                .findById(roleGroupId)
-                .ifPresent(rotationGroupEntity ->
-                        rotationGroupService.saveAndFlush(rotationGroupEntity.setIsActive(false))
-                );
+        try {
+            RotationGroupEntity oldRotationGroupEntity = rotationGroupService.findByServerIDAndIsActiveIsTrue(serversService.findById(SERVER_ID).orElseThrow());
+            rotationGroupService.saveAndFlush(oldRotationGroupEntity.setIsActive(false));
+        } catch (Exception ignored) {
+        }
         rotationGroupService.saveAndFlush(newActiveRotationGroup.setIsActive(true));
         String map = RotationListener.incrementNextMapAndGet();
         LOGGER.info("Setting next map by rotation: " + map);
