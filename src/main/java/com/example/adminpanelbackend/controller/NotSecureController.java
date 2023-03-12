@@ -85,7 +85,7 @@ public class NotSecureController {
         entityManager.update(adminEntity);
         httpSession.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, String.valueOf(adminEntity.getSteamId()));
         RoleGroupEntity rge = adminEntity.getRoleGroup();
-        httpSession.setAttribute("userInfo", adminEntity.setRoleGroup(null));
+        httpSession.setAttribute("userInfo", adminEntity);
         return ResponseEntity.ok(rge);
     }
 

@@ -85,18 +85,20 @@ public class RotationController extends BaseSecureController {
         if (set.size() != rotationGroupModel.getMaps().size()) {
             return ResponseEntity.status(400).body("Duplicate value 'position' in some rotations");
         }
-
         RotationGroupEntity rotationGroup = rotationGroupService.findById(rotationGroupModel.getId()).orElseThrow().setMaps(new ArrayList<>());
+        rotationMapService.deleteAllByRotationGroup(rotationGroup);
         rotationGroupService.saveAndFlush(rotationGroup.setName(rotationGroupModel.getName()));
 
-        rotationGroupModel.getMaps().forEach(mapModel ->
-                rotationMapService.saveAndFlush(
-                        new RotationMapEntity()
-                                .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
-                                .setPosition(mapModel.getPosition())
-                                .setRotationGroup(rotationGroup)
-                )
-        );
+        rotationGroupModel.getMaps().forEach(mapModel -> {
+            RotationMapEntity rotationMapEntity = rotationMapService.saveAndFlush(
+                    new RotationMapEntity()
+                            .setMap(mapService.findById(mapModel.getMapId()).orElseThrow())
+                            .setPosition(mapModel.getPosition())
+                            .setRotationGroup(rotationGroup)
+            );
+            rotationGroup.getMaps().add(rotationMapEntity);
+        });
+        rotationGroupService.saveAndFlush(rotationGroup);
         return ResponseEntity.ok().build();
     }
 
