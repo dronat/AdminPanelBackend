@@ -374,7 +374,7 @@ public class SquadServer {
                             LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
                             LOGGER.error("RCON RESPONSE: " + response);
                         }
-                        entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, null);
+                        entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, map);
                         LOGGER.info("Next map '" + map + "' was set");
                     }
                 }

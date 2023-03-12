@@ -7,6 +7,7 @@ import com.example.adminpanelbackend.db.entity.MapEntity;
 import com.example.adminpanelbackend.db.entity.RotationGroupEntity;
 import com.example.adminpanelbackend.db.entity.RotationMapEntity;
 import com.example.adminpanelbackend.model.RotationGroupModel;
+import com.woop.Squad4J.rcon.Rcon;
 import com.woop.Squad4J.server.RotationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.example.adminpanelbackend.ActionEnum.CHANGE_NEXT_LAYER;
 import static com.example.adminpanelbackend.RoleEnum.BASE;
 import static com.example.adminpanelbackend.RoleEnum.ROTATION_MANAGEMENT;
 
@@ -168,13 +170,13 @@ public class RotationController extends BaseSecureController {
     }
 
     @Role(role = ROTATION_MANAGEMENT)
-    @GetMapping(path = "/set-next-rotation-map-position")
+    @PostMapping(path = "/set-next-rotation-map-position")
     public ResponseEntity<Object> setNextRotationMapPosition(
             @SessionAttribute AdminEntity userInfo,
             HttpSession httpSession,
             HttpServletRequest request,
             HttpServletResponse response,
-            @RequestParam int position) {
+            int position) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
         if (!RotationListener.isRotationHaveMaps()) {
             return ResponseEntity.status(400).body("Rotation module doesn't have active rotation");
@@ -189,6 +191,15 @@ public class RotationController extends BaseSecureController {
             return ResponseEntity.status(400).body("Map with position '" + position + "' was not found in rotation");
         }
         if (RotationListener.updateRotationNextPosition(position)) {
+                String map = RotationListener.getNextMapWithoutIncrement();
+                LOGGER.info("Setting next map by rotation: " + map);
+                String rconResponse = Rcon.command("AdminSetNextLayer " + map);
+                if (rconResponse == null || rconResponse.isEmpty()) {
+                    LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
+                    LOGGER.error("RCON RESPONSE: " + rconResponse);
+                }
+                entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, map);
+                LOGGER.info("Next map '" + map + "' was set");
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.badRequest().build();
