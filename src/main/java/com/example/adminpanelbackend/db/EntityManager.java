@@ -418,8 +418,9 @@ public class EntityManager extends JpaManager implements JpaConnection {
     }
 
     public synchronized RotationGroupEntity getActiveRotationGroupByServerId(int serverId) {
+        ServerEntity serverEntity = getServerById(serverId);
         return em.createQuery("SELECT t FROM RotationGroupEntity t where t.isActive = true AND t.serverID = :serverEntity", RotationGroupEntity.class)
-                .setParameter("serverEntity", serverId)
+                .setParameter("serverEntity", serverEntity)
                 .getSingleResult();
     }
 
