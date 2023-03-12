@@ -140,13 +140,30 @@ public class RotationController extends BaseSecureController {
             HttpServletResponse response,
             int roleGroupId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        RotationGroupEntity rotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow();
-        rotationGroupService.saveAndFlush(
-                rotationGroupService
-                        .findByServerIDAndIsActiveIsTrue(serversService.findById(SERVER_ID).orElseThrow())
-                        .setIsActive(false)
-        );
-        rotationGroupService.saveAndFlush(rotationGroup.setIsActive(true));
+        RotationGroupEntity newActiveRotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow();
+        rotationGroupService
+                .findById(roleGroupId)
+                .ifPresent(rotationGroupEntity ->
+                        rotationGroupService.saveAndFlush(rotationGroupEntity.setIsActive(false))
+                );
+        rotationGroupService.saveAndFlush(newActiveRotationGroup.setIsActive(true));
+        return ResponseEntity.ok().build();
+    }
+
+    @Role(role = ROTATION_MANAGEMENT)
+    @PostMapping(path = "/deactivate-rotation-group")
+    public ResponseEntity<Void> deactivateRotationGroup(
+            @SessionAttribute AdminEntity userInfo,
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int roleGroupId) {
+        LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
+        rotationGroupService
+                .findById(roleGroupId)
+                .ifPresent(rotationGroupEntity ->
+                        rotationGroupService.saveAndFlush(rotationGroupEntity.setIsActive(false))
+                );
         return ResponseEntity.ok().build();
     }
 
