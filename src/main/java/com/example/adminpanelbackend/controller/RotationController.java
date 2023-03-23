@@ -148,7 +148,7 @@ public class RotationController extends BaseSecureController {
             rotationGroupService.saveAndFlush(oldRotationGroupEntity.setIsActive(false));
         } catch (Exception ignored) {
         }
-        rotationGroupService.saveAndFlush(newActiveRotationGroup.setIsActive(true));
+        entityManager.update(newActiveRotationGroup);
         String map = RotationListener.incrementNextMapAndGet();
         LOGGER.info("Setting next map by rotation: " + map);
         String rconResponse = Rcon.command("AdminSetNextLayer " + map);
