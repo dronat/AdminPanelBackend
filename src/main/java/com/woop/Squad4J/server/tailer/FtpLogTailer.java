@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.net.SocketException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,8 +17,8 @@ import java.util.List;
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
 public class FtpLogTailer implements Runnable {
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
     private final Logger LOGGER = LoggerFactory.getLogger(FtpLogTailer.class);
-
     private final TailerListener TAILER_LISTENER;
     private final String HOST;
     private final int PORT;
@@ -30,7 +32,6 @@ public class FtpLogTailer implements Runnable {
     private String lastRowRead;
     private volatile boolean run;
 
-
     public FtpLogTailer(TailerListener tailerListener, String host, int port, String userName, String password, String path, String fileName, String encoding, long delayInMillis) {
         HOST = host;
         PORT = port;
@@ -43,22 +44,15 @@ public class FtpLogTailer implements Runnable {
         TAILER_LISTENER = tailerListener;
     }
 
-
     @Override
     public void run() {
         run = true;
         FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
-        try {
-            ftpClient.changeWorkingDirectory(PATH);
-        } catch (Exception e) {
-            LOGGER.error("Exception while trying set working FTP directory " + PATH, e);
-            throw new RuntimeException(e);
-        }
 
         lastByteRead = getFileSize(ftpClient);
 
-        try {
-            while(run) {
+        while (run) {
+            try {
                 long fileSize = getFileSize(ftpClient);
                 if (lastByteRead > fileSize) {
                     lastByteRead = findLastByteReadByLastRowRead(ftpClient);
@@ -67,10 +61,12 @@ public class FtpLogTailer implements Runnable {
                     getFileRows(ftpClient).forEach(TAILER_LISTENER::handle);
                 }
                 LOGGER.info("FTP log file updated");
+                lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
                 Thread.sleep(this.DELAY_IN_MILLIS);
+            } catch (Exception e) {
+                LOGGER.error("Error while tailing FTP", e);
+                ftpClient = reconnect(ftpClient);
             }
-        } catch (Exception e) {
-            LOGGER.error("Error while tailing FTP", e);
         }
         closeFTPConnect(ftpClient);
         LOGGER.info("FTP connection closed");
@@ -81,13 +77,15 @@ public class FtpLogTailer implements Runnable {
     }
 
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {
+        LOGGER.info("Connecting to FTP");
         FTPClient ftpClient = new FTPClient();
+
         ftpClient.setControlEncoding(controlEncoding);
 
         try {
             ftpClient.connect(addr, port);
         } catch (Exception e) {
-            LOGGER.error("Exception while connecting to FTP " + addr + port, e);
+            LOGGER.error("Exception while connecting to FTP " + addr + ":" + port, e);
             throw new RuntimeException(e);
         }
 
@@ -102,7 +100,9 @@ public class FtpLogTailer implements Runnable {
         }
 
         try {
-            ftpClient.setFileType(fileType);
+            if (!ftpClient.setFileType(fileType)) {
+                throw new IllegalArgumentException("Cant set file type in FTP");
+            }
         } catch (Exception e) {
             LOGGER.error("Exception while trying set BINARY_FILE_TYPE on FTP " + addr + port, e);
             throw new RuntimeException(e);
@@ -119,20 +119,53 @@ public class FtpLogTailer implements Runnable {
             LOGGER.error("FTP return reply code " + reply);
             throw new RuntimeException();
         }
-        ftpClient.setControlKeepAliveTimeout(300);
+        try {
+            ftpClient.setControlKeepAliveTimeout(1);
+            ftpClient.setControlKeepAliveReplyTimeout(5000);
+            ftpClient.setConnectTimeout(5000);
+            ftpClient.setSoTimeout(5000);
+            ftpClient.setDataTimeout(10000);
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
         ftpClient.enterLocalPassiveMode();
+        try {
+            if (!ftpClient.changeWorkingDirectory(PATH)) {
+                throw new IllegalArgumentException("Cant change working directory in FTP");
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception while trying set working FTP directory " + PATH, e);
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("FTP connected");
         return ftpClient;
     }
 
     private void closeFTPConnect(FTPClient ftpClient) {
         try {
+            LOGGER.info("Closing FTP");
             if (ftpClient != null && ftpClient.isConnected()) {
-                ftpClient.abort();
-                ftpClient.disconnect();
+                try {
+                    ftpClient.abort();
+                } catch (Exception ignored) {
+                }
+                try {
+                    ftpClient.disconnect();
+                } catch (Exception e) {
+                    throw e;
+                }
             }
+            LOGGER.info("FTP closed");
         } catch (Exception e) {
             LOGGER.error("Failed to close FTP connection");
         }
+    }
+
+
+    private FTPClient reconnect(FTPClient ftpClient) {
+        LOGGER.warn("Reconnect to FTP to tailing log file");
+        closeFTPConnect(ftpClient);
+        return connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
     }
 
     private boolean isFileChange(FTPClient ftpClient) {

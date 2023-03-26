@@ -3,21 +3,24 @@ package com.woop.Squad4J.a2s.response;
 import com.woop.Squad4J.util.BufferHelper;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <a href="https://github.com/roengle/squadQuery/blob/main/src/response/A2SRulesResponse.java">squadQuery implementation</a>
- *
+ * <p>
  * Class describing a response from an A2S_RULES query.
- *
+ * <p>
  * For technical documentation on A2S_RULES queries, see the following:
  *
  * <a href="https://developer.valvesoftware.com/wiki/Server_queries#A2S_RULES">A2S_RULES documentation</a>
  *
  * @author Robert Engle
  */
-public class A2SRulesResponse extends Response{
+public class A2SRulesResponse extends Response {
     private final Byte numRules;
     private final Map<String, String> ruleMap = new LinkedHashMap<>();
 
@@ -39,7 +42,7 @@ public class A2SRulesResponse extends Response{
 
         numRules = buffer.get();
         buffer.get();
-        for(int i = 0; i < numRules; i++){
+        for (int i = 0; i < numRules; i++) {
             String name = BufferHelper.getStringFromBuffer(buffer);
             String value = BufferHelper.getStringFromBuffer(buffer);
 
@@ -59,6 +62,7 @@ public class A2SRulesResponse extends Response{
 
     /**
      * Gets the number of rules present in the A2S_RULES response
+     *
      * @return the number of rules present in the A2S_RULES response
      */
     public Byte getNumRules() {
@@ -71,7 +75,7 @@ public class A2SRulesResponse extends Response{
      * @param rule the rule to get the value for
      * @return the value for the rule
      */
-    public String getRuleValue(String rule){
+    public String getRuleValue(String rule) {
         return ruleMap.get(rule);
     }
 
@@ -80,7 +84,7 @@ public class A2SRulesResponse extends Response{
      *
      * @return a {@link Set} of the rule entries returned by A2S_RULES query
      */
-    public Set<Map.Entry<String, String>> getRuleEntrySet(){
+    public Set<Map.Entry<String, String>> getRuleEntrySet() {
         return ruleMap.entrySet();
     }
 

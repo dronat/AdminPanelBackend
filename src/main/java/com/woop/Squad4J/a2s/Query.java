@@ -1,30 +1,32 @@
 package com.woop.Squad4J.a2s;
 
+import com.ibasco.agql.protocols.valve.source.query.info.SourceQueryInfoResponse;
+import com.ibasco.agql.protocols.valve.source.query.rules.SourceQueryRulesResponse;
 import com.woop.Squad4J.a2s.response.A2SCombinedResponse;
-import com.woop.Squad4J.a2s.response.A2SInfoResponse;
-import com.woop.Squad4J.a2s.response.A2SRulesResponse;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.sql.Timestamp;
 
 /**
  * @author Robert Engle
- *
+ * <p>
  * Singleton wrapper for QueryImpl
  */
 public class Query {
     private static final Logger LOGGER = LoggerFactory.getLogger(Query.class);
-
-    private static QueryImpl queryImpl;
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+    //private static QueryImpl queryImpl;
+    private static NewQueryImpl newQueryImpl;
     private static boolean initialized = false;
 
-    private Query(){
+
+    private Query() {
         throw new UnsupportedOperationException("You cannot instantiate this class.");
     }
     
-    public static void init(){
+    /*public static void init(){
         //Dont allow re-initialization
         if(initialized)
             throw new IllegalStateException(Query.class.getSimpleName() + " has already been initialized.");
@@ -39,16 +41,36 @@ public class Query {
             LOGGER.error(e.getMessage());
         }
         initialized = true;
+    }*/
+
+    public static void init() {
+        //Dont allow re-initialization
+        if (initialized)
+            throw new IllegalStateException(Query.class.getSimpleName() + " has already been initialized.");
+
+        LOGGER.info("Starting query service.");
+        String host = ConfigLoader.get("$.server.host", String.class);
+        Integer port = ConfigLoader.get("$.server.queryPort", Integer.class);
+        newQueryImpl = new NewQueryImpl(host, port, 3000).init();
+        initialized = true;
     }
 
-    public static A2SCombinedResponse queryBoth(){
+    /*public static A2SCombinedResponse queryBoth(){
         A2SInfoResponse info = queryInfo();
         A2SRulesResponse rules = queryRules();
+        LOGGER.info("Query updated");
+        return new A2SCombinedResponse(info, rules);
+    }*/
 
+    public static A2SCombinedResponse queryBoth() {
+        SourceQueryInfoResponse info = newQueryImpl.getQueryInfo();
+        SourceQueryRulesResponse rules = newQueryImpl.getQueryRules();
+        LOGGER.info("Query updated");
+        lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
         return new A2SCombinedResponse(info, rules);
     }
 
-    public static A2SInfoResponse queryInfo(){
+    /*public static A2SInfoResponse queryInfo(){
         if(!initialized)
             throw new IllegalStateException("Query must be initialized first.");
         try {
@@ -70,5 +92,5 @@ public class Query {
             LOGGER.error(e.getMessage());
         }
         return null;
-    }
+    }*/
 }

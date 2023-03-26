@@ -11,9 +11,8 @@ import java.util.Date;
 /**
  * Describes an event where a player is damaged.
  *
- * @see PlayerDamagedListener
- *
  * @author Robert Engle
+ * @see PlayerDamagedListener
  */
 @Getter
 @ToString
@@ -27,17 +26,17 @@ public class PlayerDamagedEvent extends Event {
     /**
      * Constructrs a {@link PlayerDamagedEvent}.
      *
-     * @param date a {@link Date} representing when the event occurred
-     * @param type the corrsponding {@link EventType} for this event
-     * @param chainID the chain ID of this event
-     * @param victimName the name of the player damaged
-     * @param damage the amount of damage that {@code victimName} received
-     * @param attackerName the name of the attack who dealt damage
-     * @param weapon the weapon used by {@code attackerName}
+     * @param date           a {@link Date} representing when the event occurred
+     * @param type           the corrsponding {@link EventType} for this event
+     * @param chainID        the chain ID of this event
+     * @param victimName     the name of the player damaged
+     * @param damage         the amount of damage that {@code victimName} received
+     * @param attackerName   the name of the attack who dealt damage
+     * @param weapon         the weapon used by {@code attackerName}
      * @param weaponEntityId the entity id of the weapon used by {@code attackerName}
      */
     public PlayerDamagedEvent(Date date, EventType type, Integer chainID, String victimName,
-                              Double damage, String attackerName, String weapon, String weaponEntityId){
+                              Double damage, String attackerName, String weapon, String weaponEntityId) {
         super(date, type, chainID);
         this.victimName = victimName;
         this.damage = damage;

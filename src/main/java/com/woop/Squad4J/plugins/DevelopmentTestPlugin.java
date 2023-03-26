@@ -1,34 +1,23 @@
 package com.woop.Squad4J.plugins;
 
-import com.woop.Squad4J.a2s.response.A2SRulesResponse;
-import com.woop.Squad4J.event.a2s.A2SUpdatedEvent;
-import com.woop.Squad4J.event.rcon.ChatMessageEvent;
-import com.woop.Squad4J.event.rcon.LayerInfoUpdatedEvent;
-import com.woop.Squad4J.event.rcon.PossessedAdminCameraEvent;
-import com.woop.Squad4J.event.rcon.UnpossessedAdminCameraEvent;
-import com.woop.Squad4J.listener.a2s.A2SUpdatedListener;
-import com.woop.Squad4J.listener.rcon.ChatMessageListener;
-import com.woop.Squad4J.listener.rcon.LayerInfoUpdatedListener;
-import com.woop.Squad4J.listener.rcon.PossessedAdminCameraListener;
-import com.woop.Squad4J.listener.rcon.UnpossessedAdminCameraListener;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Robert Engle
- *
+ * <p>
  * Test class which implements various listeners to test their functionality. Also tests the event binding
  * with these listeners.
- *
+ * <p>
  * Will be removed in initial release.
  */
 @NoArgsConstructor
-public class DevelopmentTestPlugin implements A2SUpdatedListener, LayerInfoUpdatedListener, ChatMessageListener,
-        PossessedAdminCameraListener, UnpossessedAdminCameraListener {
+public class DevelopmentTestPlugin /*implements A2SUpdatedListener, LayerInfoUpdatedListener, ChatMessageListener,
+        PossessedAdminCameraListener, UnpossessedAdminCameraListener */ {
     private static final Logger LOGGER = LoggerFactory.getLogger(DevelopmentTestPlugin.class);
 
-    @Override
+    /*@Override
     public void onA2SUpdated(A2SUpdatedEvent a2SUpdatedEvent) {
         A2SRulesResponse rules = a2SUpdatedEvent.getResponse().getRules();
         rules.getRuleEntrySet().forEach(entry -> {
@@ -61,5 +50,5 @@ public class DevelopmentTestPlugin implements A2SUpdatedListener, LayerInfoUpdat
     @Override
     public void onUnpossessedAdminCamera(UnpossessedAdminCameraEvent unpossessedAdminCameraEvent) {
         LOGGER.info("User {} exited admin cam.", unpossessedAdminCameraEvent.getName());
-    }
+    }*/
 }

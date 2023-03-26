@@ -7,21 +7,21 @@ import java.util.Date;
 /**
  * @author Robert Engle
  * @version 1.0.1
- *
+ * <p>
  * https://github.com/roengle/SimpleRcon
- *
+ * <p>
  * A class describing a single packet that can be sent/received to/from a RCON server.
- *
+ * <p>
  * This class is designed according to the
  * <a href="https://developer.valvesoftware.com/wiki/Source_RCON_Protocol">Source RCON Protocol</a>.
- *
+ * <p>
  * The following are the possible <code>requestId</code> values and what they correspond to:
  * <ul>
  *     <li>0 - Value if data is broadcasted from RCON server</li>
  *     <li>-1 - Value from SERVERDATA_AUTH_RESPONSE packet if authentication fails</li>
  *     <li>Anything else - Value issued from original command sent to RCON server.</li>
  * </ul>
- *
+ * <p>
  * The following are the possible <code>type</code> values and what they correspond to:
  * <ul>
  *     <li>0 - SERVERDATA_RESPONSE_VALUE</li>
@@ -39,19 +39,19 @@ public class RconPacket {
 
     /**
      * Constructs a {@link RconPacket} instance with the given fields.
-     *
+     * <p>
      * The <code>timestamp</code> field isn't technically a part of the attributes of an RCON packet as defined by
      * Valve, but it is included in in the case that the timestamp of when the packet is retrieved is needed to be known.
      *
      * @param timestamp a {@link Date} of the time the packet was received
-     * @param size a 32-bit signed integer. is needed to be able to distinguish the payload from headers
+     * @param size      a 32-bit signed integer. is needed to be able to distinguish the payload from headers
      * @param requestId a 32-bit signed integer which mirrors the requestId back (if a command was issued.) See documentation
      *                  for the class to see what this value can be.
-     * @param type a 32-bit signed integer which represents the type of packet. See documentation for this class for possible <code>type</code>
-     *             values. One exception will be a value of 1, which represents a broadcast, and isn't defined in the
-     *             Source RCON protocol.
-     * @param payload a byte array of the payload of the packet. Can be converted to a string by using
-     *                <code>new String(payload, StandardCharsts.UTF_8)</code>
+     * @param type      a 32-bit signed integer which represents the type of packet. See documentation for this class for possible <code>type</code>
+     *                  values. One exception will be a value of 1, which represents a broadcast, and isn't defined in the
+     *                  Source RCON protocol.
+     * @param payload   a byte array of the payload of the packet. Can be converted to a string by using
+     *                  <code>new String(payload, StandardCharsts.UTF_8)</code>
      */
     protected RconPacket(Date timestamp, int size, int requestId, int type, byte[] payload) {
         this.timestamp = timestamp;
@@ -65,16 +65,16 @@ public class RconPacket {
      * Constructs a {@link RconPacket} instance with the given fields WITHOUT a {@link Date} object for
      * a timestamp.
      *
-     * @param size a 32-bit signed integer. is needed to be able to distinguish the payload from headers
+     * @param size      a 32-bit signed integer. is needed to be able to distinguish the payload from headers
      * @param requestId a 32-bit signed integer which mirrors the requestId back (if a command was issued.) See documentation
      *                  for the class to see what this value can be.
-     * @param type a 32-bit signed integer which represents the type of packet. See documentation for this class for possible <code>type</code>
-     *             values. One exception will be a value of 1, which represents a broadcast, and isn't defined in the
-     *             Source RCON protocol.
-     * @param payload a byte array of the payload of the packet. Can be converted to a string by using
-     *                <code>new String(payload, StandardCharsts.UTF_8)</code>
+     * @param type      a 32-bit signed integer which represents the type of packet. See documentation for this class for possible <code>type</code>
+     *                  values. One exception will be a value of 1, which represents a broadcast, and isn't defined in the
+     *                  Source RCON protocol.
+     * @param payload   a byte array of the payload of the packet. Can be converted to a string by using
+     *                  <code>new String(payload, StandardCharsts.UTF_8)</code>
      */
-    protected RconPacket(int size, int requestId, int type, byte[] payload){
+    protected RconPacket(int size, int requestId, int type, byte[] payload) {
         this(null, size, requestId, type, payload);
     }
 
@@ -83,7 +83,7 @@ public class RconPacket {
      *
      * @return a {@link Date} of the timestamp for the packet if it was given one, <code>null</code> if not
      */
-    public Date getTimestamp(){
+    public Date getTimestamp() {
         return timestamp;
     }
 
@@ -107,7 +107,7 @@ public class RconPacket {
 
     /**
      * Gets the type of the packet as an integer.
-     *
+     * <p>
      * See documentation for this class to see what these values mean.
      *
      * @return the type of packet
@@ -127,12 +127,12 @@ public class RconPacket {
 
     /**
      * Gets the payload for the packet as a {@link String}.
-     *
+     * <p>
      * Assumes use of the UTF_8 charset.
      *
      * @return the payload for the packet as a {@link String}
      */
-    public String getPayloadAsString(){
+    public String getPayloadAsString() {
         return new String(payload, StandardCharsets.UTF_8);
     }
 
@@ -141,7 +141,7 @@ public class RconPacket {
      *
      * @return true if packet is response to command, false if not
      */
-    public boolean isResponseToCommand(){
+    public boolean isResponseToCommand() {
         return type == 0 && payload != null && payload.length > 1;
     }
 

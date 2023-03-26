@@ -1,15 +1,29 @@
-<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://xmlns.jcp.org/xml/ns/persistence"
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
              http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
     <persistence-unit name="AdminPanelPersistence" transaction-type="RESOURCE_LOCAL">
-        <class>com.example.adminpanelbackend.dataBase.entity.AdminEntity</class>
-        <class>com.example.adminpanelbackend.dataBase.entity.AdminActionLogEntity</class>
-        <class>com.example.adminpanelbackend.dataBase.entity.PlayerEntity</class>
-        <class>com.example.adminpanelbackend.dataBase.entity.PlayerBanEntity</class>
-        <class>com.example.adminpanelbackend.dataBase.entity.PlayerKickEntity</class>
-        <class>com.example.adminpanelbackend.dataBase.entity.PlayerMessageEntity</class>
-        <class>com.example.adminpanelbackend.dataBase.entity.PlayerNoteEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.AdminEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.AdminActionLogEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.DiscordMessageIdEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.PlayerEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.PlayerBanEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.PlayerKickEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.PlayerMessageEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.PlayerNoteEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.LayerHistoryEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RuleGroupEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RuleEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RoleGroupEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RoleEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RolesEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.MapEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.TeamEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.VehicleEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.VehiclesEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RotationGroupEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.RotationMapEntity</class>
+        <class>com.example.adminpanelbackend.db.entity.ServerEntity</class>
     </persistence-unit>
 </persistence>

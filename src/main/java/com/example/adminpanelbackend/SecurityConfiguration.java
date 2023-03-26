@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -25,7 +26,9 @@ public class SecurityConfiguration implements WebMvcConfigurer {
         return http
                 .authorizeRequests().antMatchers("/**").permitAll()
                 .and()
-                .sessionManagement(session -> session.maximumSessions(1))
+                .sessionManagement(session -> {
+                    session.maximumSessions(1);
+                })
                 .csrf().disable()
                 //.httpBasic().disable()
                 .build();
@@ -35,6 +38,11 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedMethods("*");
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new CustomInterceptor()).addPathPatterns("/**");
     }
 
     /*@Bean

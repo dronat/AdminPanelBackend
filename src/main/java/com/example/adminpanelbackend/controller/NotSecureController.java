@@ -1,24 +1,26 @@
 package com.example.adminpanelbackend.controller;
 
 import com.example.adminpanelbackend.SteamOpenID;
-import com.example.adminpanelbackend.dataBase.EntityManager;
-import com.example.adminpanelbackend.dataBase.entity.AdminEntity;
+import com.example.adminpanelbackend.SteamService;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.AdminEntity;
+import com.example.adminpanelbackend.db.entity.RoleGroupEntity;
+import com.example.adminpanelbackend.db.service.AdminService;
 import com.example.adminpanelbackend.model.SteamUserModel;
 import com.example.adminpanelbackend.model.VerifySteamModel;
-import com.woop.Squad4J.util.ConfigLoader;
+import com.woop.Squad4J.server.SquadServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Arrays;
 import java.util.HashMap;
 
 @RestController()
@@ -27,9 +29,9 @@ import java.util.HashMap;
 public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);
     private final SteamOpenID steamOpenID = new SteamOpenID();
-    private final RestTemplate restTemplate = new RestTemplate();
     EntityManager entityManager = new EntityManager();
-    private final String steamApiKey = ConfigLoader.get("server.steamApiKey", String.class);
+    @Autowired
+    AdminService adminService;
 
     @PostMapping(path = "/get-steam-link")
     public ResponseEntity<HashMap<String, String>> getSteamLink(HttpSession httpSession,
@@ -48,24 +50,30 @@ public class NotSecureController {
         );
     }
 
+    @GetMapping(path = "/get-server-info-discord")
+    public ResponseEntity<HashMap<String, Object>> getServerInfo(
+            HttpSession httpSession,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        LOGGER.info("SERVER INFO DISCORD");
+        return ResponseEntity.ok(SquadServer.getServerInfo());
+    }
+
     @PostMapping(path = "/verify-steam")
-    public ResponseEntity<String> verifySteam(HttpSession httpSession,
-                                              HttpServletRequest request,
-                                              HttpServletResponse response,
-                                              @RequestBody VerifySteamModel verifySteamModel) {
+    public ResponseEntity<RoleGroupEntity> verifySteam(HttpSession httpSession,
+                                                       HttpServletRequest request,
+                                                       HttpServletResponse response,
+                                                       @RequestBody VerifySteamModel verifySteamModel) {
         LOGGER.debug("Received unsecured POST request on '{}' with body '{}'", request.getRequestURL(), verifySteamModel);
         String steamId = steamOpenID.verify(verifySteamModel);
         if (steamId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        SteamUserModel.Response.Player steamUser = restTemplate
-                .getForObject("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + steamApiKey + "&steamids=" + steamId, SteamUserModel.class)
-                .getResponse()
-                .getPlayers()
-                .get(0);
-        AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
-        if (adminEntity == null) {
+        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
+        AdminEntity adminEntity = adminService.findById(Long.parseLong(steamId)).get();
+        if (adminEntity.getRoleGroup() == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -76,24 +84,25 @@ public class NotSecureController {
 
         entityManager.update(adminEntity);
         httpSession.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, String.valueOf(adminEntity.getSteamId()));
+        RoleGroupEntity rge = adminEntity.getRoleGroup();
         httpSession.setAttribute("userInfo", adminEntity);
-        return ResponseEntity.ok(Arrays.stream(request.getCookies()).filter(cookie -> cookie.getName().equals("SESSION")).findFirst().orElseThrow().getValue());
+        return ResponseEntity.ok(rge);
     }
 
     /*@GetMapping(path = "/verify-steam-return")
     public ResponseEntity<Void> verifySteame(@RequestParam("openid.return_to") String return_to,
-                                                                @RequestParam("openid.identity") String identity,
-                                                                @RequestParam("openid.op_endpoint") String op_endpoint,
-                                                                @RequestParam("openid.assoc_handle") String assoc_handle,
-                                                                @RequestParam("openid.mode") String mode,
-                                                                @RequestParam("openid.signed") String signed,
-                                                                @RequestParam("openid.sig") String sig,
-                                                                @RequestParam("openid.claimed_id") String claimed_id,
-                                                                @RequestParam("openid.response_nonce") String response_nonce,
-                                                                @RequestParam("openid.ns") String ns,
-                                                                HttpSession httpSession,
-                                                                HttpServletRequest request,
-                                                                HttpServletResponse response) {
+                                             @RequestParam("openid.identity") String identity,
+                                             @RequestParam("openid.op_endpoint") String op_endpoint,
+                                             @RequestParam("openid.assoc_handle") String assoc_handle,
+                                             @RequestParam("openid.mode") String mode,
+                                             @RequestParam("openid.signed") String signed,
+                                             @RequestParam("openid.sig") String sig,
+                                             @RequestParam("openid.claimed_id") String claimed_id,
+                                             @RequestParam("openid.response_nonce") String response_nonce,
+                                             @RequestParam("openid.ns") String ns,
+                                             HttpSession httpSession,
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
         LOGGER.debug("Received unsecured GET request on '" + request.getRequestURL() + "'");
         VerifySteamModel verifySteamModel = new VerifySteamModel()
                 .setCallbackURL(return_to)
@@ -116,12 +125,7 @@ public class NotSecureController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        String steamApiKey = ConfigLoader.get("server.steamApiKey", String.class);
-        SteamUserModel.Response.Player steamUser = restTemplate
-                .getForObject("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + steamApiKey + "&steamids=" + steamId, SteamUserModel.class)
-                .getResponse()
-                .getPlayers()
-                .get(0);
+        SteamUserModel.Response.Player steamUser = SteamService.getSteamUserInfo(steamId);
         AdminEntity adminEntity = entityManager.getAdminBySteamID(Long.parseLong(steamId));
         if (adminEntity == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

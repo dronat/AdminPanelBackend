@@ -1,6 +1,9 @@
 package com.woop.Squad4J.server.tailer;
 
-import com.example.adminpanelbackend.dataBase.EntityManager;
+import com.example.adminpanelbackend.db.EntityManager;
+import com.example.adminpanelbackend.db.entity.PlayerBanEntity;
+import com.example.adminpanelbackend.discord.Discord;
+import com.example.adminpanelbackend.discord.DiscordMessageDTO;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
@@ -9,62 +12,110 @@ import org.apache.commons.net.ftp.FTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE;
 
-public class FtpBanService implements Runnable{
+public class FtpBanService implements Runnable {
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
     private final Logger LOGGER = LoggerFactory.getLogger(FtpBanService.class);
-    private final String FTP_HOST = ConfigLoader.get("server.host", String.class);
-    private final int FTP_PORT = ConfigLoader.get("server.ftp.port", Integer.class);
-    private final String FTP_USERNAME = ConfigLoader.get("server.ftp.user", String.class);
-    private final String FTP_PASSWORD = ConfigLoader.get("server.ftp.password", String.class);
-    private final String FTP_BAN_ABSOLUTE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
-    private final String FTP_ENCODING = "UTF-8";
+    private final String HOST = ConfigLoader.get("server.host", String.class);
+    private final int PORT = ConfigLoader.get("server.ftp.port", Integer.class);
+    private final String USERNAME = ConfigLoader.get("server.ftp.user", String.class);
+    private final String PASSWORD = ConfigLoader.get("server.ftp.password", String.class);
+    private final String ABSOLUTE_FILE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
+    private final String ENCODING = "UTF-8";
     private final String FILE_NAME = "Bans_test.cfg";
-    private final long DELAY_IN_MILLIS = 30 * 60000;
+    private final long DELAY_IN_MILLIS = 60000;
+    private final Discord discord = new Discord();
     private volatile boolean run;
 
     @Override
     public void run() {
         run = true;
         EntityManager entityManager = new EntityManager();
-        FTPClient ftpClient = connectFtpServer(FTP_HOST, FTP_PORT, FTP_USERNAME, FTP_PASSWORD, FTP_ENCODING, BINARY_FILE_TYPE);
-
-        try {
-            ftpClient.changeWorkingDirectory(FTP_BAN_ABSOLUTE_PATH);
-        } catch (Exception e) {
-            LOGGER.error("Exception while trying set working FTP directory " + FTP_BAN_ABSOLUTE_PATH, e);
-            throw new RuntimeException(e);
-        }
+        FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
+        discord.init();
 
         while (run) {
             try {
                 StringBuilder stringToWrite = new StringBuilder();
                 entityManager.getActiveBans().forEach(playerBanEntity ->
                         stringToWrite//\CoRe/ DolbaDigitale [SteamID 76561198054690038] Banned:76561199037059865:1649616436 //sl osk
-                                .append(playerBanEntity.getAdminsBySteamId().getName())
+                                .append(playerBanEntity.getAdmin().getName())
                                 .append(" [SteamID ")
-                                .append(playerBanEntity.getAdminsBySteamId().getSteamId())
+                                .append(playerBanEntity.getAdmin().getSteamId())
                                 .append("] Banned:")
-                                .append(playerBanEntity.getPlayersBySteamId().getSteamId())
+                                .append(playerBanEntity.getPlayer().getSteamId())
                                 .append(":0 //")
                                 .append(playerBanEntity.getReason())
                                 .append("\n")
                 );
                 rewriteFile(ftpClient, stringToWrite.toString());
                 LOGGER.info("FTP bans file updated");
+                lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+
+                List<PlayerBanEntity> activeNonPermanentBans = entityManager.getActiveNonPermanentBans();
+                if (activeNonPermanentBans == null || activeNonPermanentBans.isEmpty()) {
+                    discord.sendNoActiveBans();
+                } else {
+                    DiscordMessageDTO discordMessage = new DiscordMessageDTO();
+                    activeNonPermanentBans.forEach(playerBanEntity ->
+                            discordMessage.addEmbded(
+                                    new DiscordMessageDTO.Embed()
+                                            .setTitle(playerBanEntity.getPlayer().getName() + " (" + playerBanEntity.getPlayer().getSteamId() + ")")
+                                            .setColor(15548997)
+                                            .setFields(
+                                                    List.of(
+                                                            new DiscordMessageDTO.Field()
+                                                                    .setName("Причина бана")
+                                                                    .setValue(playerBanEntity.getReason()),
+                                                            new DiscordMessageDTO.InlineField()
+                                                                    .setInline(true)
+                                                                    .setName("Дата бана")
+                                                                    .setValue(getBanCreationTime(playerBanEntity.getCreationTime())),
+                                                            new DiscordMessageDTO.InlineField()
+                                                                    .setInline(true)
+                                                                    .setName("Истечет")
+                                                                    .setValue(getBanExpirationTime(playerBanEntity.getExpirationTime())),
+                                                            new DiscordMessageDTO.InlineField()
+                                                                    .setInline(true)
+                                                                    .setName("Админ")
+                                                                    .setValue(playerBanEntity.getAdmin().getName())
+                                                    )
+                                            )
+                            )
+                    );
+                    discord.actualizeBanMessage(discordMessage);
+                }
+
                 Thread.sleep(DELAY_IN_MILLIS);
             } catch (Exception e) {
                 LOGGER.error("Error while rewrite FTP file " + FILE_NAME, e);
+                reconnect(ftpClient);
             }
         }
         closeFTPConnect(ftpClient);
         LOGGER.info("FTP connection closed");
+    }
+
+    private String getBanCreationTime(Timestamp timestamp) {
+        Date date = new Date(timestamp.getTime());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+        return sdf.format(date);
+    }
+
+    private String getBanExpirationTime(Timestamp timestamp) {
+        Date date = new Date(timestamp.getTime());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy в HH:mm");
+        return sdf.format(date);
     }
 
     public void stop() {
@@ -72,7 +123,9 @@ public class FtpBanService implements Runnable{
     }
 
     private FTPClient connectFtpServer(String addr, int port, String username, String password, String controlEncoding, int fileType) {
+        LOGGER.info("Connecting to FTP");
         FTPClient ftpClient = new FTPClient();
+
         ftpClient.setControlEncoding(controlEncoding);
 
         try {
@@ -93,7 +146,9 @@ public class FtpBanService implements Runnable{
         }
 
         try {
-            ftpClient.setFileType(fileType);
+            if (!ftpClient.setFileType(fileType)) {
+                throw new IllegalArgumentException("Cant set file type in FTP");
+            }
         } catch (Exception e) {
             LOGGER.error("Exception while trying set BINARY_FILE_TYPE on FTP " + addr + port, e);
             throw new RuntimeException(e);
@@ -110,17 +165,49 @@ public class FtpBanService implements Runnable{
             LOGGER.error("FTP return reply code " + reply);
             throw new RuntimeException();
         }
-        ftpClient.setControlKeepAliveTimeout(300);
+        try {
+            ftpClient.setControlKeepAliveTimeout(1);
+            ftpClient.setControlKeepAliveReplyTimeout(5000);
+            ftpClient.setConnectTimeout(5000);
+            ftpClient.setSoTimeout(5000);
+            ftpClient.setDataTimeout(10000);
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
         ftpClient.enterLocalPassiveMode();
+        try {
+            if (!ftpClient.changeWorkingDirectory(ABSOLUTE_FILE_PATH)) {
+                throw new IllegalArgumentException("Cant change working directory in FTP");
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception while trying set working FTP directory " + ABSOLUTE_FILE_PATH, e);
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("FTP connected");
         return ftpClient;
+    }
+
+    private FTPClient reconnect(FTPClient ftpClient) {
+        LOGGER.warn("Reconnect to FTP to tailing ban file");
+        closeFTPConnect(ftpClient);
+        return connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
     }
 
     private void closeFTPConnect(FTPClient ftpClient) {
         try {
+            LOGGER.info("Closing FTP");
             if (ftpClient != null && ftpClient.isConnected()) {
-                ftpClient.abort();
-                ftpClient.disconnect();
+                try {
+                    ftpClient.abort();
+                } catch (Exception ignored) {
+                }
+                try {
+                    ftpClient.disconnect();
+                } catch (Exception e) {
+                    throw e;
+                }
             }
+            LOGGER.info("FTP closed");
         } catch (Exception e) {
             LOGGER.error("Failed to close FTP connection");
         }
@@ -156,14 +243,15 @@ public class FtpBanService implements Runnable{
 
     private void rewriteFile(FTPClient ftpClient, String fileContent) {
         boolean result;
-        try (InputStream inputStream = IOUtils.toInputStream(fileContent, FTP_ENCODING)) {
+        try (InputStream inputStream = IOUtils.toInputStream(fileContent, ENCODING)) {
             result = ftpClient.storeFile(FILE_NAME, inputStream);
         } catch (Exception e) {
-            LOGGER.error("Failed to rewrite FTP file '" + FILE_NAME + "'");
+            LOGGER.error("Failed to rewrite FTP file " + FILE_NAME);
             throw new RuntimeException(e);
         }
         if (!result) {
-            LOGGER.error("Failed to rewrite FTP file '" + FILE_NAME + "'");
+            LOGGER.error("Failed to rewrite FTP file " + FILE_NAME);
+            throw new RuntimeException();
         }
     }
 

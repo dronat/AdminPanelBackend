@@ -1,5 +1,6 @@
 package com.woop.Squad4J.server;
 
+import com.example.adminpanelbackend.SteamService;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.logparser.*;
@@ -10,6 +11,7 @@ import com.woop.Squad4J.event.rcon.PlayerWarnedEvent;
 import com.woop.Squad4J.server.tailer.LogTailer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +35,8 @@ public class LogParser {
     private static final Map<Pattern, EventType> logPatterns = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(LogParser.class);
 
+    private static final RestTemplate restTemplate = new RestTemplate();
+
     static {
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)\\]\\[([ 0-9]*)\\]LogSquad: ADMIN COMMAND: Message broadcasted <(.+)> from (.+)"), EventType.ADMIN_BROADCAST);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogSquadTrace: \\[DedicatedServer](?:ASQDeployable::)?TakeDamage\\(\\): ([A-z0-9_]+)_C_[0-9]+: ([0-9.]+) damage attempt by causer ([A-z0-9_]+)_C_[0-9]+ instigator (.+) with damage type ([A-z0-9_]+)_C health remaining ([0-9.]+)"), EventType.DEPLOYABLE_DAMAGED);
@@ -48,10 +52,11 @@ public class LogParser {
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogSquadTrace: \\[DedicatedServer](?:ASQGameMode::)?DetermineMatchWinner\\(\\): (.+) won on (.+)"), EventType.ROUND_WINNER);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogSquad: USQGameState: Server Tick Rate: ([0-9.]+)"), EventType.SERVER_TICK_RATE);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogSquad: (.+) \\(Steam ID: ([0-9]{17})\\) has created Squad (\\d+) \\(Squad Name: (.+)\\) on (.+)"), EventType.SQUAD_CREATED);
-        logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogEasyAntiCheatServer: \\[[0-9:]+] \\[[A-z]+] \\[EAC Server] \\[Info] \\[RegisterClient] Client: (?:[A-z0-9]+) PlayerGUID: ([0-9]{17}) PlayerIP: [0-9]{17} OwnerGUID: [0-9]{17} PlayerName: (.+)"), EventType.STEAMID_CONNECTED);
+        //logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogEasyAntiCheatServer: \\[[0-9:]+] \\[[A-z]+] \\[EAC Server] \\[Info] \\[RegisterClient] Client: (?:[A-z0-9]+) PlayerGUID: ([0-9]{17}) PlayerIP: [0-9]{17} OwnerGUID: [0-9]{17} PlayerName: (.+)"), EventType.STEAMID_CONNECTED);
+        logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogOnline: STEAM: AUTH HANDLER: Sending auth result to user (\\d{17}) with flag success\\? 1"), EventType.STEAMID_CONNECTED);
         logPatterns.put(Pattern.compile("\\[(ChatAll|ChatTeam|ChatSquad|ChatAdmin)] \\[SteamID:([0-9]{17})] (.+?) : (.*)"), EventType.CHAT_MESSAGE);
-        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera."), EventType.POSSESSED_ADMIN_CAM);
-        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera."), EventType.UNPOSSESSED_ADMIN_CAM);
+        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera."), EventType.ENTERED_IN_ADMIN_CAM);
+        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera."), EventType.LEFT_FROM_ADMIN_CAM);
         logPatterns.put(Pattern.compile("Remote admin has warned player (.*)\\. Message was \"(.*)\""), EventType.PLAYER_WARNED);
         logPatterns.put(Pattern.compile("Kicked player ([0-9]+)\\. \\[steamid=([0-9]{17})] (.*)"), EventType.PLAYER_KICKED);
         logPatterns.put(Pattern.compile("Banned player ([0-9]+)\\. \\[steamid=(.*?)\\] (.*) for interval (.*)"), EventType.PLAYER_BANNED);
@@ -67,9 +72,7 @@ public class LogParser {
         AtomicReference<Event> event = new AtomicReference<>(null);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd-HH.mm.ss:SSS");
 
-
         logPatterns.forEach((pattern, type) -> {
-
             Matcher matcher = pattern.matcher(line);
             if (matcher.find()) {
                 try {
@@ -97,6 +100,9 @@ public class LogParser {
                             ));
                             break;
                         case NEW_GAME:
+                            if (matcher.group(5).equalsIgnoreCase("TransitionMap")) {
+                                break;
+                            }
                             event.set(new NewGameEvent(
                                     formatter.parse(matcher.group(1)),
                                     type,
@@ -213,12 +219,13 @@ public class LogParser {
                             ));
                             break;
                         case STEAMID_CONNECTED:
+                            long steamId = Long.parseLong(matcher.group(3));
                             event.set(new SteamIdConnectedEvent(
                                     formatter.parse(matcher.group(1)),
                                     type,
                                     Integer.parseInt(matcher.group(2).strip()),
-                                    Long.parseLong(matcher.group(3)),
-                                    matcher.group(4)
+                                    steamId,
+                                    SteamService.getSteamUserInfo(steamId).getPersonaname()
                             ));
                             break;
                         case CHAT_MESSAGE:

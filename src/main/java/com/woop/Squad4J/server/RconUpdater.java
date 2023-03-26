@@ -1,19 +1,20 @@
 package com.woop.Squad4J.server;
 
 import com.woop.Squad4J.concurrent.GlobalThreadPool;
+import com.woop.Squad4J.dto.rcon.DisconnectedPlayer;
+import com.woop.Squad4J.dto.rcon.OnlinePlayer;
+import com.woop.Squad4J.dto.rcon.Squad;
+import com.woop.Squad4J.dto.rcon.Team;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
 import com.woop.Squad4J.event.rcon.LayerInfoUpdatedEvent;
 import com.woop.Squad4J.event.rcon.PlayerListUpdatedEvent;
 import com.woop.Squad4J.event.rcon.SquadAndTeamListsUpdatedEvent;
-import com.woop.Squad4J.model.DisconnectedPlayer;
-import com.woop.Squad4J.model.OnlinePlayer;
-import com.woop.Squad4J.model.Squad;
-import com.woop.Squad4J.model.Team;
 import com.woop.Squad4J.rcon.Rcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,24 +31,23 @@ import java.util.regex.Pattern;
  */
 public class RconUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(RconUpdater.class);
-
-    private static boolean initialized = false;
-
-    private static final Pattern onlinePlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Name: (.+) \\| Team ID: (1|2) \\| Squad ID: ([0-9]+|N\\/A) \\| Is Leader: (True|False) \\| Role: (.+)");
+    private static final Pattern onlinePlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Name: (.+) \\| Team ID: (1|2|N/A) \\| Squad ID: ([0-9]+|N/A) \\| Is Leader: (True|False) \\| Role: (.+)");
     private static final Pattern disconnectedPlayerPattern = Pattern.compile("ID: ([0-9]+) \\| SteamID: ([0-9]+) \\| Since Disconnect: (.+) \\| Name: (.+)");
     private static final Pattern squadPattern = Pattern.compile("ID: ([0-9]+) \\| Name: (.+) \\| Size: ([0-9]+) \\| Locked: (True|False) \\| Creator Name: (.+) \\| Creator Steam ID: ([0-9]{17})");
     private static final Pattern currentLayerPattern = Pattern.compile("Current level is (.+), layer is (.+)");
     private static final Pattern nextLayerPattern = Pattern.compile("Next level is (.+), layer is (.+)");
+    public static Timestamp lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+    private static boolean initialized = false;
 
-    private RconUpdater(){
+    private RconUpdater() {
         throw new IllegalStateException("This class cannot be instantiated.");
     }
 
-    public static void init(){
-        if(initialized)
+    public static void init() {
+        if (initialized)
             throw new IllegalStateException(RconUpdater.class.getSimpleName() + " has already been initialized.");
 
-        GlobalThreadPool.getScheduler().scheduleWithFixedDelay(RconUpdater::updateRcon, 5, 1, TimeUnit.SECONDS);
+        GlobalThreadPool.getScheduler().scheduleWithFixedDelay(RconUpdater::updateRcon, 5, 2, TimeUnit.SECONDS);
 
         initialized = true;
     }
@@ -56,40 +56,45 @@ public class RconUpdater {
      * Helper method to update information retrieved through RCON: player list, squad list, and layer info.
      */
     public static void updateRcon() {
-        updatePlayerList();
-        updateSquadList();
-        updateLayerInfo();
-        LOGGER.info("Rcon updated");
+        if (updateLayerInfo() && updateSquadList() && updatePlayerList()) {
+            lastSuccessfullyWork = new Timestamp(System.currentTimeMillis());
+        }
+        //LOGGER.info("Rcon updated");
     }
 
     /**
      * Updates the player list by querying the RCON console for a player list.
      */
-    protected static void updatePlayerList(){
-        long b = System.currentTimeMillis();
+    protected static boolean updatePlayerList() {
+        //long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving player list.");
+        //System.out.println("ListPlayers");
         String response = Rcon.command("ListPlayers");
+        if (response == null || response.isEmpty()) {
+            LOGGER.warn("ListPlayer returned empty or null response");
+            return false;
+        }
         //System.out.println(response);
         //System.out.println("GetPlayerList: " + (System.currentTimeMillis() - b));
-        long a = System.currentTimeMillis();
-        List<OnlinePlayer> onlineOnlinePlayers = new ArrayList<>();
+        //long a = System.currentTimeMillis();
+        List<OnlinePlayer> onlinePlayers = new ArrayList<>();
         List<DisconnectedPlayer> disconnectedPlayers = new ArrayList<>();
         StringTokenizer tokenizer = new StringTokenizer(response, "\n");
-        while(tokenizer.hasMoreElements()){
+        while (tokenizer.hasMoreElements()) {
             String line = tokenizer.nextToken();
             Matcher onlineMatcher = onlinePlayerPattern.matcher(line);
             Matcher disconnectedMatcher = disconnectedPlayerPattern.matcher(line);
-            if(onlineMatcher.find()){
+            if (onlineMatcher.find()) {
                 Integer id = Integer.valueOf(onlineMatcher.group(1));
                 long steamId = Long.parseLong(onlineMatcher.group(2));
                 String name = onlineMatcher.group(3);
-                Integer teamId = Integer.valueOf(onlineMatcher.group(4));
+                Integer teamId = onlineMatcher.group(4).equals("N/A") ? null : Integer.valueOf(onlineMatcher.group(4));
                 Integer squadId = onlineMatcher.group(5).equals("N/A") ? null : Integer.valueOf(onlineMatcher.group(5));
                 Boolean isLeader = Boolean.valueOf(onlineMatcher.group(6));
                 String role = onlineMatcher.group(7);
 
                 OnlinePlayer onlinePlayer = new OnlinePlayer(id, steamId, name, teamId, squadId, isLeader, role);
-                onlineOnlinePlayers.add(onlinePlayer);
+                onlinePlayers.add(onlinePlayer);
             } else if (disconnectedMatcher.find()) {
                 Integer id = Integer.valueOf(disconnectedMatcher.group(1));
                 long steamId = Long.parseLong(disconnectedMatcher.group(2));
@@ -100,22 +105,31 @@ public class RconUpdater {
                 disconnectedPlayers.add(disconnectedPlayer);
             }
         }
-        LOGGER.trace("Retrieved {} onlinePlayers.", onlineOnlinePlayers.size());
+        LOGGER.trace("Retrieved {} onlinePlayers.", onlinePlayers.size());
         LOGGER.trace("Retrieved {} disconnected Players.", disconnectedPlayers.size());
 
-        Event event = new PlayerListUpdatedEvent(new Date(), EventType.PLAYERLIST_UPDATED, onlineOnlinePlayers, disconnectedPlayers);
+        Event event = new PlayerListUpdatedEvent(new Date(), EventType.PLAYERLIST_UPDATED, onlinePlayers, disconnectedPlayers);
+        //System.out.println("SquadsAndTeamsResponse: \n" + response);
 
         EventEmitter.emit(event);
+
+        LOGGER.info("Rcon updated, online players: {}", onlinePlayers.size());
+        return true;
         //System.out.println("ParsePlayerList: " + (System.currentTimeMillis() - a));
     }
 
     /**
      * Updates the squad list by querying the RCON console.
      */
-    protected static void updateSquadList(){
+    protected static boolean updateSquadList() {
         long b = System.currentTimeMillis();
         LOGGER.trace("Retrieving squad list.");
+        //System.out.println("ListSquads");
         String response = Rcon.command("ListSquads");
+        if (response == null || response.isEmpty()) {
+            LOGGER.warn("ListSquads returned empty or null response");
+            return false;
+        }
         //System.out.println(response);
         //System.out.println("GetSquadList: " + (System.currentTimeMillis() - b));
         long a = System.currentTimeMillis();
@@ -123,19 +137,19 @@ public class RconUpdater {
         List<Team> teams = new ArrayList<>();
         int teamId = 1;
         StringTokenizer tokenizer = new StringTokenizer(response, "\n");
-        while(tokenizer.hasMoreElements()){
+        while (tokenizer.hasMoreElements()) {
             String line = tokenizer.nextToken();
             if (line.startsWith("Team ID:")) {
                 String teamName = line.substring(line.indexOf("(") + 1, line.indexOf(")"));
                 teams.add(new Team(teamName.trim(), line.startsWith("Team ID: 1") ? 1 : 2));
             }
-            if(line.startsWith("Team ID: 2")){
+            if (line.startsWith("Team ID: 2")) {
                 teamId = 2;
                 continue;
             }
 
             Matcher matcher = squadPattern.matcher(line);
-            if(matcher.find()){
+            if (matcher.find()) {
                 Integer id = Integer.valueOf(matcher.group(1));
                 String name = matcher.group(2);
                 Integer size = Integer.valueOf(matcher.group(3));
@@ -150,27 +164,32 @@ public class RconUpdater {
         LOGGER.trace("Retrieved {} squads.", squads.size());
 
         Event event = new SquadAndTeamListsUpdatedEvent(new Date(), EventType.SQUADLIST_UPDATED, squads, teams);
-
         EventEmitter.emit(event);
         //System.out.println("ParseSquadList: " + (System.currentTimeMillis() - a));
+        return true;
     }
 
     /**
      * Updates the layer information by querying the RCON console.
-     *
+     * <p>
      * Updates both the current and next layers/maps.
      */
-    protected static void updateLayerInfo(){
+    public static boolean updateLayerInfo() {
         LOGGER.trace("Retrieving layer information");
         String currentLayer = "";
         String nextLayer = "";
         String currentMap = "";
         String nextMap = "";
-
+        //System.out.println("ShowCurrentMap");
         String response = Rcon.command("ShowCurrentMap");
+        if (response == null || response.isEmpty()) {
+            LOGGER.warn("ShowCurrentMap returned empty or null response");
+            return false;
+        }
+        //System.out.println(response);
         LOGGER.trace("Getting current map. Response: {}", response);
         Matcher matcher = currentLayerPattern.matcher(response);
-        if(matcher.find()){
+        if (matcher.find()) {
             currentMap = matcher.group(1);
             currentLayer = matcher.group(2);
             LOGGER.trace("Current layer is {}", currentLayer);
@@ -179,7 +198,7 @@ public class RconUpdater {
         response = Rcon.command("ShowNextMap");
         LOGGER.trace("Retrieved next map. Response: {}", response);
         matcher = nextLayerPattern.matcher(response);
-        if(matcher.find()){
+        if (matcher.find()) {
             nextMap = matcher.group(1);
             nextLayer = matcher.group(2);
             LOGGER.trace("Next layer is {}", nextLayer);
@@ -189,5 +208,6 @@ public class RconUpdater {
 
         LOGGER.trace("Retrieved layer information");
         EventEmitter.emit(event);
+        return true;
     }
 }

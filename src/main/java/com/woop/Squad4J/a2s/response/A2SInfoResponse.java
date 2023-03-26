@@ -1,9 +1,9 @@
 package com.woop.Squad4J.a2s.response;
 
+import com.woop.Squad4J.util.BufferHelper;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
-import com.woop.Squad4J.util.BufferHelper;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -12,9 +12,9 @@ import java.util.Optional;
 
 /**
  * <a href="https://github.com/roengle/squadQuery/blob/main/src/response/A2SInfoResponse.java">squadQuery implementation</a>
- *
+ * <p>
  * Class to represent a response from a A2S_INFO query.
- *
+ * <p>
  * See the following for technical documentation for A2S_INFO queries:
  *
  * <a href="https://developer.valvesoftware.com/wiki/Server_queries#A2S_INFO">A2S_INFO Documentation</a>
@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 @Getter
 @ToString
-public class A2SInfoResponse extends Response{
+public class A2SInfoResponse extends Response {
     private final byte protocol;
     private final String name;
     private final String map;
@@ -67,17 +67,17 @@ public class A2SInfoResponse extends Response{
 
     /**
      * Constructs a {@link A2SInfoResponse} given byte data of the response.
-     *
+     * <p>
      * The data <b>MUST</b> have the first four <code>FF</code> bytes included. For example:
      *
      * <code>FF FF FF FF 49 .. ..</code>
-     *
+     * <p>
      * See the <a href="https://developer.valvesoftware.com/wiki/Server_queries#A2S_INFO">A2S_INFO Documentation</a>
      * for more info.
      *
      * @param data an array of bytes that the A2S query responded with
      */
-    private A2SInfoResponse(byte[] data){
+    private A2SInfoResponse(byte[] data) {
         super(data);
 
         //Offset to ignore the first four FF bytes
@@ -115,50 +115,50 @@ public class A2SInfoResponse extends Response{
         //Extra data flag (EDF)
         this.edf = buffer.get();
         //EDF & 0x80
-        if((this.edf & 0x80) > 0){
+        if ((this.edf & 0x80) > 0) {
             this.port = buffer.getShort();
-        }else{
+        } else {
             this.port = null;
         }
         //EDF & 0x10
-        if((this.edf & 0x10) > 0){
+        if ((this.edf & 0x10) > 0) {
             this.steamID = buffer.getLong();
-        }else{
+        } else {
             this.steamID = null;
         }
         //EDF & 0x40
-        if((this.edf & 0x40) > 0){
+        if ((this.edf & 0x40) > 0) {
             this.sourceTVPort = buffer.getShort();
             this.sourceSpectatorName = BufferHelper.getStringFromBuffer(buffer);
-        }else{
+        } else {
             this.sourceTVPort = null;
             this.sourceSpectatorName = null;
         }
         //EDF & 0x20
-        if((this.edf & 0x20) > 0){
+        if ((this.edf & 0x20) > 0) {
             this.keywords = BufferHelper.getStringFromBuffer(buffer);
-        }else{
+        } else {
             this.keywords = null;
         }
         //EDF & 0x01
-        if((this.edf & 0x01) > 0){
+        if ((this.edf & 0x01) > 0) {
             this.gameID = buffer.getLong();
-        }else{
+        } else {
             this.gameID = null;
         }
     }
 
     /**
      * Constructs a {@link A2SInfoResponse} given response data AFTER the challenge response has been sent.
-     *
+     * <p>
      * When providing the raw data, make sure to <b>INCLUDE</b> the first four <code>FF</code> bytes.
-     *
+     * <p>
      * For example, your packet data should start with: <code>FF FF FF FF 49 ...</code>
      *
      * @param rawData the data received for the A2S_INFO query, with the conditions above met
      * @return an {@link A2SInfoResponse} describing the response
      */
-    public static A2SInfoResponse from(byte[] rawData){
+    public static A2SInfoResponse from(byte[] rawData) {
         return new A2SInfoResponse(rawData);
     }
 
@@ -166,23 +166,23 @@ public class A2SInfoResponse extends Response{
         return Optional.ofNullable(this.port);
     }
 
-    public Optional<Long> getSteamID() throws NoSuchElementException{
+    public Optional<Long> getSteamID() throws NoSuchElementException {
         return Optional.ofNullable(this.steamID);
     }
 
-    public Optional<Short> getSourceTVPort() throws NoSuchElementException{
+    public Optional<Short> getSourceTVPort() throws NoSuchElementException {
         return Optional.ofNullable(this.sourceTVPort);
     }
 
-    public Optional<String> getSourceSpectatorName() throws NoSuchElementException{
+    public Optional<String> getSourceSpectatorName() throws NoSuchElementException {
         return Optional.ofNullable(this.sourceSpectatorName);
     }
 
-    public Optional<String> getKeywords() throws NoSuchElementException{
+    public Optional<String> getKeywords() throws NoSuchElementException {
         return Optional.ofNullable(this.keywords);
     }
 
-    public Optional<Long> getGameID() throws NoSuchElementException{
+    public Optional<Long> getGameID() throws NoSuchElementException {
         return Optional.ofNullable(this.gameID);
     }
 }

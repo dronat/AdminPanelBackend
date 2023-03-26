@@ -1,0 +1,94 @@
+{
+  "server": {
+    "id": 1,
+    "name": "ОС-1",
+    "host": "62.173.140.141",
+    "queryPort": 27165,
+    "rconPort": 21114,
+    "rconPassword": "core@12345",
+    "adminPanelPort": 8000,
+    "steamApiKey": "D24E3D9EB90500EB1979B72B06B4D903",
+    "discordUrl": "https://discord.com/api/v10/webhooks/1079730135357468683/1xW7J_lH0jHx1SCdMB99u3ho3oTcksGhOpxTResPUQ5nWo2zXhuXDXng4_plYKpw7Vse",
+    "logReaderMode": "FTP",
+    "logAbsolutePath": "/home/squad/SquadGameServer/cgs1/SquadGame/Saved/Logs",
+    "banAbsolutePath": "/home/squad/SquadGameServer/cgs1/SquadGame/ServerConfig",
+    "ftp": {
+      "port": 21,
+      "user": "squadftp",
+      "password": "Aa123456"
+    },
+    "adminLists": [
+      {
+        "type": "remote",
+        "source": "http://yourwebsite.com/Admins.cfg"
+      },
+      {
+        "type": "local",
+        "source": "/home/squadserver/SquadGame/ServerConfig/Admins.cfg"
+      }
+    ]
+  },
+  "connectors": {
+    "discord": {
+      "loginToken": "DiscordLoginToken"
+    },
+    "mysql": {
+      "host": "localhost",
+      "port": 3306,
+      "username": "root",
+      "password": "root",
+      "database": "squad"
+    }
+  },
+  "plugins": {
+    "AdminCamTracker": {
+      "enabled": true
+    },
+    "DBLog": {
+      "enabled": true
+    },
+    "ChatCommands": {
+      "enabled": true,
+      "prefix": "!",
+      "commands": [
+        {
+          "command": "squad4j",
+          "type": "warn",
+          "response": "This server is running Squad4J.",
+          "ignoreChats": []
+        }
+      ]
+    },
+    "ChatLogger": {
+      "enabled": true
+    },
+    "DevelopmentTestPlugin": {
+      "enabled": false
+    }
+  },
+  "logging": {
+    "level": "info",
+    "colors": {
+      "trace": {
+        "bold": false,
+        "color": "default"
+      },
+      "debug": {
+        "bold": true,
+        "color": "green"
+      },
+      "info": {
+        "bold": true,
+        "color": "blue"
+      },
+      "warn": {
+        "bold": true,
+        "color": "yellow"
+      },
+      "error": {
+        "bold": true,
+        "color": "red"
+      }
+    }
+  }
+}

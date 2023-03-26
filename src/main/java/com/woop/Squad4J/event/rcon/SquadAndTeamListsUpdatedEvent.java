@@ -1,10 +1,10 @@
 package com.woop.Squad4J.event.rcon;
 
-import com.woop.Squad4J.listener.rcon.SquadListUpdatedListener;
-import com.woop.Squad4J.model.Team;
-import com.woop.Squad4J.model.Squad;
+import com.woop.Squad4J.dto.rcon.Squad;
+import com.woop.Squad4J.dto.rcon.Team;
 import com.woop.Squad4J.event.Event;
 import com.woop.Squad4J.event.EventType;
+import com.woop.Squad4J.listener.rcon.SquadListUpdatedListener;
 import com.woop.Squad4J.server.RconUpdater;
 import lombok.Getter;
 import lombok.ToString;
@@ -16,10 +16,9 @@ import java.util.List;
 /**
  * Describes an event where a squad list is updated from {@link RconUpdater}.
  *
+ * @author Robert Engle
  * @see RconUpdater
  * @see SquadListUpdatedListener
- *
- * @author Robert Engle
  */
 @Getter
 @ToString
@@ -30,8 +29,8 @@ public class SquadAndTeamListsUpdatedEvent extends Event {
     /**
      * Constructs a {@link SquadAndTeamListsUpdatedEvent}
      *
-     * @param date a {@link Date} corresponding to when this event occurred
-     * @param type the corresponding {@link EventType} for this event
+     * @param date      a {@link Date} corresponding to when this event occurred
+     * @param type      the corresponding {@link EventType} for this event
      * @param squadList a {@link List} representing the squads
      */
     public SquadAndTeamListsUpdatedEvent(Date date, EventType type, List<Squad> squadList, List<Team> teamsList) {

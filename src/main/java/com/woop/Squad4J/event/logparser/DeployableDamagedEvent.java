@@ -11,9 +11,8 @@ import java.util.Date;
 /**
  * Describes an event where a deployable is damaged.
  *
- * @see DeployableDamagedListener
- *
  * @author Robert Engle
+ * @see DeployableDamagedListener
  */
 @Getter
 @ToString
@@ -28,18 +27,18 @@ public class DeployableDamagedEvent extends Event {
     /**
      * Constructs a {@link DeployableDamagedEvent}.
      *
-     * @param date a {@link Date} representing when the event occurred.
-     * @param type the corresponding {@link EventType} for this event.
-     * @param chainID the chain ID of this event
-     * @param deployable the name of the deployable that was damaged
-     * @param damage the amount of damage done to this deployable
-     * @param weapon the weapon used to damage this deployable
-     * @param playerSuffix the name of the player damaging the deployable
-     * @param damageType the damage type done to the deployable
+     * @param date            a {@link Date} representing when the event occurred.
+     * @param type            the corresponding {@link EventType} for this event.
+     * @param chainID         the chain ID of this event
+     * @param deployable      the name of the deployable that was damaged
+     * @param damage          the amount of damage done to this deployable
+     * @param weapon          the weapon used to damage this deployable
+     * @param playerSuffix    the name of the player damaging the deployable
+     * @param damageType      the damage type done to the deployable
      * @param healthRemaining the amount of health remaining on the deployable
      */
     public DeployableDamagedEvent(Date date, EventType type, Integer chainID, String deployable, Double damage, String weapon,
-                                  String playerSuffix, String damageType, Double healthRemaining){
+                                  String playerSuffix, String damageType, Double healthRemaining) {
         super(date, type, chainID);
         this.deployable = deployable;
         this.damage = damage;

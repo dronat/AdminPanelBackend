@@ -1,0 +1,2 @@
+- Компиляция через mvn clean package
+- Запуск через .jar файл командой: java -jar admin-panel-backend-2.0.jar

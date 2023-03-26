@@ -14,7 +14,7 @@ public class NamedThreadFactory implements ThreadFactory {
      *
      * @param name the name of the thread
      */
-    public NamedThreadFactory(String name){
+    public NamedThreadFactory(String name) {
         this.name = name;
     }
 
@@ -26,7 +26,7 @@ public class NamedThreadFactory implements ThreadFactory {
      */
     @Override
     public Thread newThread(Runnable r) {
-        if(name != null){
+        if (name != null) {
             return new Thread(r, name);
         }
         return null;

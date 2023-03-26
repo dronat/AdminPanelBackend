@@ -4,14 +4,12 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 public class CorsFilter implements Filter {
 
     // This is to be replaced with a list of domains allowed to access the server
     //You can include more than one origin here
-    private final List<String> allowedOrigins = Arrays.asList("http://localhost:3000");
+//    private final List<String> allowedOrigins = Arrays.asList("http://185.31.160.131:3000", "http://192.168.1.150:3000", "http://192.168.1.184:3000");
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -27,7 +25,8 @@ public class CorsFilter implements Filter {
 
             // Access-Control-Allow-Origin
             String origin = request.getHeader("Origin");
-            response.setHeader("Access-Control-Allow-Origin", allowedOrigins.contains(origin) ? origin : "");
+//            response.setHeader("Access-Control-Allow-Origin", allowedOrigins.contains(origin) ? origin : "");
+            response.addHeader("Access-Control-Allow-Origin", "http://localhost:3000");
             response.setHeader("Vary", "Origin");
 
             // Access-Control-Max-Age
@@ -38,9 +37,9 @@ public class CorsFilter implements Filter {
             // Access-Control-Allow-Methods
             response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
 
-            // Access-Control-Allow-Headers
+            // Access-Control-Allow-Headers Origin, X-Requested-With, Content-Type, Accept, " + "X-CSRF-TOKEN
             response.setHeader("Access-Control-Allow-Headers",
-                    "Origin, X-Requested-With, Content-Type, Accept, " + "X-CSRF-TOKEN");
+                    "Accept, Content-Type, X-Requested-With");
         }
 
         chain.doFilter(req, res);

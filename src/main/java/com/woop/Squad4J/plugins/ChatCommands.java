@@ -17,11 +17,11 @@ import java.util.Map;
 
 /**
  * @author Robert Engle
- *
+ * <p>
  * Implementation of <code>ChatCommands</code> from <a href="https://github.com/Team-Silver-Sphere/SquadJS#chatcommands">SquadJS</a>.
  * ChatCommands is used to either warn or broadcast a message whenever a command is typed in a chat. Warnings will warn
  * the player who typed the message, broadcasts will simply broadcast to the whole server.
- *
+ * <p>
  * A prefix for commands can be configured. Each individual command can also be configured to ignore certain chat types.
  */
 @NoArgsConstructor
@@ -32,30 +32,12 @@ public class ChatCommands implements ChatMessageListener {
     private static final Map<String, ChatCommands.Command> warnCommands = new HashMap<>();
     private static final Map<String, ChatCommands.Command> broadcastCommands = new HashMap<>();
 
-    private static class Command{
-        private final String response;
-        private final List<String> ignoreChats;
-
-        protected Command(String response, List<String> ignoreChats){
-            this.response = response;
-            this.ignoreChats = ignoreChats;
-        }
-
-        public String getResponse() {
-            return response;
-        }
-
-        public List<String> getIgnoreChats() {
-            return ignoreChats;
-        }
-    }
-
-    static{
+    static {
         //TODO: Improve this implementation, this is first iteration.
         //TODO: For future versions, include ability to put "variables" into messages. For example, {{server.nextLayer}} could be placed, which would render to the next layer name.
-        try{
+        try {
             Integer numCommands = ConfigLoader.get("plugins.ChatCommands.commands.length()", Integer.class);
-            for(int i = 0; i < numCommands; i++){
+            for (int i = 0; i < numCommands; i++) {
                 Map<Object, Object> entries = ConfigLoader.get(
                         String.format("plugins.ChatCommands.commands[%s]", i), Map.class
                 );
@@ -64,12 +46,12 @@ public class ChatCommands implements ChatMessageListener {
                 String response = (String) entries.get("response");
                 List<String> ignoreChats = new ArrayList<>();
                 Integer numIgnoreChats = ((JSONArray) entries.get("ignoreChats")).size();
-                for(int j = 0; j < numIgnoreChats; j++){
-                    ignoreChats.add((String) ((JSONArray)entries.get("ignoreChats")).get(j));
+                for (int j = 0; j < numIgnoreChats; j++) {
+                    ignoreChats.add((String) ((JSONArray) entries.get("ignoreChats")).get(j));
                 }
 
                 Command command = new Command(response, ignoreChats);
-                switch(type){
+                switch (type) {
                     case "warn":
                         warnCommands.put(commandName, command);
                         break;
@@ -80,12 +62,11 @@ public class ChatCommands implements ChatMessageListener {
                         LOGGER.error("\"type\" must be either \"warn\" or \"broadcast\". It currently is {}", type);
                 }
             }
-        }catch(JsonPathException pathExp){
+        } catch (JsonPathException pathExp) {
             LOGGER.error("There was an error parsing a JSON path.");
             LOGGER.error(pathExp.getMessage());
         }
     }
-
 
     @Override
     public void onChatMessage(ChatMessageEvent chatMessageEvent) {
@@ -93,24 +74,42 @@ public class ChatCommands implements ChatMessageListener {
         String message = chatMessageEvent.getMessage();
         String chatType = chatMessageEvent.getChatType();
 
-        if(message.matches(PREFIX + "(.+)")){
+        if (message.matches(PREFIX + "(.+)")) {
             message = message.replaceFirst("!", "");
-            if(warnCommands.containsKey(message)){
+            if (warnCommands.containsKey(message)) {
                 Command command = warnCommands.get(message);
                 List<String> ignoreChats = command.getIgnoreChats();
-                if(!ignoreChats.contains(chatType)){
+                if (!ignoreChats.contains(chatType)) {
                     String response = command.getResponse();
                     Rcon.command(String.format("AdminWarn %s %s", userSteamId, response));
                 }
             }
-            if(broadcastCommands.containsKey(message)){
+            if (broadcastCommands.containsKey(message)) {
                 Command command = broadcastCommands.get(message);
                 List<String> ignoreChats = command.getIgnoreChats();
-                if(!ignoreChats.contains(chatType)){
+                if (!ignoreChats.contains(chatType)) {
                     String response = command.getResponse();
                     Rcon.command(String.format("AdminBroadcast %s", response));
                 }
             }
+        }
+    }
+
+    private static class Command {
+        private final String response;
+        private final List<String> ignoreChats;
+
+        protected Command(String response, List<String> ignoreChats) {
+            this.response = response;
+            this.ignoreChats = ignoreChats;
+        }
+
+        public String getResponse() {
+            return response;
+        }
+
+        public List<String> getIgnoreChats() {
+            return ignoreChats;
         }
     }
 }
