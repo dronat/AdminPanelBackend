@@ -2,7 +2,7 @@
   "server": {
     "id": 1,
     "name": "ОС-1",
-    "host": "62.173.140.141",
+    "host": "194.93.2.120",
     "queryPort": 27165,
     "rconPort": 21114,
     "rconPassword": "core@12345",

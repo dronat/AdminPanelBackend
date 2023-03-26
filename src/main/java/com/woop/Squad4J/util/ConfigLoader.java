@@ -6,9 +6,9 @@ import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -26,20 +26,27 @@ public class ConfigLoader {
     private static Object document;
 
     static {
+        PathMatchingResourcePatternResolver loader = new PathMatchingResourcePatternResolver();
 
         String json = "{}";
-        File file = null;
+        InputStream is = null;
         try {
-             file = new File(ConfigLoader.class.getClassLoader().getResource("config.json").getFile());
+            Resource resource = loader.getResources("classpath*:config.json")[0];
+            if (!resource.exists()) {
+                throw new RuntimeException();
+            }
+            is = resource.getInputStream();
         } catch (Exception e) {
             System.out.println("config.json does not exist by the path 'src/main/resources/config.json'. Exiting.");
+            e.printStackTrace();
             System.exit(1);
         }
         try {
-            InputStream is = new FileInputStream(file);
             json = IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
         }
 
         try {
@@ -50,7 +57,6 @@ public class ConfigLoader {
             e.printStackTrace();
             System.exit(1);
         }
-
     }
 
     private ConfigLoader() {
