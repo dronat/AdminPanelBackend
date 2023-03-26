@@ -32,7 +32,7 @@ public class FtpBanService implements Runnable {
     private final String PASSWORD = ConfigLoader.get("server.ftp.password", String.class);
     private final String ABSOLUTE_FILE_PATH = ConfigLoader.get("server.banAbsolutePath", String.class);
     private final String ENCODING = "UTF-8";
-    private final String FILE_NAME = "Bans_test.cfg";
+    private final String FILE_NAME = "Bans.cfg";
     private final long DELAY_IN_MILLIS = 60000;
     private final Discord discord = new Discord();
     private volatile boolean run;
