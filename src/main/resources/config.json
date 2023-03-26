@@ -12,6 +12,7 @@
     "logReaderMode": "FTP",
     "logAbsolutePath": "/home/squad/SquadGameServer/cgs1/SquadGame/Saved/Logs",
     "banAbsolutePath": "/home/squad/SquadGameServer/cgs1/SquadGame/ServerConfig",
+    "useDiscordBans": true,
     "ftp": {
       "port": 21,
       "user": "squadftp",
