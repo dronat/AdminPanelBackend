@@ -53,11 +53,11 @@ public class AdminEntity implements Serializable {
     private Timestamp modifiedTime;
 
     @JsonBackReference
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "admin")
     private List<AdminActionLogEntity> adminActionLogs;
 
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToOne
     @JoinColumn(name = "role", referencedColumnName = "id")
     private RoleGroupEntity roleGroup;

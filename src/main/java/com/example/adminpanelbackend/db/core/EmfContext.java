@@ -46,6 +46,7 @@ enum EmfContext {
             settings.put("hibernate.c3p0.acquireRetryAttempts", "1");
             settings.put("hibernate.c3p0.acquireRetryDelay", "250");
             settings.put("hibernate.show_sql", "true");
+            settings.put("hibernate.format_sql", "true");
             settings.put("hibernate.use_sql_comments", "true");*/
 
             // HikariCP settings

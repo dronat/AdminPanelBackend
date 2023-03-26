@@ -26,7 +26,7 @@ public class RoleGroupEntity implements Serializable {
     private String name;
 
     @JsonManagedReference("roles")
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "roleGroup")
     private List<RolesEntity> roles;
 }

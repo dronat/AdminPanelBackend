@@ -34,27 +34,27 @@ public class PlayerEntity implements Serializable {
     private Timestamp createTime;
 
     @JsonBackReference
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "player")
     private List<PlayerBanEntity> playerBans;
 
     @JsonBackReference
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "player")
     private List<PlayerMessageEntity> playerMessages;
 
     @JsonBackReference
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "player")
     private List<PlayerNoteEntity> playerNotes;
 
     @JsonBackReference
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "player")
     private List<PlayerKickEntity> playerKicks;
 
     @JsonBackReference
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "player")
     private List<AdminActionLogEntity> playerAdminActions;
 

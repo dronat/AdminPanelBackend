@@ -31,7 +31,7 @@ public class RuleGroupEntity implements Serializable {
     private String name;
 
     @JsonManagedReference("rule-group")
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @LazyCollection(LazyCollectionOption.TRUE)
     @OneToMany(mappedBy = "ruleGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RuleEntity> rules;
 }

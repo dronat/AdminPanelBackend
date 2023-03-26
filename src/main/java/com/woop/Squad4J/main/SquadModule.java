@@ -64,9 +64,6 @@ public class SquadModule {
         //Initialize RCON service
         Rcon.init();
 
-        //Initialize log tailer service
-        TailerService.init();
-
         new Thread(new FtpBanService()).start();
 
         RotationListener.init();
@@ -74,6 +71,9 @@ public class SquadModule {
         //Initialize servers
         //Initialize squad server
         SquadServer.init();
+
+        //Initialize log tailer service
+        TailerService.init();
 
         //Initialize event emitter last
         //Intialize event emitter service
