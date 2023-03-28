@@ -35,6 +35,7 @@ public class SteamOpenID {
         } catch (DiscoveryException e) {
             e.printStackTrace();
             discovered = null;
+            System.exit(1);
         }
     }
 
@@ -76,7 +77,12 @@ public class SteamOpenID {
         }
         ParameterList responseList = new ParameterList(verifySteamModel.getOpenIdInfo());
         try {
-            VerificationResult verification = manager.verify(verifySteamModel.getCallbackURL(), responseList, this.discovered);
+            VerificationResult verification;
+            try {
+                verification = manager.verify(verifySteamModel.getCallbackURL(), responseList, this.discovered);
+            } catch (MessageException e) {
+                return null;
+            }
             Identifier verifiedId = verification.getVerifiedId();
             if (verifiedId != null) {
                 String id = verifiedId.getIdentifier();
@@ -85,7 +91,7 @@ public class SteamOpenID {
                     return matcher.group(1);
                 }
             }
-        } catch (MessageException | DiscoveryException | AssociationException e) {
+        } catch (DiscoveryException | AssociationException e) {
             e.printStackTrace();
         }
         return null;

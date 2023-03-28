@@ -1,17 +1,17 @@
 {
   "server": {
-    "id": 1,
-    "name": "ОС-1",
+    "id": 2,
+    "name": "ОС-2",
     "host": "62.173.141.22",
-    "queryPort": 27165,
-    "rconPort": 21114,
-    "rconPassword": "core@12345",
-    "adminPanelPort": 8000,
+    "queryPort": 27166,
+    "rconPort": 21115,
+    "rconPassword": "oc2rconpasswordsuper$tP0nG3244234dfdf2fdsf",
+    "adminPanelPort": 8001,
     "steamApiKey": "D24E3D9EB90500EB1979B72B06B4D903",
     "discordUrl": "https://discord.com/api/v10/webhooks/1079730135357468683/1xW7J_lH0jHx1SCdMB99u3ho3oTcksGhOpxTResPUQ5nWo2zXhuXDXng4_plYKpw7Vse",
     "logReaderMode": "FTP",
-    "logAbsolutePath": "/squad/SquadGame/cgs1/SquadGame/Saved/Logs",
-    "banAbsolutePath": "/squad/SquadGame/cgs1/SquadGame/ServerConfig",
+    "logAbsolutePath": "/squad/SquadGame/cgs2/SquadGame/Saved/Logs",
+    "banAbsolutePath": "/squad/SquadGame/cgs2/SquadGame/ServerConfig",
     "useDiscordBans": false,
     "ftp": {
       "port": 21,
@@ -22,9 +22,9 @@
   "connectors": {
     "mysql": {
       "host": "localhost",
-      "port": 3306,
+      "port": 3307,
       "username": "root",
-      "password": "root",
+      "password": "sqIBhegGM8K7",
       "database": "squad"
     }
   },

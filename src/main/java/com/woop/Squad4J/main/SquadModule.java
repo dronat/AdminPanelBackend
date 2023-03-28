@@ -165,9 +165,7 @@ public class SquadModule {
                             .setNumOfGames(0);
 
                     mapEntity.getTeamOne().setVehicles(
-                            mapDTO.getTeamOne().getVehicles() == null ?
-                                    null
-                                    : mapDTO.getTeamOne()
+                            mapDTO.getTeamOne().getVehicles() == null ? null : mapDTO.getTeamOne()
                                     .getVehicles()
                                     .stream()
                                     .map(vehicle ->
@@ -188,9 +186,7 @@ public class SquadModule {
                     );
 
                     mapEntity.getTeamTwo().setVehicles(
-                            mapDTO.getTeamOne().getVehicles() == null ?
-                                    null
-                                    : mapDTO.getTeamOne()
+                            mapDTO.getTeamTwo().getVehicles() == null ? null : mapDTO.getTeamTwo()
                                     .getVehicles()
                                     .stream()
                                     .map(vehicle ->

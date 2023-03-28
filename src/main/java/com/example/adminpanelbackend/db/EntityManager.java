@@ -51,7 +51,7 @@ public class EntityManager extends JpaManager implements JpaConnection {
             persist(
                     new AdminEntity()
                     .setSteamId(1L)
-                    .setName("Rotation module")
+                    .setName("Admin Panel")
                     .setCreateTime(new Timestamp(System.currentTimeMillis()))
                     .setModifiedTime(new Timestamp(System.currentTimeMillis()))
             );

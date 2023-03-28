@@ -55,8 +55,8 @@ public class LogParser {
         //logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogEasyAntiCheatServer: \\[[0-9:]+] \\[[A-z]+] \\[EAC Server] \\[Info] \\[RegisterClient] Client: (?:[A-z0-9]+) PlayerGUID: ([0-9]{17}) PlayerIP: [0-9]{17} OwnerGUID: [0-9]{17} PlayerName: (.+)"), EventType.STEAMID_CONNECTED);
         logPatterns.put(Pattern.compile("^\\[([0-9.:-]+)]\\[([ 0-9]*)]LogOnline: STEAM: AUTH HANDLER: Sending auth result to user (\\d{17}) with flag success\\? 1"), EventType.STEAMID_CONNECTED);
         logPatterns.put(Pattern.compile("\\[(ChatAll|ChatTeam|ChatSquad|ChatAdmin)] \\[SteamID:([0-9]{17})] (.+?) : (.*)"), EventType.CHAT_MESSAGE);
-        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera."), EventType.ENTERED_IN_ADMIN_CAM);
-        logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera."), EventType.LEFT_FROM_ADMIN_CAM);
+        //logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera."), EventType.ENTERED_IN_ADMIN_CAM);
+        //logPatterns.put(Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera."), EventType.LEFT_FROM_ADMIN_CAM);
         logPatterns.put(Pattern.compile("Remote admin has warned player (.*)\\. Message was \"(.*)\""), EventType.PLAYER_WARNED);
         logPatterns.put(Pattern.compile("Kicked player ([0-9]+)\\. \\[steamid=([0-9]{17})] (.*)"), EventType.PLAYER_KICKED);
         logPatterns.put(Pattern.compile("Banned player ([0-9]+)\\. \\[steamid=(.*?)\\] (.*) for interval (.*)"), EventType.PLAYER_BANNED);
@@ -152,15 +152,15 @@ public class LogParser {
                                     Long.parseLong(matcher.group(4))
                             ));
                             break;
-                        case PLAYER_POSSESS:
-                            event.set(new PlayerPossessEvent(
+                        /*case ENTERED_IN_ADMIN_CAM:
+                            event.set(new EnteredInAdminCam(
                                     formatter.parse(matcher.group(1)),
                                     type,
                                     Integer.parseInt(matcher.group(2).strip()),
                                     matcher.group(3),
                                     matcher.group(4)
                             ));
-                            break;
+                            break;*/
                         case PLAYER_REVIVED:
                             event.set(new PlayerRevivedEvent(
                                     formatter.parse(matcher.group(1)),
@@ -170,14 +170,14 @@ public class LogParser {
                                     matcher.group(4)
                             ));
                             break;
-                        case PLAYER_UNPOSSESS:
-                            event.set(new PlayerUnPossessEvent(
+                        /*case LEFT_FROM_ADMIN_CAM:
+                            event.set(new LeftFromAdminCam(
                                     formatter.parse(matcher.group(1)),
                                     type,
                                     Integer.parseInt(matcher.group(2).strip()),
                                     matcher.group(3)
                             ));
-                            break;
+                            break;*/
                         case PLAYER_WOUNDED:
                             event.set(new PlayerWoundedEvent(
                                     formatter.parse(matcher.group(1)),

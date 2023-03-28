@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class CustomInterceptor implements HandlerInterceptor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomInterceptor.class);
-    EntityManager em = new EntityManager();
+    final EntityManager em = new EntityManager();
 
     @Override
     public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
@@ -32,22 +32,23 @@ public class CustomInterceptor implements HandlerInterceptor {
                 return false;
             }
 
-            AdminEntity admin = (AdminEntity) request.getSession().getAttribute("userInfo");
-            if (admin == null) {
-                response.setStatus(401);
+            synchronized (em) {
+                AdminEntity admin = (AdminEntity) request.getSession().getAttribute("userInfo");
+                if (admin == null) {
+                    response.setStatus(401);
+                    return false;
+                }
 
-                return false;
-            }
+                admin = em.tryGetAdminBySteamID(admin.getSteamId());
+                if (admin == null || admin.getRoleGroup() == null || admin.getRoleGroup().getRoles() == null || admin.getRoleGroup().getRoles().isEmpty()) {
+                    response.setStatus(401);
+                    return false;
+                }
 
-            admin = em.tryGetAdminBySteamID(admin.getSteamId());
-            if (admin == null || admin.getRoleGroup() == null || admin.getRoleGroup().getRoles() == null || admin.getRoleGroup().getRoles().isEmpty()) {
-                response.setStatus(401);
-                return false;
-            }
-
-            if (admin.getRoleGroup().getRoles().stream().noneMatch(adminRole -> adminRole.getRole().getName().equals(methodRole.role().name))) {
-                response.setStatus(401);
-                return false;
+                if (admin.getRoleGroup().getRoles().stream().noneMatch(adminRole -> adminRole.getRole().getName().equals(methodRole.role().name))) {
+                    response.setStatus(401);
+                    return false;
+                }
             }
             return true;
         } catch (Exception e) {

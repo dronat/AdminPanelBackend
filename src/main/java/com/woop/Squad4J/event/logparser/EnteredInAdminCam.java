@@ -16,12 +16,12 @@ import java.util.Date;
  */
 @Getter
 @ToString
-public class PlayerPossessEvent extends Event {
+public class EnteredInAdminCam extends Event {
     private final String playerName;
     private final String entityPossessName;
 
     /**
-     * Constructs a {@link PlayerPossessEvent}.
+     * Constructs a {@link EnteredInAdminCam}.
      *
      * @param date        a {@link Date} corresponding to when this event occurred
      * @param type        the corresponding {@link EventType} for this event
@@ -29,7 +29,7 @@ public class PlayerPossessEvent extends Event {
      * @param playerName  the name of the player
      * @param possessName the name of the entity possessed
      */
-    public PlayerPossessEvent(Date date, EventType type, Integer chainID, String playerName, String possessName) {
+    public EnteredInAdminCam(Date date, EventType type, Integer chainID, String playerName, String possessName) {
         super(date, type, chainID);
         this.playerName = playerName;
         this.entityPossessName = possessName;

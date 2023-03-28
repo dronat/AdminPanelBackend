@@ -22,9 +22,9 @@
   "connectors": {
     "mysql": {
       "host": "localhost",
-      "port": 3306,
+      "port": 3307,
       "username": "root",
-      "password": "root",
+      "password": "sqIBhegGM8K7",
       "database": "squad"
     }
   },

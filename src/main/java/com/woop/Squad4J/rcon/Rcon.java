@@ -1,10 +1,20 @@
 package com.woop.Squad4J.rcon;
 
+import com.woop.Squad4J.event.rcon.EnteredInAdminCameraEvent;
+import com.woop.Squad4J.event.rcon.LeftFromAdminCameraEvent;
 import com.woop.Squad4J.rcon.ex.AuthenticationException;
+import com.woop.Squad4J.server.EventEmitter;
 import com.woop.Squad4J.server.LogParser;
 import com.woop.Squad4J.util.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.woop.Squad4J.event.EventType.ENTERED_IN_ADMIN_CAM;
+import static com.woop.Squad4J.event.EventType.LEFT_FROM_ADMIN_CAM;
 
 /**
  * @author Robert Engle
@@ -41,6 +51,31 @@ public class Rcon {
             if (rconPacket.getType() == RconImpl.SERVERDATA_BROADCAST) {
                 LOGGER.info("\u001B[46m \u001B[30m" + rconPacket.getPayloadAsString() + "\u001B[0m");
                 LogParser.parseLine(rconPacket.getPayloadAsString());
+                if (rconPacket.getPayloadAsString().matches("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera.")) {
+                    Matcher matcher = Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has possessed admin camera.").matcher(rconPacket.getPayloadAsString());
+                    if (matcher.find()) {
+                        EventEmitter.emit(
+                                new EnteredInAdminCameraEvent(
+                                        new Date(),
+                                        ENTERED_IN_ADMIN_CAM,
+                                        Long.parseLong(matcher.group(1).strip()),
+                                        matcher.group(2)
+                                )
+                        );
+                    }
+                } else if (rconPacket.getPayloadAsString().matches("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera.")) {
+                    Matcher matcher = Pattern.compile("\\[SteamID:([0-9]{17})] (.+?) has unpossessed admin camera.").matcher(rconPacket.getPayloadAsString());
+                    if (matcher.find()) {
+                        EventEmitter.emit(
+                                new LeftFromAdminCameraEvent(
+                                        new Date(),
+                                        LEFT_FROM_ADMIN_CAM,
+                                        Long.parseLong(matcher.group(1).strip()),
+                                        matcher.group(2)
+                                )
+                        );
+                    }
+                }
             }
         });
 

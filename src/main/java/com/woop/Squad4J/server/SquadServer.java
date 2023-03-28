@@ -43,7 +43,7 @@ public class SquadServer {
     private static List<Long> playersOnControl;
     private static List<Long> admins;
     private static List<Long> adminsInGame = new ArrayList<>();
-    private static Collection<OnlinePlayer> adminsInAdminCam;
+    private static Collection<OnlinePlayer> adminsInAdminCam = new ArrayList<>();
     private static Collection<OnlinePlayer> onlinePlayers;
     private static Collection<DisconnectedPlayer> disconnectedPlayers;
     private static Collection<Squad> squads;
@@ -214,7 +214,7 @@ public class SquadServer {
      *
      * @param ev the {@link Event} emitted by {@link EventEmitter}
      */
-    protected static void receiveEvent(final Event ev) {
+    protected synchronized static void receiveEvent(final Event ev) {
         EventType type = ev.getType();
 
         //TODO: Add receiving of tick rate event to update current tick rate field
@@ -397,6 +397,7 @@ public class SquadServer {
             case PLAYERLIST_UPDATED:
                 LOGGER.trace("Updating SquadServer for PLAYERLIST_UPDATED");
                 PlayerListUpdatedEvent playerListUpdatedEvent = (PlayerListUpdatedEvent) ev;
+                admins = entityManager.getActiveAdminsSteamId();
                 onlinePlayers = playerListUpdatedEvent
                         .getOnlinePlayersList()
                         .stream()
