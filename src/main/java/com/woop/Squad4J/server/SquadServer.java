@@ -367,15 +367,22 @@ public class SquadServer {
                     entityManager.update(currentMapEntity.setNumOfGames(currentMapEntity.getNumOfGames() + 1));
                     lastKnownLayer = currentLayer;
                     if (RotationListener.isRotationHaveMaps()) {
-                        String map = RotationListener.incrementNextMapAndGet();
-                        LOGGER.info("Setting next map by rotation: " + map);
-                        String response = Rcon.command("AdminSetNextLayer " + map);
-                        if (response == null || response.isEmpty()) {
-                            LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
-                            LOGGER.error("RCON RESPONSE: " + response);
-                        }
-                        entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, map);
-                        LOGGER.info("Next map '" + map + "' was set");
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(15000);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            String map = RotationListener.incrementNextMapAndGet();
+                            LOGGER.info("Setting next map by rotation: " + map);
+                            String response = Rcon.command("AdminSetNextLayer " + map);
+                            if (response == null || response.isEmpty()) {
+                                LOGGER.error("Error while trying set next map to '" + map + "', because RCON returned null or empty string in response");
+                                LOGGER.error("RCON RESPONSE: " + response);
+                            }
+                            entityManager.addAdminActionInLog(1, null, CHANGE_NEXT_LAYER, map);
+                            LOGGER.info("Next map '" + map + "' was set");
+                        }).start();
                     }
                 }
                 nextMap = ((LayerInfoUpdatedEvent) ev).getNextMap();
