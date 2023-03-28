@@ -41,7 +41,7 @@ public class FtpBanService implements Runnable {
     @Override
     public void run() {
         run = true;
-        EntityManager entityManager = new EntityManager();
+        EntityManager entityManager = EntityManager.getInstance();
         FTPClient ftpClient = connectFtpServer(HOST, PORT, USERNAME, PASSWORD, ENCODING, BINARY_FILE_TYPE);
         if (USE_DISCORD_BANS) {
             discord = new Discord();

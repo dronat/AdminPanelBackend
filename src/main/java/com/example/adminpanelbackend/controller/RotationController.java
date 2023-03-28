@@ -142,7 +142,7 @@ public class RotationController extends BaseSecureController {
             HttpServletResponse response,
             int roleGroupId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        RotationGroupEntity newActiveRotationGroup = rotationGroupService.findById(roleGroupId).orElseThrow();
+        RotationGroupEntity newActiveRotationGroup = entityManager.getRotationByRotationIdAndServerId(roleGroupId, SERVER_ID);
         try {
             RotationGroupEntity oldRotationGroupEntity = rotationGroupService.findByServerIDAndIsActiveIsTrue(serversService.findById(SERVER_ID).orElseThrow());
             rotationGroupService.saveAndFlush(oldRotationGroupEntity.setIsActive(false));
@@ -170,11 +170,7 @@ public class RotationController extends BaseSecureController {
             HttpServletResponse response,
             int roleGroupId) {
         LOGGER.debug("Received secured {} request on '{}' with userInfo in cookie '{}'", request.getMethod(), request.getRequestURL(), userInfo);
-        rotationGroupService
-                .findById(roleGroupId)
-                .ifPresent(rotationGroupEntity ->
-                        rotationGroupService.saveAndFlush(rotationGroupEntity.setIsActive(false))
-                );
+        entityManager.update(entityManager.getRotationByRotationIdAndServerId(roleGroupId, SERVER_ID).setIsActive(false));
         return ResponseEntity.ok().build();
     }
 

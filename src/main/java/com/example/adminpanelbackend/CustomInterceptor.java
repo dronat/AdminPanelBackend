@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class CustomInterceptor implements HandlerInterceptor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomInterceptor.class);
-    final EntityManager em = new EntityManager();
+    final EntityManager em = EntityManager.getInstance();
 
     @Override
     public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {

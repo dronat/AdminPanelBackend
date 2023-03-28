@@ -24,11 +24,18 @@ public class EntityManager extends JpaManager implements JpaConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityManager.class);
     private static final int SERVER_ID = ConfigLoader.get("server.id", Integer.class);
     private static volatile boolean initialized = false;
+    private static EntityManager entityManager;
 
     public EntityManager() {
         super(EMF_THREAD_LOCAL.getEntityManager());
     }
 
+    public static synchronized EntityManager getInstance() {
+        if (entityManager == null) {
+            entityManager = new EntityManager();
+        }
+        return entityManager;
+    }
     public synchronized void init() {
         List<RoleEnum> roleEnums = List.of(RoleEnum.values());
         List<String> roleEntities = em.createQuery("SELECT a FROM RoleEntity a", RoleEntity.class)
@@ -421,6 +428,14 @@ public class EntityManager extends JpaManager implements JpaConnection {
         ServerEntity serverEntity = getServerById(serverId);
         return em.createQuery("SELECT t FROM RotationGroupEntity t where t.isActive = true AND t.serverID = :serverEntity", RotationGroupEntity.class)
                 .setParameter("serverEntity", serverEntity)
+                .getSingleResult();
+    }
+
+    public synchronized RotationGroupEntity getRotationByRotationIdAndServerId(int rotationId, int serverId) {
+        ServerEntity serverEntity = getServerById(serverId);
+        return em.createQuery("SELECT t FROM RotationGroupEntity t where t.id = :rotationId AND t.serverID = :serverEntity", RotationGroupEntity.class)
+                .setParameter("serverEntity", serverEntity)
+                .setParameter("rotationId", rotationId)
                 .getSingleResult();
     }
 

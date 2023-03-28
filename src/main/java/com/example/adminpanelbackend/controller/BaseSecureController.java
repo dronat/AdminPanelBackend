@@ -27,7 +27,7 @@ import java.util.List;
 public class BaseSecureController {
     public static final int SERVER_ID = ConfigLoader.get("server.id", Integer.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseSecureController.class);
-    EntityManager entityManager = new EntityManager();
+    EntityManager entityManager = EntityManager.getInstance();
     @Autowired
     PlayerService playerService;
     @Autowired

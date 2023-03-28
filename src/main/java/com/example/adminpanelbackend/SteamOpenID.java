@@ -32,10 +32,9 @@ public class SteamOpenID {
         manager.setMaxAssocAttempts(0);
         try {
             discovered = manager.associate(manager.discover(STEAM_OPENID));
-        } catch (DiscoveryException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             discovered = null;
-            System.exit(1);
         }
     }
 

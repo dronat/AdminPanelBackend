@@ -30,7 +30,7 @@ public class Discord {
         if (init) {
             return;
         }
-        entityManager = new EntityManager();
+        entityManager = EntityManager.getInstance();
         sentMessages = new HashMap<>();
         List<DiscordMessageIdEntity> result = entityManager.getAllDiscordMessagesId();
         if (!result.isEmpty()) {

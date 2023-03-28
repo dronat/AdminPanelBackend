@@ -36,7 +36,7 @@ import static com.example.adminpanelbackend.ActionEnum.*;
  */
 public class SquadServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SquadServer.class);
-    private static final EntityManager entityManager = new EntityManager();
+    private static final EntityManager entityManager = EntityManager.getInstance();
     private static final int SERVER_ID = ConfigLoader.get("server.id", Integer.class);
     private static final BiMap<String, Long> nameSteamIds = HashBiMap.create();
     private static boolean initialized = false;

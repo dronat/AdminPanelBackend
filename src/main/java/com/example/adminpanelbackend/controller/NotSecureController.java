@@ -29,7 +29,7 @@ import java.util.HashMap;
 public class NotSecureController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotSecureController.class);
     private final SteamOpenID steamOpenID = new SteamOpenID();
-    EntityManager entityManager = new EntityManager();
+    EntityManager entityManager = EntityManager.getInstance();
     @Autowired
     AdminService adminService;
 

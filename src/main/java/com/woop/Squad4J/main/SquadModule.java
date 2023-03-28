@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 public class SquadModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(SquadModule.class);
-    private static final EntityManager entityManager = new EntityManager();
+    private static final EntityManager entityManager = EntityManager.getInstance();
 
     public static void init() {
         //Initialize connectors

@@ -9,7 +9,7 @@ public class DBLog /*implements A2SUpdatedListener, NewGameListener, PlayerDiedL
         PlayerWoundedListener, RoundWinnerListener, ServerTickRateListener, SteamidConnectedListener*/ {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DBLog.class);
-    //EntityManager entityManager = new EntityManager();
+    //EntityManager entityManager = EntityManager.getInstance();
 
     /*@Override
     public void onA2SUpdated(A2SUpdatedEvent a2SUpdatedEvent) {

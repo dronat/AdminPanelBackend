@@ -21,7 +21,7 @@ public class RotationListener {
 
     public synchronized static void init() {
         if (!init) {
-            entityManager = new EntityManager();
+            entityManager = EntityManager.getInstance();
             nextMapPosition = 0;
             init = true;
             LOGGER.info("Rotation was initialized");
