@@ -104,7 +104,7 @@ public class RotationController extends BaseSecureController {
         return ResponseEntity.ok().build();
     }
 
-    @Role(role = ROTATION_MANAGEMENT)
+    @Role(role = BASE)
     @GetMapping(path = "/get-all-rotation-groups")
     public ResponseEntity<HashMap<String, Object>> getAllRotationGroups(
             @SessionAttribute AdminEntity userInfo,

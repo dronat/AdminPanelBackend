@@ -27,7 +27,7 @@ public class CorsFilter implements Filter {
             String origin = request.getHeader("Origin");
             //response.setHeader("Access-Control-Allow-Origin", allowedOrigins.contains(origin) ? origin : "");
             response.addHeader("Access-Control-Allow-Origin", "http://185.31.160.131:3000");
-            //response.addHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+//            response.addHeader("Access-Control-Allow-Origin", "http://localhost:3000");
             response.setHeader("Vary", "Origin");
 
             // Access-Control-Max-Age
