@@ -12,7 +12,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>admin-panel-backend</artifactId>
-    <version>2.0</version>
+    <version>2.1</version>
     <name>adminPanelBackend</name>
     <description>adminPanelBackend</description>
     <packaging>jar</packaging>
